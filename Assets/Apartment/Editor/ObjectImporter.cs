@@ -19,6 +19,10 @@ public static class ObjectImporter
     [System.Serializable]
     class Manifest { public string name; public string fbx; public string collider = "box"; public bool @static = true; }
 
+    // Only these keep colliders; everything else is walk-through so the small rooms are easy
+    // to move around in (the walls, floors and drawer handles keep theirs elsewhere).
+    static readonly HashSet<string> Solid = new HashSet<string> { "kitchen_cabinets", "fridge" };
+
     static string ObjectsDir => Path.GetFullPath(Path.Combine(Application.dataPath, "..", "blender", "lib", "objects"));
 
     // Only packages whose FBX, manifest or textures changed since their prefab was saved.
@@ -100,7 +104,7 @@ public static class ObjectImporter
                         StaticEditorFlags.ContributeGI | StaticEditorFlags.BatchingStatic |
                         StaticEditorFlags.OccluderStatic | StaticEditorFlags.OccludeeStatic |
                         StaticEditorFlags.ReflectionProbeStatic);
-                if (r.name.EndsWith("_leaves") || r.name.EndsWith("_mat"))   // foliage cards, floor mats: walk-through
+                if (!Solid.Contains(man.name))                       // walk-through, so moving around is easy
                     continue;
                 if (man.collider == "box")
                     FilingCabinetSetup.FitCollider(r.gameObject, r);

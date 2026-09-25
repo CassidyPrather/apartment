@@ -55,7 +55,7 @@ public static class FilingCabinetSetup
         ConfigureModels(mats);
         var itemPrefabs = new Dictionary<string, GameObject>();
         foreach (var item in Items)
-            itemPrefabs[item] = BuildStaticItem(item, withCollider: true);
+            itemPrefabs[item] = BuildStaticItem(item, withCollider: false);   // walk-through
         itemPrefabs["cable_stubs"] = BuildStaticItem("cable_stubs", withCollider: false);
         var cabinet = BuildCabinet();
         var set = BuildSet(cabinet, itemPrefabs);
@@ -330,8 +330,6 @@ public static class FilingCabinetSetup
         var body = go.transform.Find("filing_cabinet_body");
         foreach (var name in new[] { "filing_cabinet_body", "corner_guard_fl", "corner_guard_fr" })
             GameObjectUtility.SetStaticEditorFlags(go.transform.Find(name).gameObject, StaticFlags);
-        FitCollider(body.gameObject, body.GetComponent<MeshRenderer>());
-
         for (int i = 1; go.transform.Find($"filing_cabinet_drawer_{i}") != null; i++)
         {
             var drawer = go.transform.Find($"filing_cabinet_drawer_{i}");

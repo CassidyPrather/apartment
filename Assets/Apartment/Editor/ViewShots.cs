@@ -8,7 +8,7 @@ using UnityEngine;
 
 public static class ViewShots
 {
-    const float IN = 0.0254f;
+    const float IN = 0.0254f * ApartmentSetup.WorldScale;   // inches, at the world's build scale
     const float Eye = 62f;
 
     static Vector3 U(float x, float y, float z) => new Vector3(-x * IN, z * IN, -y * IN);

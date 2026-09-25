@@ -13,6 +13,9 @@ using UnityEngine;
 public static class ApartmentSetup
 {
     const string Root = "Assets/Apartment";
+    // The whole apartment is built 1.2x real size so avatars fit through the doorways.
+    // Lighting, video and the view captures scale their inch coordinates by the same factor.
+    public const float WorldScale = 1.2f;
 
     [MenuItem("Apartment/Build Apartment Scene")]
     public static void Build()
@@ -51,12 +54,15 @@ public static class ApartmentSetup
         }
 
         var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+        var root = new GameObject("apartment").transform;
+        root.localScale = Vector3.one * WorldScale;
         var shellInst = (GameObject)PrefabUtility.InstantiatePrefab(
             AssetDatabase.LoadAssetAtPath<GameObject>(Root + "/Prefabs/apartment_shell.prefab"));
+        shellInst.transform.SetParent(root, false);
         var spot = shellInst.transform.Find("place_filing_cabinet_set");
         var set = (GameObject)PrefabUtility.InstantiatePrefab(
             AssetDatabase.LoadAssetAtPath<GameObject>(Root + "/Prefabs/filing_cabinet_set.prefab"));
-        set.transform.SetPositionAndRotation(spot.position, spot.rotation);
+        PlaceOn(set.transform, spot, root);
 
         // Every other object package with a marker in the shell goes on its marker.
         foreach (Transform t in shellInst.transform)
@@ -71,7 +77,9 @@ public static class ApartmentSetup
             if (prefab == null)
                 continue;
             var inst = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
-            inst.transform.SetPositionAndRotation(t.position, t.rotation);
+            PlaceOn(inst.transform, t, root);
+            if (t.name == "place_door_laundry__bath")
+                OpenLeaf(inst.transform, -90f);                         // the bathroom door stands open
         }
 
         var world = AssetDatabase.FindAssets("VRCWorld t:Prefab");
@@ -80,12 +88,28 @@ public static class ApartmentSetup
             var vw = (GameObject)PrefabUtility.InstantiatePrefab(
                 AssetDatabase.LoadAssetAtPath<GameObject>(AssetDatabase.GUIDToAssetPath(world[0])));
             // Living room, just inside the entry, facing into the room.
-            vw.transform.SetPositionAndRotation(new Vector3(-1.2f, 0f, -3.9f), Quaternion.Euler(0, 200f, 0));
+            vw.transform.SetPositionAndRotation(new Vector3(-1.2f, 0f, -3.9f) * WorldScale, Quaternion.Euler(0, 200f, 0));
         }
         VideoSetup.Setup();
         EditorSceneManager.SaveScene(scene, Root + "/Scenes/apartment.unity");
         LightingSetup.Setup();
         AssetDatabase.SaveAssets();
         Debug.Log("[ApartmentSetup] done");
+    }
+
+    // Parent under the scaled root at the marker's pose, so the item scales with the shell.
+    static void PlaceOn(Transform item, Transform marker, Transform root)
+    {
+        item.SetParent(root, false);
+        item.localPosition = root.InverseTransformPoint(marker.position);
+        item.localRotation = Quaternion.Inverse(root.rotation) * marker.rotation;
+    }
+
+    // Hinged leaves have their origin on the hinge pin and swing about their local up axis.
+    static void OpenLeaf(Transform door, float degrees)
+    {
+        foreach (var t in door.GetComponentsInChildren<Transform>())
+            if (t.name.EndsWith("_leaf"))
+                t.localRotation = t.localRotation * Quaternion.Euler(0f, degrees, 0f);
     }
 }

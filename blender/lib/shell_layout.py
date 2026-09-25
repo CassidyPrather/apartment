@@ -118,7 +118,7 @@ PLACES = {
     "dining_chair__s": (75.5, 176.0, 180.0),     # pulled out
     "plant_tall": (16.5, 16.5, 0.0),
     "plant_broadleaf": (68.0, 15.0, 0.0),
-    "portable_ac": (12.5, 125.0, 90.0),
+    "portable_ac": (12.5, 131.0, 90.0),          # body clear of the couch arm (y 112.5); hose still in window 2
     "bean_bag": (91.0, 16.5, 0.0),
     "trash_can": (30.5, 183.0, 90.0),
     "window_blinds": (0.0, 0.0, 0.0),

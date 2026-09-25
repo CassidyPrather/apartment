@@ -15,7 +15,7 @@ using UnityEngine;
 
 public static class LightingSetup
 {
-    const float IN = 0.0254f;
+    const float IN = 0.0254f * ApartmentSetup.WorldScale;   // inches, at the world's build scale
 
     // name, x0, x1, y0, y1 (inches), ceiling light spot (x, y), light intensity
     static readonly (string name, float x0, float x1, float y0, float y1, float lx, float ly, float intensity)[] Rooms =
@@ -35,7 +35,7 @@ public static class LightingSetup
     // probe grid instead, which sits inside the rooms only.
     const float VolumePadIn = -4f;        // inset: voxels on a wall face bake half-occluded (dark)
     const float ProbeSpacing = 0.9f, ProbeInset = 0.15f;
-    static readonly float[] ProbeHeights = { 0.3f, 1.3f, 2.3f };
+    static readonly float[] ProbeHeights = { 0.3f * ApartmentSetup.WorldScale, 1.3f * ApartmentSetup.WorldScale, 2.3f * ApartmentSetup.WorldScale };
 
     static Vector3 U(float xIn, float yIn, float zIn) => new Vector3(-xIn * IN, zIn * IN, -yIn * IN);
 
@@ -150,6 +150,33 @@ public static class LightingSetup
             }
         }
 
+        // The entry and patio doors move, so they don't block baked light; a shadow-only slab
+        // in each opening stops the sun leaking through what looks like a solid door.
+        foreach (var (name, x0, x1, y0, y1) in new[] { ("door_blocker_entry", -6f, 0f, 144.5f, 180.5f),
+                                                       ("door_blocker_patio", 212.5f, 249f, -6f, 0f) })
+        {
+            var blk = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            blk.name = name;
+            blk.transform.SetParent(root.transform);
+            Object.DestroyImmediate(blk.GetComponent<Collider>());
+            blk.transform.position = U((x0 + x1) / 2, (y0 + y1) / 2, 40f);
+            blk.transform.localScale = new Vector3((x1 - x0) * IN, 80f * IN, (y1 - y0) * IN);
+            var br = blk.GetComponent<MeshRenderer>();
+            br.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.ShadowsOnly;
+            GameObjectUtility.SetStaticEditorFlags(blk, StaticEditorFlags.ContributeGI);
+        }
+
+        // Small detailed static objects get more lightmap texels: at the room rate a 30 mm rail
+        // (the filing cabinet's top rail) gets under one texel and bleeds the dark interior.
+        foreach (var r in Object.FindObjectsOfType<MeshRenderer>())
+        {
+            if (!GameObjectUtility.GetStaticEditorFlags(r.gameObject).HasFlag(StaticEditorFlags.ContributeGI))
+                continue;
+            var size = r.bounds.size;
+            float big = Mathf.Max(size.x, Mathf.Max(size.y, size.z));
+            r.scaleInLightmap = big < 1.0f ? 4f : big < 2.0f ? 2f : 1f;
+        }
+
         RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Trilight;
         RenderSettings.ambientSkyColor = new Color(0.6f, 0.62f, 0.66f);     // near-neutral: a bluer sky tinted everything by the windows
         RenderSettings.ambientEquatorColor = new Color(0.45f, 0.44f, 0.42f);
@@ -195,6 +222,34 @@ public static class LightingSetup
         Debug.Log("[LightingSetup] bake started");
     }
 
+    // Occlusion culling: interior walls hide most of the apartment from any one spot (a big
+    // saving on Quest). Glass and cutout foliage must not occlude, or the windows would hide
+    // the outdoor backdrop. Cells are sized for small rooms so doorways stay open.
+    [MenuItem("Apartment/Bake Occlusion")]
+    public static void BakeOcclusion()
+    {
+        int cleared = 0;
+        foreach (var r in Object.FindObjectsOfType<MeshRenderer>())
+        {
+            var flags = GameObjectUtility.GetStaticEditorFlags(r.gameObject);
+            if ((flags & StaticEditorFlags.OccluderStatic) == 0)
+                continue;
+            if (r.sharedMaterials.Any(m => m != null && m.renderQueue >= 2450))       // alpha-test or transparent
+            {
+                GameObjectUtility.SetStaticEditorFlags(r.gameObject, flags & ~StaticEditorFlags.OccluderStatic);
+                cleared++;
+            }
+        }
+        StaticOcclusionCulling.smallestOccluder = 0.25f;
+        StaticOcclusionCulling.smallestHole = 0.2f;
+        StaticOcclusionCulling.backfaceThreshold = 100f;
+        StaticOcclusionCulling.Compute();
+        var scene = EditorSceneManager.GetActiveScene();
+        EditorSceneManager.MarkSceneDirty(scene);
+        EditorSceneManager.SaveScene(scene);
+        Debug.Log($"[LightingSetup] occlusion baked ({cleared} see-through renderers kept as occludees only)");
+    }
+
     // The Light Volumes package queues its atlas packing after a bake, and the queued job
     // doesn't always run (the volumes then stay switched off). Once the package has saved
     // its volume textures, pack the atlas ourselves and save the scene when it's done.
@@ -228,6 +283,7 @@ public static class LightingSetup
                 EditorSceneManager.MarkSceneDirty(manager.gameObject.scene);
                 EditorSceneManager.SaveScene(manager.gameObject.scene);
                 Debug.Log(atlas != null ? "[LightingSetup] bake done, Light Volume atlas packed" : "[LightingSetup] Light Volume atlas didn't pack");
+                BakeOcclusion();
             }
             EditorApplication.update += SaveWhenPacked;
         }

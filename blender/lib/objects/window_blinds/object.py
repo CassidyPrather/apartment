@@ -53,6 +53,9 @@ BLINDS = [
     ("ext_west", 101.75, 136.5, -1.25, 45.0),
     ("ext_south", 38.5, 108.5, -1.75, 12.0),
 ]
+# The portable AC's hose goes out through window 2: its vanes part around it, the ones in
+# the way pushed aside and bunched up either side (hose centre along the wall, half-gap).
+HOSE_PARTS = {("ext_west", 101.75): (113.5, 4.5)}
 
 REGIONS = ["vane", "rail", "carrier", "wand"]
 ATLAS = {
@@ -106,8 +109,16 @@ def blind(b, wall, a0, a1, dc, tilt):
     n = int(round((u1 - u0 - VANE_W) / VANE_PITCH)) + 1
     pitch = (u1 - u0 - VANE_W) / (n - 1)
     zb, zv = Z0 + BOTTOM_GAP, zt - RAIL_H - 0.3
+    part = HOSE_PARTS.get((wall, a0))
     for i in range(n):
         cu = u0 + VANE_W / 2 + i * pitch
+        if part:
+            g, half = part
+            if abs(cu - g) < half + VANE_W / 2:
+                # push aside to the nearer edge of the gap, stacked tight
+                side = -1 if cu < g else 1
+                k = abs(cu - g) // 1.0
+                cu = g + side * (half + VANE_W / 2 + 0.5 + (half - k) * 0.4)
         # alternate a hair in depth so closed, overlapping vanes never z-fight
         dd = dc + (0.04 if i % 2 else -0.04)
         wall_box(b, "vane", wall, (cu - VANE_W / 2, cu + VANE_W / 2), (dd - VANE_T / 2, dd + VANE_T / 2),

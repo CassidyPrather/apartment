@@ -9,7 +9,7 @@ using UnityEngine;
 
 public static class VideoSetup
 {
-    const float IN = 0.0254f;
+    const float IN = 0.0254f * ApartmentSetup.WorldScale;   // inches, at the world's build scale
     const string PlayerPrefab = "Assets/USharpVideo/USharpVideo.prefab";
 
     // Controls panel: plan (x, y, z) inches on the center wall's living-room face, and width.
