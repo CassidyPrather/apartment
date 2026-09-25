@@ -38,6 +38,13 @@ public static class NightSetup
         ("bedroom_lamp", "floor_lamp", "floor_lamp_glow",
             new[] { new Vector3(262f, 42f, 72f) }, 7f, 5f, new Vector3(0, 0, 0), Vector2.zero, "Lamp"),
     };
+    // Soft sources near walls: light name -> (source size m, intensity); see Setup.
+    static readonly System.Collections.Generic.Dictionary<string, (float size, float intensity)> Soft =
+        new System.Collections.Generic.Dictionary<string, (float, float)>
+        {
+            ["bedroom_lamp_0"] = (1.2f, 1.1f),
+            ["bath_light_0"] = (1.2f, 1.7f),
+        };
     static readonly Vector3 DayNightSwitch = new Vector3(18f, 180.4f, 48f);
 
     [MenuItem("Apartment/Setup Lights And Night")]
@@ -66,11 +73,13 @@ public static class NightSetup
             // the ceiling blew out a disc on it); the torchiere's bowl shines up.
             bool up = s.name == "bedroom_lamp";
             // Lights near a wall (the torchiere by the east wall, the vanity light over the
-            // mirror) sit out from it with a bigger, softer source, or the wall beside them
-            // blows out in a bright disc.
-            bool nearWall = up || s.name == "bath_light";
-            var instances = s.lights.Select((p, i) => MakeLight($"{s.name}_{i}", group, U(p.x, p.y, p.z), s.range, s.intensity, up,
-                up ? 0.5f : nearWall && i == 0 ? 0.35f : 0.16f)).ToArray();
+            // mirror) blew a bright disc onto it. Light Volumes falls off as I*s^2/(d^2+s^2),
+            // so a wall right by the light always gets close to the full intensity I: these
+            // get a big source (s) and a low intensity, keeping the room's light the same while
+            // the wall beside them peaks around 1 instead of blowing out.
+            var instances = s.lights.Select((p, i) => Soft.TryGetValue($"{s.name}_{i}", out var soft)
+                ? MakeLight($"{s.name}_{i}", group, U(p.x, p.y, p.z), s.range, soft.intensity, up, soft.size)
+                : MakeLight($"{s.name}_{i}", group, U(p.x, p.y, p.z), s.range, s.intensity, up, 0.16f)).ToArray();
 
             // The fixture instance nearest the first light owns the glowing glass.
             var target = U(s.lights[0].x, s.lights[0].y, s.lights[0].z);
