@@ -38,12 +38,16 @@ public static class NightSetup
         ("bedroom_lamp", "floor_lamp", "floor_lamp_glow",
             new[] { new Vector3(262f, 42f, 72f) }, 7f, 5f, new Vector3(0, 0, 0), Vector2.zero, "Lamp"),
     };
-    // Soft sources near walls: light name -> (source size m, intensity); see Setup.
-    static readonly System.Collections.Generic.Dictionary<string, (float size, float intensity)> Soft =
-        new System.Collections.Generic.Dictionary<string, (float, float)>
+    // Soft sources near walls: light name -> (source size m, intensity, all-round); see
+    // Setup. The bath's lights shine all round: in that small room a spot's cone edge drew
+    // a hard dark arc on the wall above the vanity and along the tops of the walls.
+    static readonly System.Collections.Generic.Dictionary<string, (float size, float intensity, bool point)> Soft =
+        new System.Collections.Generic.Dictionary<string, (float, float, bool)>
         {
-            ["bedroom_lamp_0"] = (1.2f, 1.1f),
-            ["bath_light_0"] = (1.2f, 1.7f),
+            ["bedroom_lamp_0"] = (1.2f, 1.1f, false),
+            ["bath_light_0"] = (1.2f, 1.7f, true),
+            ["bath_light_1"] = (1.2f, 0.4f, true),
+            ["hall_light_0"] = (1.2f, 0.4f, true),               // the narrow hall's walls sit right by it
         };
     static readonly Vector3 DayNightSwitch = new Vector3(18f, 180.4f, 48f);
 
@@ -78,7 +82,7 @@ public static class NightSetup
             // get a big source (s) and a low intensity, keeping the room's light the same while
             // the wall beside them peaks around 1 instead of blowing out.
             var instances = s.lights.Select((p, i) => Soft.TryGetValue($"{s.name}_{i}", out var soft)
-                ? MakeLight($"{s.name}_{i}", group, U(p.x, p.y, p.z), s.range, soft.intensity, up, soft.size)
+                ? MakeLight($"{s.name}_{i}", group, U(p.x, p.y, p.z), s.range, soft.intensity, up, soft.size, soft.point)
                 : MakeLight($"{s.name}_{i}", group, U(p.x, p.y, p.z), s.range, s.intensity, up, 0.16f)).ToArray();
 
             // The fixture instance nearest the first light owns the glowing glass.
@@ -129,7 +133,7 @@ public static class NightSetup
         Debug.Log($"[NightSetup] {Sources.Length} light sources, switches and day/night set up");
     }
 
-    static PointLightVolumeInstance MakeLight(string name, Transform parent, Vector3 pos, float range, float intensity, bool up, float sourceSize)
+    static PointLightVolumeInstance MakeLight(string name, Transform parent, Vector3 pos, float range, float intensity, bool up, float sourceSize, bool point = false)
     {
         Selection.activeGameObject = parent.gameObject;
         EditorApplication.ExecuteMenuItem("GameObject/Point Light Volume");
@@ -147,7 +151,7 @@ public static class NightSetup
         // bright disc on it (inverse-square hotspot).
         so.FindProperty("LightSourceSize").floatValue = sourceSize;
         so.FindProperty("Shadows").boolValue = true;
-        so.FindProperty("LightType").intValue = 1;                              // spot
+        so.FindProperty("LightType").intValue = point ? 0 : 1;                  // point or spot
         so.FindProperty("Angle").floatValue = (up ? 95f : 150f) * Mathf.Deg2Rad;                // a torchiere bowl throws a narrower cone up
         var falloff = so.FindProperty("Falloff");
         if (falloff != null) falloff.floatValue = 0.5f;
