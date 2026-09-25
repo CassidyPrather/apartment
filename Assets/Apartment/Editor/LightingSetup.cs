@@ -240,6 +240,23 @@ public static class LightingSetup
                 cleared++;
             }
         }
+        // Room-sized objects (the ceiling, floors, and the packages built in plan coordinates
+        // like the wall-art sets) were being culled from inside the rooms they cover. They gain
+        // nothing from culling, so they're always drawn; the ceiling and floors don't occlude.
+        int huge = 0;
+        foreach (var r in Object.FindObjectsOfType<MeshRenderer>())
+        {
+            var flags = GameObjectUtility.GetStaticEditorFlags(r.gameObject);
+            var sz = r.bounds.size;
+            bool flat = r.name.Contains("ceiling") || r.name.Contains("floor");
+            if (Mathf.Max(sz.x, sz.z) > 3f || flat)
+            {
+                flags &= ~StaticEditorFlags.OccludeeStatic;
+                if (flat) flags &= ~StaticEditorFlags.OccluderStatic;
+                GameObjectUtility.SetStaticEditorFlags(r.gameObject, flags);
+                huge++;
+            }
+        }
         StaticOcclusionCulling.smallestOccluder = 0.25f;
         StaticOcclusionCulling.smallestHole = 0.2f;
         StaticOcclusionCulling.backfaceThreshold = 100f;
@@ -247,7 +264,7 @@ public static class LightingSetup
         var scene = EditorSceneManager.GetActiveScene();
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
-        Debug.Log($"[LightingSetup] occlusion baked ({cleared} see-through renderers kept as occludees only)");
+        Debug.Log($"[LightingSetup] occlusion baked ({cleared} see-through renderers kept as occludees only, {huge} room-sized always drawn)");
     }
 
     // The Light Volumes package queues its atlas packing after a bake, and the queued job

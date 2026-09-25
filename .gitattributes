@@ -15,3 +15,6 @@
 *.ogg   filter=lfs diff=lfs merge=lfs -text
 *.mp3   filter=lfs diff=lfs merge=lfs -text
 *.mp4   filter=lfs diff=lfs merge=lfs -text
+
+# Generated atlas meshes (Unity YAML, large): Apartment > Atlas Materials.
+Assets/Apartment/Atlased/Meshes/*.asset filter=lfs diff=lfs merge=lfs -text

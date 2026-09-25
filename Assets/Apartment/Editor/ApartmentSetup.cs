@@ -92,6 +92,7 @@ public static class ApartmentSetup
         }
         VideoSetup.Setup();
         EditorSceneManager.SaveScene(scene, Root + "/Scenes/apartment.unity");
+        AtlasSetup.Run();                                          // draw calls: shared atlases
         LightingSetup.Setup();
         AssetDatabase.SaveAssets();
         Debug.Log("[ApartmentSetup] done");
