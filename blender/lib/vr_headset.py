@@ -1,10 +1,11 @@
-"""PC VR headset: compact purple-shelled visor on a rigid halo strap with off-ear
-speakers, resting upright on the cabinet top.
+"""PC VR headset: compact purple-shelled visor with a thick face cushion, thin side
+straps back to an upright oval strap ring, a slotted crown pad inside the ring's top,
+and off-ear speakers hanging from the side straps. Resting upright on the cabinet top.
 
-Source of truth: scripted (the halo, arms and cable are sweeps, so proportions can be
-tuned from the dimensions file). Dimensions: dimensions.HEADSET (loop size and tilt
-and the ear-to-ear arch from the splat, visor details estimated). Object origin: on the resting surface under
-the loop's centre. Local frame: the visor faces +X, up is +Z. Parody brand: squintscreen.
+Source of truth: scripted (ring, straps and cable are sweeps). Dimensions:
+dimensions.HEADSET (ring size from the splat, layout from the orbit video, visor from
+matched capture photos). Object origin: on the resting surface near the headset's
+centre. Local frame: the visor faces +X, up is +Z. Parody brand: squintscreen.
 
 The visor is two layers: a translucent purple shell (its own material, alpha-blended
 in Unity) around opaque internals, so the frame, lenses and blue status LED show
@@ -26,18 +27,29 @@ REGIONS = ["visor_front", "visor_top", "visor_inner", "strap", "foam", "badge", 
 SHELL_REGIONS = ("visor_front", "visor_top")
 
 # Layout (meters, headset-local).
-VISOR_FRONT_X = 0.135     # the loop's front meets the visor's back
+VISOR_FRONT_X = 0.135
 VISOR_Z = (0.004, 0.004 + HS["visor_h"])
-HALO_CENTER = Vector((0.0, 0.0, 0.032))   # the loop lies low and flat around the head
-HALO_TILT = HS["halo_tilt"]   # degrees; nearly level on the real one
-BAND_H = HS["halo_band"]      # halo band height
-BAND_T = 0.0055               # halo band thickness
 SHELL_ALPHA = 0.72          # dense tint; the internals show only faintly, as in the photos
-# Ear-to-ear headband arch standing up across the loop (SCAN splat: x ~ -5 cm, apex ~13 cm).
-ARCH_X = HS["arch_x"]
-ARCH_HALF = HS["arch_half_span"]
-ARCH_TOP = HS["arch_height"]
-ARCH_BAND = 0.045             # the rear crown plate is ~4.5 cm deep (splat side view)
+# The strap is a closed oval ring standing across the headset behind the visor (seen
+# face-on from behind, edge-on from above), leaning back a little, with the slotted
+# crown pad inside its top and the adjustment dial at its bottom rear.
+RING_X = HS["arch_x"]
+RING_HALF_W = HS["arch_half_span"]
+RING_Z0 = 0.012                        # bottom of the ring, just off the resting surface
+RING_Z1 = HS["arch_height"]
+RING_LEAN = math.radians(HS["ring_lean"])
+RING_BAND, RING_T = 0.032, 0.020      # band depth (along x), radial thickness (orbit video)
+
+
+def ring_point(theta):
+    """Point on the ring; theta 0 = +Y side, pi/2 = top, 3pi/2 = bottom."""
+    hz = (RING_Z1 - RING_Z0) / 2
+    y = RING_HALF_W * math.cos(theta)
+    z = hz * math.sin(theta) + hz                     # height above the ring's bottom
+    return Vector((RING_X - z * math.sin(RING_LEAN), y, RING_Z0 + z * math.cos(RING_LEAN)))
+
+
+RING_NORMAL = Vector((math.cos(RING_LEAN), 0.0, math.sin(RING_LEAN)))
 
 
 def visor_arc(x_front, width, depth_curve=0.9, n=12):
@@ -53,19 +65,6 @@ def curved_slab(b, region, x_front, depth, width, z0, z1, cap_region, bottom_reg
     front = visor_arc(x_front, width)
     back = [(x - depth, y) for x, y in reversed(front)]
     return b.prism(region, front + back, z0, z1, cap_region=cap_region, bottom_region=bottom_region)
-
-
-def halo_point(theta):
-    """Point on the head loop. Egg-shaped: widest at the ear line, narrowing toward the
-    visor so the side arms run nearly straight back from it (as in the capture)."""
-    a, bb = HS["halo_len"] / 2, HS["halo_w"] / 2
-    taper = 1.0 - 0.32 * max(math.cos(theta), 0.0)
-    p = Vector((a * math.cos(theta), bb * taper * math.sin(theta), 0.0))
-    return HALO_CENTER + Matrix.Rotation(math.radians(HALO_TILT), 3, "Y") @ p
-
-
-def halo_normal():
-    return Matrix.Rotation(math.radians(HALO_TILT), 3, "Y") @ Vector((0, 0, 1))
 
 
 def edge_drop():
@@ -89,55 +88,44 @@ def build(coll):
     curved_slab(b, "visor_front", VISOR_FRONT_X, vd, vw, z0, z1, "visor_top", "visor_front")
     curved_slab(b, "visor_inner", VISOR_FRONT_X - 0.005, vd - 0.010, vw - 0.014,
                 z0 + 0.004, z1 - 0.004, "visor_inner", "visor_inner")
-    curved_slab(b, "strap", VISOR_FRONT_X - vd + 0.001, HS["gasket_d"], vw - 0.008,
-                z0 + 0.003, z1 - 0.002, "strap", "strap")
+    curved_slab(b, "strap", VISOR_FRONT_X - vd + 0.001, HS["gasket_d"], vw - 0.006,
+                z0 + 0.002, z1 - 0.002, "strap", "strap")   # face cushion, following the shell
 
-    # Halo loop around the head.
-    n = 48
-    ring = [halo_point(2 * math.pi * i / n) for i in range(n)]
-    b.sweep("strap", ring, common.rect_profile(BAND_T, BAND_H), closed=True,
-            ups=[halo_normal()] * n)
-    # Side arms from the gasket to the halo's sides.
     gx = VISOR_FRONT_X - vd - HS["gasket_d"] * 0.5
+    # The ring, with the slotted crown pad lining the inside of its upper arc.
+    n = 48
+    ring = [ring_point(2 * math.pi * k / n) for k in range(n)]
+    b.sweep("strap", ring, common.rect_profile(RING_T, RING_BAND), closed=True, ups=[RING_NORMAL] * n)
+    centre = (ring_point(0.5 * math.pi) + ring_point(1.5 * math.pi)) / 2
+    arc = [ring_point(math.radians(d)) for d in range(25, 156, 5)]
+    pad = [tuple(p + (centre - p).normalized() * (RING_T / 2 + 0.004)) for p in arc]
+    b.sweep("foam", pad, common.rect_profile(0.008, RING_BAND * 0.9), ups=[RING_NORMAL] * len(pad))
+    # The slotted crown pad: three fingers running back and down from the ring's top,
+    # cupping the back of the head (two slots between them).
+    for deg in (70, 90, 110):
+        base = ring_point(math.radians(deg))
+        pts = [base, base + Vector((-0.025, 0, -0.004)), base + Vector((-0.05, 0, -0.022)),
+               base + Vector((-0.062, 0, -0.045))]
+        b.sweep("strap", common.smooth_path([tuple(p) for p in pts], 4), common.rect_profile(0.016, 0.006),
+                up=(0, 0, 1))
+    # Thin side straps from the face cushion back to the ring's sides, with the
+    # off-ear speakers hanging from them on short rods.
     for sgn in (-1, 1):
-        side = halo_point(sgn * math.pi / 2)
-        pts = [(gx + 0.01, sgn * (vw / 2 - 0.004), z0 + 0.022), (gx - 0.03, sgn * (vw / 2 + 0.01), side.z + 0.004),
-               (side.x + 0.03, sgn * (abs(side.y) - 0.002), side.z), tuple(side)]
-        b.sweep("strap", common.smooth_path(pts, 5), common.rect_profile(0.005, 0.02), up=(0, 0, 1))
-    # Crown plate: a wide band from ear to ear standing up across the loop, padded
-    # underneath. Its ends carry the off-ear speakers.
-    n = 24
-    arch = []
-    for i in range(n + 1):
-        t = math.pi * i / n
-        arch.append((ARCH_X, ARCH_HALF * math.cos(t), HALO_CENTER.z + (ARCH_TOP - HALO_CENTER.z) * math.sin(t)))
-    b.sweep("strap", arch, common.rect_profile(0.006, ARCH_BAND), up=(1, 0, 0))
-    pad = [(x, y * 0.97, z - 0.006) for x, y, z in arch[5:n - 4]]
-    b.sweep("foam", pad, common.rect_profile(0.005, ARCH_BAND * 0.8), up=(1, 0, 0))
-    # Two round padded prongs on the plate's inner face (the rounded ends of its E shape).
-    for sgn in (-1, 1):
-        t = math.radians(90 + sgn * 38)
-        py_, pz_ = ARCH_HALF * 0.9 * math.cos(t), HALO_CENTER.z + (ARCH_TOP - HALO_CENTER.z) * 0.9 * math.sin(t)
-        b.cylinder("foam", (ARCH_X + 0.012, py_, pz_), 0.019, 0.012, axis="X", segments=20, bevel=0.003)
-    for sgn in (-1, 1):
-        sp = Vector((ARCH_X + 0.004, sgn * (ARCH_HALF + 0.012), HS["speaker_d"] / 2 + 0.004))
+        side = ring_point(0.0 if sgn > 0 else math.pi)
+        pts = [(gx + 0.01, sgn * (vw / 2 - 0.004), z0 + 0.024), (gx - 0.04, sgn * (vw / 2 + 0.02), 0.045),
+               (side.x + 0.03, sgn * (RING_HALF_W - 0.004), side.z - 0.004), tuple(side)]
+        b.sweep("strap", common.smooth_path(pts, 5), common.rect_profile(0.004, 0.014), up=(0, 0, 1))
+        sp = Vector((0.0, sgn * (RING_HALF_W - 0.012), HS["speaker_d"] / 2 + 0.004))
         b.cylinder("strap", tuple(sp), HS["speaker_d"] / 2, 0.012, axis="Y", segments=20,
                    cap_region="foam", bevel=0.002)
-        b.sweep("strap", [(ARCH_X, sgn * ARCH_HALF, HALO_CENTER.z + 0.004), (sp.x, sp.y - sgn * 0.004, sp.z + 0.012)],
-                common.rect_profile(0.008, 0.005), up=(1, 0, 0))
-    # Rear cradle: a wider band around the back of the loop, padded inside.
-    arc = [halo_point(math.radians(a)) for a in range(135, 226, 5)]
-    lift = Vector((0, 0, 0.004))
-    b.sweep("strap", [tuple(p + lift) for p in arc], common.rect_profile(BAND_T + 0.002, 0.042),
-            ups=[halo_normal()] * len(arc))
-    inward = [tuple(p + lift + (HALO_CENTER - p).normalized() * 0.006) for p in arc]
-    b.sweep("foam", inward, common.rect_profile(0.004, 0.036), ups=[halo_normal()] * len(arc))
-    back = halo_point(math.pi)
-    # Adjustment dial at the back, badge knob on the left rear of the halo.
-    b.cylinder("strap", tuple(back + Vector((-0.012, 0, 0))), 0.017, 0.016, axis="X", segments=24,
+        b.sweep("strap", [(sp.x, sp.y, sp.z + HS["speaker_d"] / 2), (sp.x - 0.004, sp.y, 0.05)],
+                common.circle_profile(0.0025, 6), up=(1, 0, 0))
+    # Adjustment dial at the ring's bottom rear, badge knob on its left side.
+    bottom = ring_point(1.5 * math.pi)
+    b.cylinder("strap", tuple(bottom + Vector((-0.014, 0, 0.012))), 0.016, 0.016, axis="X", segments=24,
                cap_region="dial")
-    knob = halo_point(math.radians(140))
-    b.cylinder("strap", tuple(knob + Vector((0, 0.008, 0))), 0.013, 0.01, axis="Y", segments=20,
+    knob = ring_point(math.radians(150))
+    b.cylinder("strap", tuple(knob + Vector((-0.008, 0, 0))), 0.012, 0.01, axis="X", segments=20,
                cap_region="badge")
     # Tether: short stub from the visor, along the right arm, across the cabinet top
     # and down its left side. The end is placed in cabinet space and brought back
