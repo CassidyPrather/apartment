@@ -8,6 +8,7 @@
 // positions are estimates until the room captures place the real ones.
 
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -188,7 +189,48 @@ public static class LightingSetup
     public static void Bake()
     {
         EditorSceneManager.SaveScene(EditorSceneManager.GetActiveScene());
+        Lightmapping.bakeCompleted -= AfterBake;
+        Lightmapping.bakeCompleted += AfterBake;
         Lightmapping.BakeAsync();
         Debug.Log("[LightingSetup] bake started");
+    }
+
+    // The Light Volumes package queues its atlas packing after a bake, and the queued job
+    // doesn't always run (the volumes then stay switched off). Once the package has saved
+    // its volume textures, pack the atlas ourselves and save the scene when it's done.
+    static void AfterBake()
+    {
+        Lightmapping.bakeCompleted -= AfterBake;
+        int frames = 0;
+        void Wait()
+        {
+            if (++frames < 30)
+                return;                                     // let the package save its textures first
+            EditorApplication.update -= Wait;
+            var manager = Object.FindObjectsOfType<MonoBehaviour>().FirstOrDefault(m => m.GetType().Name == "LightVolumeManager");
+            if (manager == null)
+                return;
+            foreach (var asm in System.AppDomain.CurrentDomain.GetAssemblies())
+            {
+                var gen = asm.GetType("VRCLightVolumes.LightVolumeManagerTools")?.GetMethod("GenerateAtlas", new[] { manager.GetType() });
+                if (gen == null)
+                    continue;
+                gen.Invoke(null, new object[] { manager });
+                break;
+            }
+            double deadline = EditorApplication.timeSinceStartup + 120;
+            void SaveWhenPacked()
+            {
+                var atlas = new SerializedObject(manager).FindProperty("LightVolumeAtlas").objectReferenceValue;
+                if (atlas == null && EditorApplication.timeSinceStartup < deadline)
+                    return;
+                EditorApplication.update -= SaveWhenPacked;
+                EditorSceneManager.MarkSceneDirty(manager.gameObject.scene);
+                EditorSceneManager.SaveScene(manager.gameObject.scene);
+                Debug.Log(atlas != null ? "[LightingSetup] bake done, Light Volume atlas packed" : "[LightingSetup] Light Volume atlas didn't pack");
+            }
+            EditorApplication.update += SaveWhenPacked;
+        }
+        EditorApplication.update += Wait;
     }
 }

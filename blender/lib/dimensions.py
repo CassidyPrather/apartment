@@ -67,10 +67,10 @@ MODEM = {
 
 # --- PC VR headset with a halo strap and off-ear speakers ---------------------------
 HEADSET = {
-    "visor_w": 0.120,            # SCAN matched-camera photos
-    "visor_h": m(1.9),           # EST
-    "visor_d": m(1.5),           # EST
-    "gasket_d": m(1.1),          # EST face cushion depth (orbit video)
+    "visor_w": 0.143,            # SPEC 143 x 52 x 49 mm class visor (fits the matched views)
+    "visor_h": 0.052,            # SPEC
+    "visor_d": 0.030,            # shell; the gasket makes up the rest of the 49 mm
+    "gasket_d": 0.019,           # SPEC-derived (49 mm total depth)
     "arch_x": -0.05,             # SCAN the strap ring stands ~5 cm behind the headset centre
     "arch_half_span": 0.115,     # SCAN ring half-width (ear to ear)
     "arch_height": 0.128,        # SCAN ring top above the resting surface
@@ -83,5 +83,5 @@ PLACEMENT = {
     # (x, y, rotation about Z in degrees). Objects sit on the cabinet top.
     "router": (-0.069, 0.084, 73.5),       # SCAN lid centre and long-axis heading
     "modem": (-0.002, 0.220, -26.5),       # SCAN; the LED end points front-right
-    "vr_headset": (0.005, -0.190, -16.0),  # SCAN splat: loop centre, visor front near x=+0.14; it moves around
+    "vr_headset": (0.0023, -0.2336, 9.0),  # matched capture cameras (photo | render overlay); it moves around
 }

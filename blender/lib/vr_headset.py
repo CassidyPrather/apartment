@@ -1,11 +1,13 @@
-"""PC VR headset: compact purple-shelled visor with a thick face cushion, thin side
-straps back to an upright oval strap ring, a slotted crown pad inside the ring's top,
-and off-ear speakers hanging from the side straps. Resting upright on the cabinet top.
+"""PC VR headset: compact purple-shelled visor (vent slots, blue status light) with a
+black face gasket and nose notch, thin side straps back to a padded rear cradle, a wide
+top strap over the crown, off-ear speakers on pivot arms and a dial at the back. Resting
+upright on the cabinet top.
 
-Source of truth: scripted (ring, straps and cable are sweeps). Dimensions:
-dimensions.HEADSET (ring size from the splat, layout from the orbit video, visor from
-matched capture photos). Object origin: on the resting surface near the headset's
-centre. Local frame: the visor faces +X, up is +Z. Parody brand: squintscreen.
+Source of truth: modelled in the live Blender through the Blender MCP and saved as
+blender/assets/vr_headset.blend (the modelling steps are in
+blender/assets/vr_headset_model.py). The shape was fitted against the cabinet capture's
+own cameras (photo | render | overlay). Object origin: on the resting surface near the
+headset's centre. Local frame: the visor faces +X, up is +Z. Parody brand: squintscreen.
 
 The visor is two layers: a translucent purple shell (its own material, alpha-blended
 in Unity) around opaque internals, so the frame, lenses and blue status LED show
@@ -14,6 +16,9 @@ through the plastic like the real one.
 
 import importlib
 import math
+import os
+
+import bpy
 
 from mathutils import Matrix, Vector
 
@@ -80,61 +85,55 @@ def edge_drop():
     return out
 
 
-def build(coll):
-    b = common.Builder(REGIONS)
-    vw, vd = HS["visor_w"], HS["visor_d"]
-    z0, z1 = VISOR_Z
-    # Visor: translucent shell, opaque internals inside it, black face gasket behind.
-    curved_slab(b, "visor_front", VISOR_FRONT_X, vd, vw, z0, z1, "visor_top", "visor_front")
-    curved_slab(b, "visor_inner", VISOR_FRONT_X - 0.005, vd - 0.010, vw - 0.014,
-                z0 + 0.004, z1 - 0.004, "visor_inner", "visor_inner")
-    curved_slab(b, "strap", VISOR_FRONT_X - vd + 0.001, HS["gasket_d"], vw - 0.006,
-                z0 + 0.002, z1 - 0.002, "strap", "strap")   # face cushion, following the shell
+BLEND = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "assets", "vr_headset.blend")
 
-    gx = VISOR_FRONT_X - vd - HS["gasket_d"] * 0.5
-    # The ring, with the slotted crown pad lining the inside of its upper arc.
-    n = 48
-    ring = [ring_point(2 * math.pi * k / n) for k in range(n)]
-    b.sweep("strap", ring, common.rect_profile(RING_T, RING_BAND), closed=True, ups=[RING_NORMAL] * n)
-    centre = (ring_point(0.5 * math.pi) + ring_point(1.5 * math.pi)) / 2
-    arc = [ring_point(math.radians(d)) for d in range(25, 156, 5)]
-    pad = [tuple(p + (centre - p).normalized() * (RING_T / 2 + 0.004)) for p in arc]
-    b.sweep("foam", pad, common.rect_profile(0.008, RING_BAND * 0.9), ups=[RING_NORMAL] * len(pad))
-    # The slotted crown pad: three fingers running back and down from the ring's top,
-    # cupping the back of the head (two slots between them).
-    for deg in (70, 90, 110):
-        base = ring_point(math.radians(deg))
-        pts = [base, base + Vector((-0.025, 0, -0.004)), base + Vector((-0.05, 0, -0.022)),
-               base + Vector((-0.062, 0, -0.045))]
-        b.sweep("strap", common.smooth_path([tuple(p) for p in pts], 4), common.rect_profile(0.016, 0.006),
-                up=(0, 0, 1))
-    # Thin side straps from the face cushion back to the ring's sides, with the
-    # off-ear speakers hanging from them on short rods.
-    for sgn in (-1, 1):
-        side = ring_point(0.0 if sgn > 0 else math.pi)
-        pts = [(gx + 0.01, sgn * (vw / 2 - 0.004), z0 + 0.024), (gx - 0.04, sgn * (vw / 2 + 0.02), 0.045),
-               (side.x + 0.03, sgn * (RING_HALF_W - 0.004), side.z - 0.004), tuple(side)]
-        b.sweep("strap", common.smooth_path(pts, 5), common.rect_profile(0.004, 0.014), up=(0, 0, 1))
-        sp = Vector((0.0, sgn * (RING_HALF_W - 0.012), HS["speaker_d"] / 2 + 0.004))
-        b.cylinder("strap", tuple(sp), HS["speaker_d"] / 2, 0.012, axis="Y", segments=20,
-                   cap_region="foam", bevel=0.002)
-        b.sweep("strap", [(sp.x, sp.y, sp.z + HS["speaker_d"] / 2), (sp.x - 0.004, sp.y, 0.05)],
-                common.circle_profile(0.0025, 6), up=(1, 0, 0))
-    # Adjustment dial at the ring's bottom rear, badge knob on its left side.
-    bottom = ring_point(1.5 * math.pi)
-    b.cylinder("strap", tuple(bottom + Vector((-0.014, 0, 0.012))), 0.016, 0.016, axis="X", segments=24,
-               cap_region="dial")
-    knob = ring_point(math.radians(150))
-    b.cylinder("strap", tuple(knob + Vector((-0.008, 0, 0))), 0.012, 0.01, axis="X", segments=20,
-               cap_region="badge")
-    # Tether: short stub from the visor, along the right arm, across the cabinet top
-    # and down its left side. The end is placed in cabinet space and brought back
-    # through the headset's placement, so it always drops off the real edge.
-    cpts = [(gx - 0.005, -0.02, z1 - 0.002), (gx - 0.03, -0.06, 0.055), (-0.02, -0.095, 0.05),
+
+def build(coll):
+    """Append the hand-modelled headset (blender/assets/vr_headset.blend, modelled in the live
+    Blender through the MCP against matched capture views), bake its modifiers and curves
+    into one mesh, and add the tether cable, which depends on the cabinet placement."""
+    with bpy.data.libraries.load(os.path.abspath(BLEND), link=False) as (src, dst):
+        dst.objects = list(src.objects)
+    loaded = [o for o in dst.objects if o is not None]
+    for o in loaded:
+        coll.objects.link(o)
+    root = next(o for o in loaded if o.name.startswith("hs_root"))
+    bpy.context.view_layer.update()
+    dg = bpy.context.evaluated_depsgraph_get()
+    base = root.parent.matrix_world.inverted() if root.parent else Matrix()
+    parts = []
+    for o in loaded:
+        if o.type not in ("MESH", "CURVE") or o.hide_render or not _under(o, root):
+            continue
+        me = bpy.data.meshes.new_from_object(o.evaluated_get(dg))
+        me.transform(base @ o.matrix_world)
+        parts.append(bpy.data.objects.new(o.name + "_baked", me))
+    for o in loaded:
+        bpy.data.objects.remove(o, do_unlink=True)
+    # Tether: from the back of the visor, along the right arm, across the cabinet top and
+    # down its left side; the end is placed in cabinet space (edge_drop).
+    b = common.Builder(["cable"])
+    gx = VISOR_FRONT_X - HS["visor_d"] - HS["gasket_d"] * 0.5
+    cpts = [(gx - 0.005, -0.02, VISOR_Z[1] - 0.002), (gx - 0.03, -0.06, 0.055), (-0.02, -0.095, 0.05),
             (-0.09, -0.11, 0.03), (-0.14, -0.12, 0.004)] + edge_drop()
     b.sweep("cable", common.smooth_path(cpts, 6), common.circle_profile(0.0022, 8), up=(0, 0, 1))
-    ob = b.to_object("vr_headset", coll)
+    parts.append(b.to_object("vr_headset_cable", coll))
+    for p in parts:
+        if p.name not in coll.objects:
+            coll.objects.link(p)
+    with bpy.context.temp_override(active_object=parts[0], selected_editable_objects=parts, object=parts[0]):
+        bpy.ops.object.join()
+    ob = parts[0]
+    ob.name = ob.data.name = "vr_headset"
     return [ob]
+
+
+def _under(o, root):
+    while o.parent is not None:
+        if o.parent == root:
+            return True
+        o = o.parent
+    return False
 
 
 def texture(obs):
