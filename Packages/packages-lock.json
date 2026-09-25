@@ -105,12 +105,6 @@
         "com.unity.nuget.newtonsoft-json": "3.0.2"
       }
     },
-    "net.wirenook.package-template": {
-      "version": "file:net.wirenook.package-template",
-      "depth": 0,
-      "source": "embedded",
-      "dependencies": {}
-    },
     "com.unity.modules.ai": {
       "version": "1.0.0",
       "depth": 0,

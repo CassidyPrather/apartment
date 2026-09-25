@@ -5,6 +5,3 @@
 # resolver it downloads (com.vrchat.core.vpm-resolver) stays local.
 /*/
 !com.vrchat.core.bootstrap
-
-# Keep this in sync with your package directories under Packages/
-!net.wirenook.package-template

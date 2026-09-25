@@ -1,12 +1,10 @@
-name: CI/CD Pipeline
+name: CI
 
 on:
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
-  release:
-    types: [ published ]
 
 jobs:
   lint-and-test:
@@ -30,31 +28,3 @@ jobs:
 
       - name: Run tests
         run: scripts/test.sh
-
-  build-and-publish:
-    needs: lint-and-test
-    if: github.event_name == 'release'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write  # Required for uploading release assets
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Build packages
-        run: scripts/build-packages.sh
-
-      - name: Select the released packages
-        run: |
-          # A release publishes every package whose version matches the tag
-          # (leading v tolerated). mv fails the job when nothing matches,
-          # which is the point: a release that would ship nothing is a typo.
-          tag="${GITHUB_REF_NAME#v}"
-          mkdir -p dist/release
-          mv dist/packages/*-"$tag".zip dist/packages/*-"$tag".unitypackage dist/release/
-
-      - name: Upload release assets
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            dist/release/*
-          fail_on_unmatched_files: true

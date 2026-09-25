@@ -1,25 +1,24 @@
 ---
-name: vpm-package-template
-description: Cassidy's opinionated template for VRChat projects and VPM packages — Unity main project at root, packages under Packages/, SDK via resolver, AGPL with a linking exception
+name: apartment
+description: VRChat world recreating Cassidy's apartment — Unity world project at root, Worlds SDK via VPM, Blender-modeled, AGPL with a linking exception
 ---
 
-# vpm-package-template
+# apartment
 
-Unity 2022.3 project at the repository root (the "main project", which is the
-dev harness) with redistributable VPM packages as directories under
-`Packages/`. The VRChat SDK arrives through the vendored bootstrapper on first
-editor open and never enters git. Code is AGPL-3.0-or-later with the
+Unity 2022.3 VRChat world project at the repository root; a world *project*,
+not a package, so nothing here is redistributed through VPM. The Worlds SDK
+(`com.vrchat.worlds`) is pinned in `Packages/vpm-manifest.json`, installed by
+the VPM client (or the vendored bootstrapper), and never enters git. Code is AGPL-3.0-or-later with the
 VRChat/Unity linking exception in `LICENSE_ADDENDUM`.
 
 ## Repo Map
 
-- `Assets/` — main-project content: scenes, avatars, world files. Empty in the template.
-- `Packages/net.wirenook.package-template/` — the sample package; disposable, see README → Replacing the demo.
+- `Assets/` — the world: scenes, models, materials, audio. Blender exports land here.
 - `Packages/com.vrchat.core.bootstrap/` — VRChat's resolver bootstrapper, vendored byte-for-byte. Don't touch.
 - `Packages/.gitignore` — allowlist inversion keeping resolver-installed packages out of git. Load-bearing.
 - `ProjectSettings/` — pinned Unity project configuration (`ProjectVersion.txt` names the editor build).
 - `scripts/` — the checks and builds; CI runs these same scripts, nothing else.
-- `.github/workflows/ci-cd.yml` — lint-and-test on push/PR, package publish on release.
+- `.github/workflows/ci-cd.yml` — lint-and-test on push/PR.
 - `.githooks/pre-commit` — the fast checks; opt in with `git config core.hooksPath .githooks`.
 - `Website/index.html` — placeholder package page; unthemed, unpublished, awaiting a future pass.
 - `CREDITS.md` — intake ledger for everything third-party.
@@ -31,7 +30,6 @@ scripts/check-meta.sh          # every visible file has a committed .meta
 scripts/check-manifests.py     # package.json sanity across Packages/
 scripts/format.sh --check      # dotnet-format over the CI-visible C#
 scripts/test.sh                # headless NUnit run of Runtime/Core + Tests
-scripts/build-packages.sh      # VPM .zip + .unitypackage per package -> dist/
 ```
 
 ## The SDK Boundary
@@ -50,6 +48,5 @@ scripts/build-packages.sh      # VPM .zip + .unitypackage per package -> dist/
 ## House Rules
 
 - Every asset gets a `CREDITS.md` line at intake — source, author, license, URL. CC0 first.
-- Proprietary assets ride the private `Assets/Vendor` submodule, never this repository.
-- Version lives in `package.json`; a release publishes every package whose version matches the tag.
+- Open source first; proprietary assets never enter this repository.
 - The linking exception in `LICENSE_ADDENDUM` is load-bearing legal text. Don't reword it casually.

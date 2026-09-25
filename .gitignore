@@ -62,5 +62,7 @@ crashlytics-build.properties
 Assets/PackageMakerWindowData.asset*
 .idea
 
-# Build output (scripts/build-packages.sh, scripts/test.sh)
+__pycache__/
+
+# Build output (scripts/test.sh)
 /dist/
