@@ -283,7 +283,7 @@ Material:
     - _LTCGIRoughness: 1
     - _LTCGISpecularOcclusion: 0
     - _LTCGIStrength: 1
-    - _LightVolumeBias: 0
+    - _LightVolumeBias: 0.25
     - _LightVolumeSpecularity: 0
     - _LightVolumeSpecularityStrength: 1
     - _LightVolumeStrength: 1

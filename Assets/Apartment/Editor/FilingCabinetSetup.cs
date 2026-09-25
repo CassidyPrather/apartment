@@ -128,6 +128,9 @@ public static class FilingCabinetSetup
         mat.SetInt("_BicubicSampling", 0);          // bicubic lightmaps cost too much on Quest
         mat.SetInt("_LightVolumesToggle", 1);
         mat.SetInt("_AdditiveLightVolumesToggle", 1);
+        // Sample the volumes a little out along the normal: voxels inside furniture and walls
+        // bake black, and moving parts next to them (drawers, doors) otherwise pick that up.
+        mat.SetFloat("_LightVolumeBias", 0.25f);
         return mat;
     }
 

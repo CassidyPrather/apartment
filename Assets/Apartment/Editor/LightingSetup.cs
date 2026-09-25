@@ -29,7 +29,12 @@ public static class LightingSetup
         ("closet", 252.45f, 274.6f, 135.1f, 197.75f, 263.5f, 166f, 0.25f),
     };
     const float CeilingIn = 108f;
-    const float VolumePadIn = 3f;
+    // Volumes stop short of the walls: padding pulled in-wall voxels (black) into them.
+    // Anything inside a wall's thickness (closed door leaves, jambs) blends from the light
+    // probe grid instead, which sits inside the rooms only.
+    const float VolumePadIn = -4f;        // inset: voxels on a wall face bake half-occluded (dark)
+    const float ProbeSpacing = 0.9f, ProbeInset = 0.15f;
+    static readonly float[] ProbeHeights = { 0.3f, 1.3f, 2.3f };
 
     static Vector3 U(float xIn, float yIn, float zIn) => new Vector3(-xIn * IN, zIn * IN, -yIn * IN);
 
@@ -41,6 +46,10 @@ public static class LightingSetup
         if (old != null) Object.DestroyImmediate(old);
         var temp = GameObject.Find("temp_light");
         if (temp != null) Object.DestroyImmediate(temp);
+        // A fresh manager too: the old one keeps the deleted volumes registered and then
+        // counts no active volumes, which switches Light Volumes off for everything.
+        var oldManager = GameObject.Find("Light Volume Manager");
+        if (oldManager != null) Object.DestroyImmediate(oldManager);
         foreach (var t in Object.FindObjectsOfType<Transform>())      // volumes from an earlier run
             if (t != null && t.name.StartsWith("volume_"))
                 Object.DestroyImmediate(t.gameObject);
@@ -71,7 +80,9 @@ public static class LightingSetup
             var p = pgo.AddComponent<ReflectionProbe>();
             p.mode = UnityEngine.Rendering.ReflectionProbeMode.Baked;
             p.boxProjection = true;
-            p.size = size;
+            // Padded past the walls so door leaves and jambs in a wall's thickness
+            // don't fall outside every probe and reflect the default blue skybox.
+            p.size = size + new Vector3(2 * 6f * IN, 0f, 2 * 6f * IN);
             p.center = new Vector3(0, (CeilingIn / 2 - 60f) * IN, 0);
             p.resolution = 128;
             p.importance = 1;
@@ -85,8 +96,6 @@ public static class LightingSetup
             vol.transform.SetParent(root.transform, false);
             vol.transform.position = U((r.x0 + r.x1) / 2, (r.y0 + r.y1) / 2, CeilingIn / 2);
             vol.transform.rotation = Quaternion.identity;
-            // Padded past the wall faces so door jambs and anything in a wall's thickness
-            // sits inside a volume instead of falling back to the ambient probe.
             vol.transform.localScale = size + new Vector3(2 * VolumePadIn * IN, 0f, 2 * VolumePadIn * IN);
             foreach (var c in vol.GetComponents<Component>())
             {
@@ -98,6 +107,25 @@ public static class LightingSetup
                 so.ApplyModifiedPropertiesWithoutUndo();
             }
         }
+
+        // Light probes on a grid inside each room: the fallback for anything outside the
+        // volumes, blended by the Light Volume manager.
+        var probeGo = new GameObject("light_probes");
+        probeGo.transform.SetParent(root.transform);
+        var positions = new List<Vector3>();
+        foreach (var r in Rooms)
+        {
+            Vector3 a = U(r.x0, r.y0, 0f), b = U(r.x1, r.y1, 0f);
+            float xa = Mathf.Min(a.x, b.x) + ProbeInset, xb = Mathf.Max(a.x, b.x) - ProbeInset;
+            float za = Mathf.Min(a.z, b.z) + ProbeInset, zb = Mathf.Max(a.z, b.z) - ProbeInset;
+            int nx = Mathf.Max(2, Mathf.CeilToInt((xb - xa) / ProbeSpacing) + 1);
+            int nz = Mathf.Max(2, Mathf.CeilToInt((zb - za) / ProbeSpacing) + 1);
+            for (int i = 0; i < nx; i++)
+                for (int k = 0; k < nz; k++)
+                    foreach (var h in ProbeHeights)
+                        positions.Add(new Vector3(Mathf.Lerp(xa, xb, i / (nx - 1f)), h, Mathf.Lerp(za, zb, k / (nz - 1f))));
+        }
+        probeGo.AddComponent<LightProbeGroup>().probePositions = positions.ToArray();
 
         // Daylight: a baked sun from the south-west, so the windows and outside read as day.
         var sun = new GameObject("sun").AddComponent<Light>();
@@ -122,14 +150,14 @@ public static class LightingSetup
         }
 
         RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Trilight;
-        RenderSettings.ambientSkyColor = new Color(0.55f, 0.62f, 0.72f);
+        RenderSettings.ambientSkyColor = new Color(0.6f, 0.62f, 0.66f);     // near-neutral: a bluer sky tinted everything by the windows
         RenderSettings.ambientEquatorColor = new Color(0.45f, 0.44f, 0.42f);
         RenderSettings.ambientGroundColor = new Color(0.25f, 0.24f, 0.22f);
 
         var ls = new LightingSettings
         {
             name = "apartment_lighting",
-            lightmapper = LightingSettings.Lightmapper.ProgressiveGPU,
+            lightmapper = LightingSettings.Lightmapper.ProgressiveCPU,   // the GPU one hung and skipped the Light Volume probes
             bakedGI = true,
             realtimeGI = false,
             lightmapResolution = 20f,
