@@ -166,7 +166,12 @@ Nothing that changes art or the scene is committed until Claude has looked at it
 4. **Unity:** check the Scene/Game view from the matching viewpoints via the Unity MCP.
    The console must be free of new errors and warnings, and the scene must be checked on
    both the PC and Android build targets.
-5. If a result looks wrong, fix it and verify again. If you can't tell whether it
+5. The Unity editor is the acceptance gate. This is a static world, so what the editor shows is
+   what VRChat shows, for the most part. Cassidy tests in-client when it suits
+   them, and milestones never wait on it. For anything the editor can't show
+   faithfully (video playback, Quest performance, mirror/shader quirks), add a
+   "check in VRChat" item to the milestone review.
+6. If a result looks wrong, fix it and verify again. If you can't tell whether it
    is right, stop and show Cassidy the screenshots instead of guessing.
 
 ## Git Workflow
