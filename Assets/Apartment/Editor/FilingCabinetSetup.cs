@@ -82,7 +82,9 @@ public static class FilingCabinetSetup
             imp.anisoLevel = 2;
             imp.maxTextureSize = size;
             imp.textureCompression = TextureImporterCompression.Compressed;
-            imp.crunchedCompression = false;
+            // Crunch: a much smaller download on PC for the same DXT in memory (Quest keeps ASTC).
+            imp.crunchedCompression = true;
+            imp.compressionQuality = 60;
             imp.SetPlatformTextureSettings(new TextureImporterPlatformSettings
             {
                 name = "Android", overridden = true, maxTextureSize = size,

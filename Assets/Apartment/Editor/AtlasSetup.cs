@@ -28,6 +28,7 @@ public static class AtlasSetup
     static readonly HashSet<string> Excluded = new HashSet<string>
     {
         "own_art", "living_wall_art", "bedroom_fixtures", "desk_computer",
+        "media_hutch_art", "cassette_player_art",
         "VideoScreen", "wall_tv_screen",
     };
 
@@ -288,6 +289,8 @@ public static class AtlasSetup
         // (smoothness lives in alpha). BC7 would double the memory for little gain.
         imp.textureCompression = TextureImporterCompression.Compressed;
         imp.alphaSource = srgb ? TextureImporterAlphaSource.None : TextureImporterAlphaSource.FromInput;
+        imp.crunchedCompression = true;                            // smaller download; same DXT in memory
+        imp.compressionQuality = 60;
         imp.SetPlatformTextureSettings(new TextureImporterPlatformSettings
         {
             name = "Android", overridden = true, maxTextureSize = max,

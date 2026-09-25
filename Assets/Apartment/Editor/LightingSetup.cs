@@ -152,8 +152,10 @@ public static class LightingSetup
 
         // The entry and patio doors move, so they don't block baked light; a shadow-only slab
         // in each opening stops the sun leaking through what looks like a solid door.
-        foreach (var (name, x0, x1, y0, y1) in new[] { ("door_blocker_entry", -6f, 0f, 144.5f, 180.5f),
-                                                       ("door_blocker_patio", 212.5f, 249f, -6f, 0f) })
+        // Thin slabs on the wall's outer face, behind the leaf: a blocker inside the wall
+        // thickness shadowed the door leaf itself (dark blotches on the panels).
+        foreach (var (name, x0, x1, y0, y1) in new[] { ("door_blocker_entry", -6.5f, -6f, 144.5f, 180.5f),
+                                                       ("door_blocker_patio", 212.5f, 249f, -6.5f, -6f) })
         {
             var blk = GameObject.CreatePrimitive(PrimitiveType.Cube);
             blk.name = name;

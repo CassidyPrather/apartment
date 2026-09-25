@@ -80,7 +80,7 @@ ART = [
     ("card_d", "east", 39.5, 43.6, 48.5, 54.65, "paper"),
     ("drawing_bw", "east", 27.0, 35.25, 56.25, 65.5, "paper"),
     ("corner_poster", "east", 6.0, 12.75, 67.5, 77.75, "paper"),
-    ("art_space", "closet_s", 248.4, 266.5, 61.75, 86.0, "paper"),
+    ("art_space", "closet_s", 248.4, 266.5, 65.5, 89.75, "paper"),   # above the bag hooks (z 61.5)
     ("art_purple", "closet_fw", 137.3, 153.8, 85.8, 98.1, "paper"),
 ]
 # keychain charms, east wall corner: (u centre, z centre, w, h), measured on the rectified frame;
