@@ -1,0 +1,25 @@
+{
+  "name": "hanging_bags",
+  "fbx": "Assets/Apartment/Models/hanging_bags.fbx",
+  "materials": {
+    "hanging_bags": {
+      "atlas": "hanging_bags",
+      "mode": "opaque"
+    }
+  },
+  "collider": "none",
+  "static": true,
+  "triangles": 2668,
+  "bounds_m": {
+    "min": [
+      6.0485,
+      3.1163,
+      0.6546
+    ],
+    "max": [
+      6.8391,
+      3.3109,
+      1.6002
+    ]
+  }
+}

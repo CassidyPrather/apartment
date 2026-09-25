@@ -340,23 +340,11 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 828731867668073545}
     m_Modifications:
-    - target: {fileID: 4549399594398090870, guid: 08d80b9c586935d45ab5b0ed7a6ad052,
-        type: 3}
-      propertyPath: serializationData.Prefab
-      value: 
-      objectReference: {fileID: 4549399594398090870, guid: 08d80b9c586935d45ab5b0ed7a6ad052,
-        type: 3}
     - target: {fileID: 7000673689195219187, guid: 08d80b9c586935d45ab5b0ed7a6ad052,
         type: 3}
       propertyPath: m_Name
       value: filing_cabinet
       objectReference: {fileID: 0}
-    - target: {fileID: 7212353570879834546, guid: 08d80b9c586935d45ab5b0ed7a6ad052,
-        type: 3}
-      propertyPath: serializationData.Prefab
-      value: 
-      objectReference: {fileID: 7212353570879834546, guid: 08d80b9c586935d45ab5b0ed7a6ad052,
-        type: 3}
     - target: {fileID: 7668701136242070089, guid: 08d80b9c586935d45ab5b0ed7a6ad052,
         type: 3}
       propertyPath: m_LocalPosition.x

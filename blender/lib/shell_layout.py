@@ -139,6 +139,9 @@ PLACES = {
     "light_stand__center": (143.5, 104.5, 90.0),   # origin at the pole; box faces east
     "light_stand__patio": (235.0, 12.0, 180.0),    # box faces north
     "bedroom_fixtures": (0.0, 0.0, 0.0),
+    "hanging_bags": (0.0, 0.0, 0.0),             # built in plan coordinates
+    "shoes": (238.8, 135.2, 0.0),
+    "own_art": (0.0, 0.0, 0.0),                  # Cassidy's own paintings and prints, plan coordinates
     # Light fixtures hang from their origin at the ceiling (z 108).
     "ceiling_light_bar": (68.0, 235.0, 0.0, 108.0),        # S
     "ceiling_dome_light__dining": (67.0, 152.0, 0.0, 108.0),   # A: near the entry, per the survey

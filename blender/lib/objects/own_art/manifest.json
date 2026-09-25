@@ -1,0 +1,25 @@
+{
+  "name": "own_art",
+  "fbx": "Assets/Apartment/Models/own_art.fbx",
+  "materials": {
+    "own_art": {
+      "atlas": "own_art",
+      "mode": "opaque"
+    }
+  },
+  "collider": "none",
+  "static": true,
+  "triangles": 252,
+  "bounds_m": {
+    "min": [
+      3.3807,
+      4.083,
+      1.0922
+    ],
+    "max": [
+      3.4036,
+      5.0483,
+      1.8542
+    ]
+  }
+}

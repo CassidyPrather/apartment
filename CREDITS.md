@@ -22,3 +22,4 @@ names before inventing new ones. Real brands are never recorded here.
 | tumblewump | `washer_dryer` (control strip) | Round porthole outline holding three tumbling bubbles, with a lowercase italic bold wordmark. Logo: `blender/lib/objects/washer_dryer/logos/tumblewump.svg` |
 | Noodle Goblin | `floor_boxes` (noodle-cup case) | A green grinning cup with three grey steam curls beside a bold red two-line wordmark on a white rounded panel. Logo: `blender/lib/objects/floor_boxes/logos/noodle_goblin.svg` |
 | Crunchums | `floor_boxes` (snack-bar wrappers) | A wobbly golden bar with a small smile beside a red rounded lowercase wordmark on a white oval. Logo: `blender/lib/objects/floor_boxes/logos/crunchums.svg` |
+| Moonpouch | `hanging_bags` (tan hobo bag print) | An all-over repeat of small dark-brown crescent moons alternating with dots on tan; no letters or wordmark. Pattern painted in `textures.py`, no SVG. |

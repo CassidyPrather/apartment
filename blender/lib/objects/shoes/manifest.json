@@ -1,0 +1,25 @@
+{
+  "name": "shoes",
+  "fbx": "Assets/Apartment/Models/shoes.fbx",
+  "materials": {
+    "shoes": {
+      "atlas": "shoes",
+      "mode": "opaque"
+    }
+  },
+  "collider": "none",
+  "static": true,
+  "triangles": 1424,
+  "bounds_m": {
+    "min": [
+      -0.1876,
+      -0.2084,
+      0.0
+    ],
+    "max": [
+      0.1747,
+      0.1884,
+      0.1087
+    ]
+  }
+}

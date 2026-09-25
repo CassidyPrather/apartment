@@ -97,6 +97,16 @@ def build_floors_ceiling(coll):
     finishes = {}
     for x0, x1, y0, y1, fin in L.FLOORS:
         finishes.setdefault(fin, []).append((x0, x1, y0, y1))
+    # Floor through the wall thickness under every interior doorway (the room floors stop
+    # at the wall faces, which left a gap); it takes the finish on the doorway's +side.
+    for wall, ax, (a0, a1), (z0, z1), kind, _ in L.OPENINGS:
+        if not kind.startswith("door") or is_exterior(wall):
+            continue
+        x0, x1, y0, y1 = L.WALLS[wall][0]
+        rect = (x0, x1, a0, a1) if ax == "y" else (a0, a1, y0, y1)
+        px, py = ((x1 + 1.0, (a0 + a1) / 2) if ax == "y" else ((a0 + a1) / 2, y1 + 1.0))
+        fin = next((f for fx0, fx1, fy0, fy1, f in L.FLOORS if fx0 <= px <= fx1 and fy0 <= py <= fy1), "floor_vinyl")
+        finishes.setdefault(fin, []).append(rect)
     for fin, rects in finishes.items():
         b = common.Builder([fin])
         for x0, x1, y0, y1 in rects:

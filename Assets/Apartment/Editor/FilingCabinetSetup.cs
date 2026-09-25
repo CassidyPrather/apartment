@@ -44,12 +44,6 @@ public static class FilingCabinetSetup
     {
         foreach (var dir in new[] { Materials, Prefabs, Scenes })
             Directory.CreateDirectory(dir);
-        if (EnsureProgramAsset())
-        {
-            Debug.LogWarning("[FilingCabinetSetup] Created the SlidingDrawer program asset; " +
-                             "run Apartment > Build Filing Cabinet Set again once UdonSharp finishes compiling.");
-            return;
-        }
         ConfigureTextures();
         var mats = BuildMaterials();
         ConfigureModels(mats);
@@ -330,46 +324,14 @@ public static class FilingCabinetSetup
         var body = go.transform.Find("filing_cabinet_body");
         foreach (var name in new[] { "filing_cabinet_body", "corner_guard_fl", "corner_guard_fr" })
             GameObjectUtility.SetStaticEditorFlags(go.transform.Find(name).gameObject, StaticFlags);
+        // The drawers are static now (no pull-out): they bake into the lightmap with the body,
+        // and the grab markers go.
         for (int i = 1; go.transform.Find($"filing_cabinet_drawer_{i}") != null; i++)
         {
-            var drawer = go.transform.Find($"filing_cabinet_drawer_{i}");
+            GameObjectUtility.SetStaticEditorFlags(go.transform.Find($"filing_cabinet_drawer_{i}").gameObject, StaticFlags);
             var grab = go.transform.Find($"filing_cabinet_drawer_{i}_grab");
-            // Opening direction: from the cabinet's center out through the drawer face,
-            // flattened, in the shared parent's space.
-            var axis = drawer.localPosition - body.localPosition;
-            axis.y = 0f;
-            axis = Mathf.Abs(axis.z) > Mathf.Abs(axis.x) ? new Vector3(0, 0, Mathf.Sign(axis.z))
-                                                         : new Vector3(Mathf.Sign(axis.x), 0, 0);
-            // Drawer collider: the box behind the face, stopping at the face so the
-            // pull stays reachable for the grab handle.
-            var dr = drawer.GetComponent<MeshRenderer>();
-            var b = dr.GetComponent<MeshFilter>().sharedMesh.bounds;
-            var local = drawer.InverseTransformDirection(go.transform.TransformDirection(axis));
-            var col = drawer.gameObject.AddComponent<BoxCollider>();
-            var min = b.min; var max = b.max;
-            if (local.z > 0.5f) max.z = 0f; else if (local.z < -0.5f) min.z = 0f;
-            else if (local.x > 0.5f) max.x = 0f; else if (local.x < -0.5f) min.x = 0f;
-            col.center = (min + max) / 2f;
-            col.size = max - min;
-
-            var rb = grab.gameObject.AddComponent<Rigidbody>();
-            rb.isKinematic = true;
-            rb.useGravity = false;
-            var gcol = grab.gameObject.AddComponent<BoxCollider>();
-            gcol.size = new Vector3(0.16f, 0.045f, 0.045f);
-            var pickup = grab.gameObject.AddComponent<VRCPickup>();
-            var so = new SerializedObject(pickup);
-            so.FindProperty("AutoHold").enumValueIndex = 2;          // No: release lets go
-            so.FindProperty("orientation").enumValueIndex = 0;       // Any
-            so.FindProperty("InteractionText").stringValue = "Pull";
-            so.FindProperty("proximity").floatValue = 0.4f;
-            so.ApplyModifiedPropertiesWithoutUndo();
-            var sd = UdonSharpUndo.AddComponent<SlidingDrawer>(grab.gameObject);
-            sd.drawer = drawer;
-            sd.slideAxis = axis;
-            sd.maxTravel = DrawerTravel;
-            sd.snapClosed = 0.01f;
-            UdonSharpEditorUtility.CopyProxyToUdon(sd);
+            if (grab != null)
+                Object.DestroyImmediate(grab.gameObject);
         }
         return PrefabUtility.SaveAsPrefabAsset(go, $"{Prefabs}/filing_cabinet.prefab");
     }

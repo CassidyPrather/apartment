@@ -99,7 +99,7 @@ public static class ObjectImporter
         {
             foreach (var r in go.GetComponentsInChildren<MeshRenderer>())
             {
-                if (man.@static)
+                if (man.@static || man.name.StartsWith("door_"))           // doors stay put now
                     GameObjectUtility.SetStaticEditorFlags(r.gameObject,
                         StaticEditorFlags.ContributeGI | StaticEditorFlags.BatchingStatic |
                         StaticEditorFlags.OccluderStatic | StaticEditorFlags.OccludeeStatic |
