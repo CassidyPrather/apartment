@@ -1,0 +1,26 @@
+{
+  "name": "door_laundry",
+  "fbx": "Assets/Apartment/Models/door_laundry.fbx",
+  "materials": {
+    "doors": {
+      "atlas": "doors",
+      "mode": "opaque",
+      "tiled": false
+    }
+  },
+  "collider": "box",
+  "static": false,
+  "triangles": 1096,
+  "bounds_m": {
+    "min": [
+      -0.762,
+      -0.134,
+      0.0
+    ],
+    "max": [
+      0.0,
+      0.0603,
+      2.032
+    ]
+  }
+}

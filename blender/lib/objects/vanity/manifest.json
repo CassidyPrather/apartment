@@ -1,0 +1,26 @@
+{
+  "name": "vanity",
+  "fbx": "Assets/Apartment/Models/vanity.fbx",
+  "materials": {
+    "bathroom": {
+      "atlas": "bathroom",
+      "mode": "opaque",
+      "tiled": false
+    }
+  },
+  "collider": "box",
+  "static": true,
+  "triangles": 1600,
+  "bounds_m": {
+    "min": [
+      -0.3937,
+      -0.3023,
+      0.0
+    ],
+    "max": [
+      0.3937,
+      0.2743,
+      1.9304
+    ]
+  }
+}

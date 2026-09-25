@@ -1,0 +1,26 @@
+{
+  "name": "door_closet_sliding",
+  "fbx": "Assets/Apartment/Models/door_closet_sliding.fbx",
+  "materials": {
+    "doors": {
+      "atlas": "doors",
+      "mode": "opaque",
+      "tiled": false
+    }
+  },
+  "collider": "box",
+  "static": false,
+  "triangles": 468,
+  "bounds_m": {
+    "min": [
+      -0.7747,
+      -0.0603,
+      0.0
+    ],
+    "max": [
+      0.7747,
+      0.0603,
+      2.0701
+    ]
+  }
+}

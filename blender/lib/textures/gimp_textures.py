@@ -116,7 +116,10 @@ def _fill(drawable, rgb):
 def fill_ellipse(img, drawable, box, rgb):
     x0, y0, x1, y1 = box
     img.select_ellipse(Gimp.ChannelOps.REPLACE, x0, y0, x1 - x0, y1 - y0)
-    _fill(drawable, rgb)
+    # An ellipse entirely off-canvas leaves an empty selection, and filling with an
+    # empty selection fills the whole layer; skip it.
+    if not Gimp.Selection.is_empty(img):
+        _fill(drawable, rgb)
     Gimp.Selection.none(img)
 
 

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="460" height="100" viewBox="0 0 460 100">
+  <!-- Parody laundry brand "tumblewump": a round porthole with three tumbling bubbles, and a lowercase wordmark. -->
+  <g fill="none" stroke="#3a3c40" stroke-width="7">
+    <circle cx="48" cy="50" r="38"/>
+  </g>
+  <g fill="#3a3c40">
+    <circle cx="36" cy="60" r="11"/>
+    <circle cx="58" cy="40" r="8"/>
+    <circle cx="62" cy="64" r="5"/>
+    <text x="104" y="70" font-family="Segoe UI, Arial, sans-serif" font-size="58" font-weight="700" font-style="italic">tumblewump</text>
+  </g>
+</svg>

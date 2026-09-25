@@ -1,0 +1,26 @@
+{
+  "name": "door_bath_pocket",
+  "fbx": "Assets/Apartment/Models/door_bath_pocket.fbx",
+  "materials": {
+    "doors": {
+      "atlas": "doors",
+      "mode": "opaque",
+      "tiled": false
+    }
+  },
+  "collider": "box",
+  "static": false,
+  "triangles": 212,
+  "bounds_m": {
+    "min": [
+      -1.1144,
+      -0.0603,
+      0.0
+    ],
+    "max": [
+      0.4032,
+      0.0603,
+      2.032
+    ]
+  }
+}

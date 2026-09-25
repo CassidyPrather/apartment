@@ -1,0 +1,26 @@
+{
+  "name": "fridge",
+  "fbx": "Assets/Apartment/Models/fridge.fbx",
+  "materials": {
+    "fridge": {
+      "atlas": "fridge",
+      "mode": "opaque",
+      "tiled": false
+    }
+  },
+  "collider": "box",
+  "static": true,
+  "triangles": 612,
+  "bounds_m": {
+    "min": [
+      -0.4159,
+      -0.442,
+      0.0
+    ],
+    "max": [
+      0.4159,
+      0.3937,
+      1.7082
+    ]
+  }
+}

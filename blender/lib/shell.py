@@ -189,8 +189,9 @@ def build_markers(coll):
 
 
 def build(coll):
-    return (build_walls(coll) + build_floors_ceiling(coll) + build_trim(coll) + build_glass(coll)
-            + build_markers(coll))
+    # Window glass lives in the window_units package now; build_glass() stays for
+    # quick previews of the bare shell.
+    return build_walls(coll) + build_floors_ceiling(coll) + build_trim(coll) + build_markers(coll)
 
 
 # region -> (texture set in Assets/Apartment/Textures, metres per tile)

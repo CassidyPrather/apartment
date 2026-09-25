@@ -1,0 +1,30 @@
+{
+  "name": "window_units",
+  "fbx": "Assets/Apartment/Models/window_units.fbx",
+  "materials": {
+    "window_units_vinyl": {
+      "atlas": "window_units",
+      "mode": "opaque"
+    },
+    "window_units_glass": {
+      "atlas": "window_units",
+      "mode": "transparent",
+      "alpha": 0.15
+    }
+  },
+  "collider": "mesh",
+  "static": true,
+  "triangles": 1032,
+  "bounds_m": {
+    "min": [
+      -0.1333,
+      -0.1333,
+      0.6731
+    ],
+    "max": [
+      5.2184,
+      3.4671,
+      2.159
+    ]
+  }
+}

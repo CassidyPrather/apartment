@@ -1,0 +1,32 @@
+{
+  "name": "door_patio",
+  "fbx": "Assets/Apartment/Models/door_patio.fbx",
+  "materials": {
+    "doors": {
+      "atlas": "doors",
+      "mode": "opaque",
+      "tiled": false
+    },
+    "doors_glass": {
+      "atlas": "doors",
+      "mode": "transparent",
+      "alpha": 0.25,
+      "tiled": false
+    }
+  },
+  "collider": "box",
+  "static": false,
+  "triangles": 224,
+  "bounds_m": {
+    "min": [
+      -0.4572,
+      -0.0622,
+      0.0
+    ],
+    "max": [
+      0.4572,
+      0.0571,
+      2.032
+    ]
+  }
+}

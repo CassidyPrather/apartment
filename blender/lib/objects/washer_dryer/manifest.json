@@ -1,0 +1,26 @@
+{
+  "name": "washer_dryer",
+  "fbx": "Assets/Apartment/Models/washer_dryer.fbx",
+  "materials": {
+    "washer_dryer": {
+      "atlas": "washer_dryer",
+      "mode": "opaque",
+      "tiled": false
+    }
+  },
+  "collider": "box",
+  "static": true,
+  "triangles": 1132,
+  "bounds_m": {
+    "min": [
+      -0.3035,
+      -0.3429,
+      0.0
+    ],
+    "max": [
+      0.3035,
+      0.3429,
+      1.8161
+    ]
+  }
+}

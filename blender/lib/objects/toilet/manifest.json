@@ -1,0 +1,26 @@
+{
+  "name": "toilet",
+  "fbx": "Assets/Apartment/Models/toilet.fbx",
+  "materials": {
+    "bathroom": {
+      "atlas": "bathroom",
+      "mode": "opaque",
+      "tiled": false
+    }
+  },
+  "collider": "box",
+  "static": true,
+  "triangles": 1276,
+  "bounds_m": {
+    "min": [
+      -0.2642,
+      -0.367,
+      0.0
+    ],
+    "max": [
+      0.2642,
+      0.3556,
+      0.7823
+    ]
+  }
+}

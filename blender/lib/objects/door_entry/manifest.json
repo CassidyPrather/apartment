@@ -1,0 +1,26 @@
+{
+  "name": "door_entry",
+  "fbx": "Assets/Apartment/Models/door_entry.fbx",
+  "materials": {
+    "doors": {
+      "atlas": "doors",
+      "mode": "opaque",
+      "tiled": false
+    }
+  },
+  "collider": "box",
+  "static": false,
+  "triangles": 1704,
+  "bounds_m": {
+    "min": [
+      -0.9144,
+      -0.1499,
+      0.0
+    ],
+    "max": [
+      0.0,
+      0.0762,
+      2.032
+    ]
+  }
+}

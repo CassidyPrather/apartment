@@ -73,4 +73,24 @@ PLACES = {
     "filing_cabinet_set": (138.75 + 13.25 + 0.5, 95.0, 90.0),   # A: from photos
     # Laundry closet: against its west wall, facing the door in the hall wall (east).
     "washer_dryer": (177.75 + 13.75 + 0.5, (164.25 + 201.65) / 2, 90.0),   # A
+    # Kitchen (from the plan illustration and the photo through the bedroom door; A).
+    "kitchen_cabinets": (67.0, 239.95, 0.0),    # origin at the kitchen box centre; run built in room layout
+    "range": (71.0, 275.4, 0.0),
+    "fridge": (117.125, 273.4, 0.0),
+    # Doors: hinged ones on the hinge-side edge of the opening at the wall centreline;
+    # sliding, pocket and patio at the opening centre.
+    "door_bedroom": (136.375, 156.0, 90.0),        # hinged north (from photo), open 90 deg into the bedroom
+    "door_laundry": (207.375, 196.0, 90.0),        # hinged north (from photo), swings into the hall
+    "door_entry": (-3.0, 181.0, 90.0),             # hinge side A
+    "door_bath_pocket": (235.875, 204.025, 0.0),   # pocket side A
+    "door_closet_sliding": (257.925, 168.5, -90.0),
+    "door_patio": (238.75, -3.0, 180.0),           # which panel slides: A
+    # Bathroom, layout B from the plan illustration: tub along the east wall, faucet at
+    # the north wall, the 33 in stub wall at its south foot (A until a bathroom capture).
+    "bathtub": (267.75, 259.9, 270.0),
+    "toilet": (191.75, 270.0, 90.0),
+    "vanity": (188.5, 228.0, 90.0),
+    # Built in the building's own coordinates.
+    "window_units": (0.0, 0.0, 0.0),
+    "exterior_view": (0.0, 0.0, 0.0),
 }

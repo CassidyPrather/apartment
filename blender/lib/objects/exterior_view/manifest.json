@@ -1,0 +1,31 @@
+{
+  "name": "exterior_view",
+  "fbx": "Assets/Apartment/Models/exterior_view.fbx",
+  "materials": {
+    "exterior_view": {
+      "atlas": "exterior_view",
+      "mode": "opaque"
+    },
+    "exterior_view_foliage": {"atlas": "exterior_view", "mode": "cutout", "alpha": 0.5},
+    "exterior_ground": {
+      "atlas": "exterior_ground",
+      "mode": "opaque",
+      "tiled": true
+    }
+  },
+  "collider": "none",
+  "static": true,
+  "triangles": 1528,
+  "bounds_m": {
+    "min": [
+      -66.04,
+      -66.04,
+      -7.62
+    ],
+    "max": [
+      73.66,
+      73.66,
+      45.72
+    ]
+  }
+}

@@ -46,9 +46,12 @@ public static class ObjectImporter
             var spec = kv.Value;
             if (spec.tiled)
                 SetRepeat(spec.atlas);
-            mats[kv.Key] = spec.mode == "transparent"
-                ? FilingCabinetSetup.ShellMat(kv.Key, spec.atlas, spec.alpha)
-                : FilingCabinetSetup.Mat(kv.Key, spec.atlas, Color.white);
+            if (spec.mode == "transparent")
+                mats[kv.Key] = FilingCabinetSetup.ShellMat(kv.Key, spec.atlas, spec.alpha);
+            else if (spec.mode == "cutout")
+                mats[kv.Key] = CutoutMat(kv.Key, spec.atlas, spec.alpha);
+            else
+                mats[kv.Key] = FilingCabinetSetup.Mat(kv.Key, spec.atlas, Color.white);
         }
         FilingCabinetSetup.ConfigureModels(mats, new[] { man.name });
 
@@ -73,6 +76,18 @@ public static class ObjectImporter
         {
             Object.DestroyImmediate(go);
         }
+    }
+
+    // Alpha-tested foliage and the like: Mochie's Cutout mode, alpha = the cutoff.
+    // No blending, so overlapping cards never sort wrong.
+    static Material CutoutMat(string name, string atlas, float cutoff)
+    {
+        var mat = FilingCabinetSetup.Mat(name, atlas, Color.white);
+        mat.SetFloat("_Cutoff", cutoff);
+        mat.SetInt("_BlendMode", 1);
+        Mochie.StandardEditor.SetBlendMode(mat);
+        EditorUtility.SetDirty(mat);
+        return mat;
     }
 
     static void SetRepeat(string atlas)

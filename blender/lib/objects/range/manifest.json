@@ -1,0 +1,26 @@
+{
+  "name": "range",
+  "fbx": "Assets/Apartment/Models/range.fbx",
+  "materials": {
+    "range": {
+      "atlas": "range",
+      "mode": "opaque",
+      "tiled": false
+    }
+  },
+  "collider": "box",
+  "static": true,
+  "triangles": 1264,
+  "bounds_m": {
+    "min": [
+      -0.3794,
+      -0.4077,
+      0.0
+    ],
+    "max": [
+      0.3794,
+      0.3556,
+      1.1684
+    ]
+  }
+}

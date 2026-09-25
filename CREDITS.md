@@ -18,3 +18,4 @@ names before inventing new ones. Real brands are never recorded here.
 | tadpole link | `router` (lid wordmark) | Lowercase wordmark with a tadpole glyph. Logo: `blender/lib/textures/logos/tadpole_link.svg` |
 | Motorboat | `modem` (LED strip badge) | Speedboat and wake inside a ring. Logo: `blender/lib/textures/logos/motorboat.svg` |
 | squintscreen | `vr_headset` (strap badge) | Lowercase wordmark with a smile arc on a round badge. Logo: `blender/lib/textures/logos/squintscreen.svg` |
+| tumblewump | `washer_dryer` (control strip) | Round porthole outline holding three tumbling bubbles, with a lowercase italic bold wordmark. Logo: `blender/lib/objects/washer_dryer/logos/tumblewump.svg` |

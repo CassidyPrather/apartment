@@ -1,0 +1,26 @@
+{
+  "name": "kitchen_cabinets",
+  "fbx": "Assets/Apartment/Models/kitchen_cabinets.fbx",
+  "materials": {
+    "kitchen_cabinets": {
+      "atlas": "kitchen_cabinets",
+      "mode": "opaque",
+      "tiled": false
+    }
+  },
+  "collider": "mesh",
+  "static": true,
+  "triangles": 3432,
+  "bounds_m": {
+    "min": [
+      -1.7018,
+      -1.27,
+      0.0
+    ],
+    "max": [
+      1.7018,
+      1.27,
+      2.1336
+    ]
+  }
+}
