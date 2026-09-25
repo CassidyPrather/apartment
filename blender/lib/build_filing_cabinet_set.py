@@ -23,10 +23,11 @@ if not os.path.exists(os.path.join(LIB, "common.py")):
 if LIB not in sys.path:
     sys.path.insert(0, LIB)
 
+import atlas_layout  # noqa: E402
 import common  # noqa: E402
 import dimensions  # noqa: E402
 
-for mod in (common, dimensions):
+for mod in (atlas_layout, common, dimensions):   # layout first: common imports from it
     importlib.reload(mod)
 
 import filing_cabinet  # noqa: E402

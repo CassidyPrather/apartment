@@ -198,7 +198,22 @@ public static class FilingCabinetSetup
             ["router"] = Mat("router", "router", Color.white),
             ["modem"] = Mat("modem", "modem", Color.white),
             ["vr_headset"] = Mat("vr_headset", "vr_headset", Color.white),
+            ["vr_headset_shell"] = ShellMat("vr_headset_shell", "vr_headset", 0.5f),
         };
+    }
+
+    // Tinted translucent plastic (the headset's visor shell): Mochie's Transparent
+    // mode, premultiplied so glossy highlights stay bright over what shows through.
+    static Material ShellMat(string name, string atlas, float alpha)
+    {
+        var mat = Mat(name, atlas, new Color(1f, 1f, 1f, alpha));
+        mat.SetColor("_EmissionColor", Color.black);      // the LED glow lives on the internals
+        mat.globalIlluminationFlags = MaterialGlobalIlluminationFlags.EmissiveIsBlack;
+        MochieKeywords(mat);
+        mat.SetInt("_BlendMode", 3);
+        Mochie.StandardEditor.SetBlendMode(mat);
+        EditorUtility.SetDirty(mat);
+        return mat;
     }
 
     // --- models -----------------------------------------------------------------

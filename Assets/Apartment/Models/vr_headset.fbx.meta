@@ -34,6 +34,11 @@ ModelImporter:
       assembly: UnityEngine.CoreModule
       name: vr_headset
     second: {fileID: 2100000, guid: aa50126e72d407c439d08b5e821bf6c6, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: vr_headset_shell
+    second: {fileID: 2100000, guid: fb0ad17deaa5f3f4bb9248db2a240a4f, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

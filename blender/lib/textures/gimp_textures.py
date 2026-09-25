@@ -466,22 +466,17 @@ def modem():
 
 # --- VR headset ------------------------------------------------------------------
 
-VISOR_PURPLE = (122, 28, 150)
+VISOR_PURPLE = (150, 44, 186)      # the shell's tint; it is drawn translucent in-world
 
 
 def headset():
     a = Atlas("vr_headset")
-    # Visor front: the translucent purple shell shows the internal frame as darker
-    # ribs; painted in because the shell is opaque in-world.
+    # Visor shell: clean tinted plastic. The internals behind it are real geometry
+    # (visor_inner) seen through the translucent shell material.
     x, y, w, h = a.rect("visor_front")
-    a.fill("visor_front", VISOR_PURPLE, 0.0, 0.85, noise=0.03, blur=4)
-    for i in range(9):
-        fill_rect(a.img, a.lay, (x + 90 + i * 105, y + 30, 40, 40), (70, 12, 92))
-    fill_round_rect(a.img, a.lay, (x + 120, y + 150, x + 470, y + 300), 60, (88, 18, 110))
-    fill_round_rect(a.img, a.lay, (x + 554, y + 150, x + 904, y + 300), 60, (88, 18, 110))
-    a.img.select_rectangle(Gimp.ChannelOps.REPLACE, x, y, w, h)
-    gegl(a.lay, "gegl:gaussian-blur", std_dev_x=3.0, std_dev_y=3.0)
-    Gimp.Selection.none(a.img)
+    a.fill("visor_front", VISOR_PURPLE, 0.0, 0.9, noise=0.015, blur=6)
+    for i in range(2):                            # faint moulding seams across the shell
+        fill_rect(a.img, a.lay, (x, y + 60 + i * 230, w, 3), (128, 36, 160))
     # top edge catches more light
     shade = Gimp.Layer.new(a.img, "shade", w, h, Gimp.ImageType.RGBA_IMAGE, 25, Gimp.LayerMode.OVERLAY)
     a.img.insert_layer(shade, None, 0)
@@ -492,12 +487,29 @@ def headset():
     shade.edit_gradient_fill(Gimp.GradientType.LINEAR, 0, False, 1, 0, True, 0, 0, 0, h)
     a.lay = flatten(a.img)
 
+    # Shell top: two rows of vent slots moulded into the purple.
     x, y, w, h = a.rect("visor_top")
-    a.fill("visor_top", VISOR_PURPLE, 0.0, 0.8, noise=0.03, blur=4)
+    a.fill("visor_top", VISOR_PURPLE, 0.0, 0.85, noise=0.015, blur=6)
     for row in range(2):
         for i in range(14):
             px = x + 40 + i * 70
-            fill_round_rect(a.img, a.lay, (px, y + 40 + row * 70, px + 44, y + 80 + row * 70), 8, (20, 10, 26))
+            fill_round_rect(a.img, a.lay, (px - 3, y + 37 + row * 70, px + 47, y + 83 + row * 70), 10, (176, 80, 206))
+            fill_round_rect(a.img, a.lay, (px, y + 40 + row * 70, px + 44, y + 80 + row * 70), 8, (60, 16, 76))
+
+    # Internals behind the shell: dark frame, two lens housings, ribs, and the blue
+    # status LED that glows through the purple (right end, as in the capture).
+    x, y, w, h = a.rect("visor_inner")
+    a.fill("visor_inner", (26, 24, 30), 0.0, 0.45, noise=0.02)
+    for i in range(12):
+        fill_rect(a.img, a.lay, (x + 14 + i * 41, y + 10, 18, 26), (44, 42, 50))
+    for cx in (x + w // 4, x + 3 * w // 4):
+        fill_round_rect(a.img, a.lay, (cx - 92, y + 52, cx + 92, y + 178), 44, (58, 56, 64))
+        fill_round_rect(a.img, a.lay, (cx - 80, y + 62, cx + 80, y + 168), 38, (12, 12, 15))
+    fill_rect(a.img, a.lay, (x + w // 2 - 22, y + 50, 44, 130), (34, 46, 38))   # centre board
+    eimg, elay = a.glow_layer()
+    led = (x + w - 58, y + 26, x + w - 30, y + 46)
+    fill_ellipse(a.img, a.lay, led, (90, 140, 255))
+    fill_ellipse(eimg, elay, led, (40, 90, 255))
 
     x, y, w, h = a.rect("strap")
     a.fill("strap", (20, 20, 22), 0.0, 0.35, noise=0.02)
