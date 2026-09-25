@@ -28,7 +28,7 @@ public static class AtlasSetup
     static readonly HashSet<string> Excluded = new HashSet<string>
     {
         "own_art", "living_wall_art", "bedroom_fixtures", "desk_computer",
-        "media_hutch_art", "cassette_player_art",
+        "media_hutch_art", "cassette_player_art", "vanity_mirror_glass", "mirror_button",
         "VideoScreen", "wall_tv_screen",
     };
 

@@ -1,0 +1,26 @@
+{
+  "name": "bedroom_cables",
+  "fbx": "Assets/Apartment/Models/bedroom_cables.fbx",
+  "materials": {
+    "bedroom_cables": {
+      "atlas": "bedroom_cables",
+      "mode": "opaque",
+      "tiled": false
+    }
+  },
+  "collider": "none",
+  "static": true,
+  "triangles": 3938,
+  "bounds_m": {
+    "min": [
+      3.5243,
+      0.104,
+      -0.0007
+    ],
+    "max": [
+      4.1887,
+      2.6597,
+      2.0128
+    ]
+  }
+}

@@ -100,27 +100,28 @@ PLACES = {
     # Bathroom, layout B (confirmed by the bathroom capture, S): tub along the east wall
     # faucet at the north wall, the 33 in stub wall at its south foot.
     "bathtub": (260.45, 257.05, 270.0),       # bath capture, shifted with the east wall
-    "toilet": (186.6, 268.5, 90.0),
-    "vanity": (181.8, 227.55, 90.0),
+    "toilet": (187.45, 268.5, 90.0),            # survey offset from the bath west wall face (x 171.3)
+    "vanity": (182.65, 227.55, 90.0),           # back on the west wall face; the mirror hangs on it
     # Built in the building's own coordinates.
     "door_kitchen_closet": (134.0, 229.5, -90.0),   # S
     # Living room and dining (living capture, S).
     "couch": (22.5, 69.0, 90.0),            # SCAN: 87 in long, back at x 3
     "couch_blankets": (22.5, 69.0, 90.0),
-    "media_hutch": (124.75, 17.75, -90.0),      # SCAN: 31 x 18.5 x 80, square to the wall
+    "media_hutch": (124.75, 17.75, -90.0),      # SCAN: 31 x 18.5 x 79.5, square to the wall
+    "cassette_player": (118.2, 25.75, -102.0, 31.0),   # front left of the hutch's bottom bay
     "wall_tv": (134.0, 72.5, -90.0, 39.5),      # origin at the back face bottom
     "wall_heater": (134.0, 97.5, -90.0),
     "toolboxes": (128.0, 75.0, -90.0),
     "dining_table": (85.0, 205.0, 0.0),
     "dining_chair__w": (63.0, 211.5, 90.0),
-    "dining_chair__e": (92.5, 199.0, -90.0),     # pushed under
-    "dining_chair__n": (107.5, 237.5, 0.0),
+    "dining_chair__e": (97.0, 199.0, -90.0),     # pushed in; back clears the table edge (x 104)
+    "dining_chair__n": (112.0, 240.0, 0.0),      # clear of the table leg at the corner
     "dining_chair__s": (75.5, 176.0, 180.0),     # pulled out
     "plant_tall": (16.5, 16.5, 0.0),
     "plant_broadleaf": (68.0, 15.0, 0.0),
     "portable_ac": (12.5, 131.0, 90.0),          # body clear of the couch arm (y 112.5); hose still in window 2
     "bean_bag": (91.0, 16.5, 0.0),
-    "trash_can": (30.5, 183.0, 90.0),
+    "trash_can": (37.0, 183.0, 90.0),            # clear of the stub wall (ends x 26)
     "window_blinds": (0.0, 0.0, 0.0),
     "living_wall_art": (0.0, 0.0, 0.0),         # built in plan coordinates
     # Bedroom (bedroom capture, S).
@@ -136,17 +137,18 @@ PLACES = {
     "floor_lamp": (265.0, 42.0, -90.0),
     "plastic_drawers": (265.0, 75.0, -90.0),
     "floor_boxes": (266.5, 53.5, -90.0),
-    "light_stand__center": (143.5, 104.5, 90.0),   # origin at the pole; box faces east
+    "light_stand__center": (143.5, 104.5, 60.0),   # origin at the pole; box faces east-north-east, feet clear of the wall
     "light_stand__patio": (235.0, 12.0, 180.0),    # box faces north
     "bedroom_fixtures": (0.0, 0.0, 0.0),
     "hanging_bags": (0.0, 0.0, 0.0),             # built in plan coordinates
     "shoes": (238.8, 135.2, 0.0),
+    "bedroom_cables": (0.0, 0.0, 0.0),           # built in plan coordinates
     "own_art": (0.0, 0.0, 0.0),                  # Cassidy's own paintings and prints, plan coordinates
     # Light fixtures hang from their origin at the ceiling (z 108).
     "ceiling_light_bar": (68.0, 235.0, 0.0, 108.0),        # S
     "ceiling_dome_light__dining": (67.0, 152.0, 0.0, 108.0),   # A: near the entry, per the survey
     "ceiling_dome_light__hall": (229.0, 183.5, 0.0, 108.0),    # S
-    "bath_fixtures": (-7.3, 0.0, 0.0),          # built in plan coordinates for the old east wall
+    "bath_fixtures": (-6.45, 0.0, 0.0),         # built for the old walls; anchored to the west wall (mirror light). TODO rebuild: niche shelves sit 1.7 in off the east wall
     "window_units": (0.0, 0.0, 0.0),
     "exterior_view": (0.0, 0.0, 0.0),
 }

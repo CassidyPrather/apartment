@@ -91,6 +91,7 @@ public static class ApartmentSetup
             vw.transform.SetPositionAndRotation(new Vector3(-1.2f, 0f, -3.9f) * WorldScale, Quaternion.Euler(0, 200f, 0));
         }
         VideoSetup.Setup();
+        MirrorSetup.Setup();
         EditorSceneManager.SaveScene(scene, Root + "/Scenes/apartment.unity");
         AtlasSetup.Run();                                          // draw calls: shared atlases
         LightingSetup.Setup();

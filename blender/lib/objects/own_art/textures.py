@@ -1,6 +1,6 @@
 """own_art atlas (2048): Cassidy's five pieces, each rectified straight-on from its best photo
-in Reference/ with rectify(), colour-balanced with per-photo gains, and the signature marks
-blurred. The albedo is git-ignored on purpose: the art ships only in the VRChat upload.
+in Reference/ with rectify(), colour-balanced with per-photo gains; the signatures are kept
+(not blurred). The albedo is git-ignored on purpose: the art ships only in the VRChat upload.
 Runs inside headless GIMP with gimp_textures.py's helpers in scope."""
 
 import os

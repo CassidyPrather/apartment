@@ -9,6 +9,11 @@ ModelImporter:
       assembly: UnityEngine.CoreModule
       name: bedroom_fixtures
     second: {fileID: 2100000, guid: d8f1577f1d0f11747988fea14618295b, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: bedroom_fixtures_clear
+    second: {fileID: 2100000, guid: aaa27c8e913bc144fa17555c31825e87, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

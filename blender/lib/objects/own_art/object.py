@@ -5,7 +5,7 @@
   waterfall gouache of a waterfall between dark rocks, thin black frame, grey mat
   isopod   black-ink linocut of an isopod, small deep black frame
 Textures are the pieces themselves, rectified from Cassidy's photos (see layout.py/textures.py);
-the signature marks are blurred.
+the signatures stay as they are (Cassidy asked that artists' signatures not be blurred).
 
 Source of truth: Cassidy's seven photos Reference/PXL_20260925_173348922 .. 173438122 (the five
 laid on a bed; one with a hand beside them, one overhead). Placement from the shell layout and

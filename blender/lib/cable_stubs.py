@@ -66,7 +66,7 @@ def runs():
     return [
         # modem <-> router ethernet (white), sagging onto the top between them
         ("plug_white", 0.0028, [m_eth, m_eth_out, Vector((mid.x, mid.y, t + 0.006)), wan_out, wan]),
-        ("cable_black", 0.0026, [lan, lan_out, Vector((lan_out.x - 0.02, lan_out.y, t))] + over_left_edge(lan_out)),
+        # The LAN run is bedroom_cables' white ethernet now (it starts at router_port).
         ("cable_black", 0.0022, [pwr, pwr_out, Vector((pwr_out.x - 0.02, pwr_out.y, t))] + over_left_edge(pwr_out)),
         ("cable_black", 0.0022, [m_pwr, m_pwr_out, Vector((m_pwr_out.x - 0.02, m_pwr_out.y, t))]
          + over_left_edge(m_pwr_out, 0.01)),

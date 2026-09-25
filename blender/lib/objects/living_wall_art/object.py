@@ -1,24 +1,35 @@
 """Living room wall art: the small framed picture between the west windows, the canvas above
-the bedroom door, a poster beside the bedroom door and a framed certificate above the next
-door north, all on the living-room walls.
+the bedroom door, the city-map poster beside the bedroom door and a framed diploma further
+north, all on the living-room walls.
 
 Source of truth: scripted, positions from the living-room LiDAR survey (Reference/living_survey).
 Frame: PLAN coordinates. Origin = plan (0, 0, 0), +X east, +Y north, Z up, metres; the package
 goes on a marker at (0, 0, 0) with no rotation. u = plan coordinate along the wall, d = distance
 out from the wall surface into the room.
 
-Dimensions (inches, plan), all measured on capture frames rectified onto the wall plane
+Dimensions (inches, plan), measured on capture frames rectified onto the wall plane
 (Reference/bedroom_fixtures_work/rect.py + final.py), +-0.5                           SCAN
   west wall x 0: framed picture y 80.3..90.1, z 58.1..64.7, black frame 0.6, 0.8 deep
-      (the survey inventory had y ~83..95 x 9 tall; the rectified frames agree on these)
   center wall west face x 134:
-    poster y 100.73..117.4, z 54.67..65.5 (paper)
+    poster: unframed 17 x 11 tabloid paper                                             SPEC
+      the capture gives 16.7..16.8 x 10.8, centre y 109.07, z 60.08 (re-measured on a
+      30 px/in rectification of the best frame, Reference/living_wall_art_work/rect2);
+      the close-up photo's aspect is 1.54 = 17/11. Placed at y 98.8..115.8, z 54.58..65.58:
+      1.77 south of the capture centre so it clears the modelled bedroom door casing (3 wide,
+      starts at y 116.5); the real casing edge measures y 118.8 on the capture
     canvas y 127.47..146.13, z 87..96.67, 1.5 deep (gallery wrap)
-    certificate frame y 155.3..175.8, z 86.3..104.5, cherry frame 2.0, 1.0 deep     frame widths EST
+    diploma frame y 155.3..175.8, z 86.3..104.5, cherry, 1.0 deep                   SCAN
+      inside it, as fractions of the frame measured on two capture frames:
+      moulding 1.75 wide                                                              EST
+      sheet window y 161.2..172.9, z 90.1..100.0 (11.7 x 9.9)                        SCAN +-0.4
+      medallion centre y 166.9, z 101.3, 2.3 dia                                     SCAN
+      gold lettering y 163.0..171.6, z 88.6..89.8                                    SCAN
+      tassel tube y 158.8..160.5, z 89.5..101.6, 0.4 deep                            SCAN / EST depth
 
-Textures: the picture and the canvas are the real images, rectified from the capture
-photos. The poster is a street-level map of a real town and the certificate carries a name,
-so both are neutral stand-ins (privacy).
+Textures: the picture, the canvas and the map poster are the real images (the poster is a
+fictional city from a 1985 text game, rectified from Cassidy's close-up photo IMG_1505). The
+diploma is painted from scratch for a made-up school; the graduate line reads "Cassidy Company"
+(Cassidy's request).
 """
 
 from mathutils import Vector
@@ -78,17 +89,18 @@ def build(coll):
     u0, u1, z0, z1, fw = 80.3, 90.1, 58.1, 64.7, 0.6
     panel(b, "frame_black", "west", (u0, u1), (0.0, 0.8), (z0, z1))
     panel(b, "pic_west", "west", (u0 + fw, u1 - fw), (0.6, 0.83), (z0 + fw, z1 - fw), "frame_black", True)
-    # poster beside the bedroom door (stand-in)
-    panel(b, "map_standin", "center_w", (100.73, 117.4), (0.0, 0.06), (54.67, 65.5), "paper", True)
+    # city-map poster beside the bedroom door (unframed 17 x 11 paper)
+    panel(b, "map", "center_w", (98.8, 115.8), (0.0, 0.06), (54.58, 65.58), "paper", True)
     # gallery-wrap canvas above the bedroom door
     panel(b, "canvas", "center_w", (127.47, 146.13), (0.0, 1.5), (87.0, 96.67), "canvas_side", True)
-    # framed certificate (blank stand-in)
-    u0, u1, z0, z1, fw = 155.3, 175.8, 86.3, 104.5, 2.0
+    # framed diploma: cherry moulding, black mat, sheet, medallion, gold lettering, tassel tube
+    u0, u1, z0, z1, fw = 155.3, 175.8, 86.3, 104.5, 1.75
     panel(b, "frame_cherry", "center_w", (u0, u1), (0.0, 1.0), (z0, z1))
     panel(b, "mat_black", "center_w", (u0 + fw, u1 - fw), (0.6, 1.02), (z0 + fw, z1 - fw))
-    panel(b, "diploma_sheet", "center_w", (u0 + 7.0, u1 - 3.0), (1.02, 1.05), (z0 + 3.5, z1 - 3.5),
-          "diploma_sheet", True)
-    panel(b, "tassel", "center_w", (u0 + 3.2, u0 + 4.8), (1.02, 1.4), (z0 + 3.5, z1 - 3.5))
+    panel(b, "diploma_sheet", "center_w", (161.2, 172.9), (1.02, 1.05), (90.1, 100.0), "paper", True)
+    panel(b, "dip_seal", "center_w", (165.75, 168.05), (1.02, 1.05), (100.15, 102.45), "mat_black", True)
+    panel(b, "dip_plate", "center_w", (163.0, 171.6), (1.02, 1.04), (88.6, 89.8), "mat_black", True)
+    panel(b, "tassel", "center_w", (158.8, 160.5), (1.02, 1.42), (89.5, 101.6), "tassel_side", True)
     return [b.to_object(NAME, coll)]
 
 

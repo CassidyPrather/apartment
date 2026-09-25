@@ -12,6 +12,11 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
+      name: media_hutch_art
+    second: {fileID: 2100000, guid: 2b2b29071cacb014aa4af5db37151536, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
       name: media_hutch_glass
     second: {fileID: 2100000, guid: 12ea32f47c9fbfd41915167f75b73828, type: 2}
   materials:

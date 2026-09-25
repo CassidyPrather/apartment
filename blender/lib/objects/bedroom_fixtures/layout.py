@@ -1,7 +1,8 @@
 """Atlas layout for bedroom_fixtures (pure data, shared by object.py and textures.py).
 Photo regions are sized to the rectified photos in Reference/bedroom_fixtures_work/final/."""
 
-PHOTOS = ['art_moon', 'art_space', 'art_tree', 'art_center', 'art_purple', 'art_south', 'mid_poster', 'charms', 'corner_poster', 'drawing_bw', 'card_a', 'card_b', 'card_d', 'card_s', 'card_c']
+PHOTOS = ['art_moon', 'art_space', 'art_tree', 'art_center', 'art_purple', 'art_south', 'mid_poster', 'corner_poster', 'drawing_bw', 'card_a', 'card_b', 'card_d', 'card_s', 'card_c', 'art_flowers',
+          'ch_candy', 'ch_boba', 'ch_tall', 'ch_hgroup', 'ch_plush']
 
 ATLAS = {
     "name": "bedroom_fixtures",
@@ -10,19 +11,18 @@ ATLAS = {
         'art_space': (0, 0, 546, 728),
         'art_tree': (550, 0, 496, 611),
         'art_center': (1050, 0, 434, 559),
+        'art_flowers': (1488, 0, 560, 383),
         'art_moon': (0, 732, 758, 453),
-        'charms': (762, 732, 300, 390),
         'art_purple': (1066, 732, 495, 369),
         'art_south': (1565, 732, 224, 368),
-        'mid_poster': (0, 1189, 260, 335),
-        'corner_poster': (264, 1189, 202, 308),
-        'drawing_bw': (470, 1189, 248, 278),
+        'mid_poster': (0, 1189, 260, 337),
+        'corner_poster': (264, 1189, 202, 307),
+        'drawing_bw': (470, 1189, 240, 300),
         'card_s': (722, 1189, 133, 195),
-        'card_a': (859, 1189, 130, 192),
-        'card_d': (993, 1189, 115, 190),
-        'card_b': (1112, 1189, 126, 173),
-        'art_strip': (1242, 1189, 340, 130),
-        'card_c': (1586, 1189, 61, 124),
+        'card_a': (859, 1189, 126, 190),
+        'card_d': (989, 1189, 123, 185),
+        'card_b': (1116, 1189, 140, 185),
+        'card_c': (1260, 1189, 80, 140),
         'vane': (1651, 1189, 128, 512),
         'rail': (1783, 1189, 128, 128),
         'bs_face': (1915, 1189, 128, 128),
@@ -38,5 +38,17 @@ ATLAS = {
         'bracket': (740, 1705, 64, 64),
         'cable': (808, 1705, 64, 64),
         'thermo': (876, 1705, 64, 64),
+        # keychain charms (60 px/in faces from IMG_1520) and their clear / metal swatches
+        'ch_candy': (0, 1837, 229, 190),
+        'ch_plush': (233, 1837, 200, 200),
+        'ch_tall': (437, 1837, 88, 200),
+        'ch_hgroup': (529, 1837, 128, 134),
+        'ch_boba': (661, 1837, 86, 131),
+        'ch_pinkheart': (751, 1837, 64, 64),
+        'ch_clear': (819, 1837, 32, 32),
+        'nickel': (855, 1837, 32, 32),
+        'rose_gold': (891, 1837, 32, 32),
+        'gold': (927, 1837, 32, 32),
+        'pin': (963, 1837, 32, 32),
     },
 }

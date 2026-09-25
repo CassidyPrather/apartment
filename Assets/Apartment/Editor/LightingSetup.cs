@@ -177,7 +177,15 @@ public static class LightingSetup
             var size = r.bounds.size;
             float big = Mathf.Max(size.x, Mathf.Max(size.y, size.z));
             r.scaleInLightmap = big < 1.0f ? 4f : big < 2.0f ? 2f : 1f;
+            if (r.name.StartsWith("door_"))
+                r.scaleInLightmap = Mathf.Max(r.scaleInLightmap, 2f);   // big flat faces, seen up close
         }
+
+        // Light fixtures sit right at their baked light, so their own meshes threw big
+        // unrealistic shadows (the kitchen light bar); they don't cast in the bake.
+        foreach (var r in Object.FindObjectsOfType<MeshRenderer>())
+            if (r.name.StartsWith("ceiling_light_bar") || r.name.StartsWith("ceiling_dome_light") || r.name.StartsWith("floor_lamp"))
+                r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
 
         RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Trilight;
         RenderSettings.ambientSkyColor = new Color(0.6f, 0.62f, 0.66f);     // near-neutral: a bluer sky tinted everything by the windows
@@ -191,7 +199,7 @@ public static class LightingSetup
             bakedGI = true,
             realtimeGI = false,
             lightmapResolution = 20f,
-            lightmapPadding = 4,
+            lightmapPadding = 8,           // 4 let neighbouring charts bleed onto chart edges (pink strip on a door)
             lightmapMaxSize = 2048,
             directionalityMode = LightmapsMode.NonDirectional,
             lightmapCompression = LightmapCompression.NormalQuality,

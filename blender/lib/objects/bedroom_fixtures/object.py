@@ -2,7 +2,10 @@
   - vertical vane blinds in the bedroom's south window
   - two tracking base stations on swivel wall brackets (cable run down the wall)
   - ceiling smoke detector, thermostat on the center wall
-  - all the wall art, textured from rectified capture photos (the photo strip stays abstract)
+  - all the wall art, textured from rectified capture photos (the six-panel flower print from
+    Cassidy's close-up photo IMG_1515)
+  - the six keychains by the plushes, modelled: acrylic slabs, metal rings/clasps/chains, a
+    plush ball, wall pins
 
 Source of truth: scripted, positions from the bedroom LiDAR survey (Reference/bedroom_survey).
 Frame: PLAN coordinates. Origin = plan (0, 0, 0), +X east, +Y north, Z up, metres; the package
@@ -22,9 +25,22 @@ Dimensions (inches, plan):
   wall art: every piece's bounds are in ART below, measured on capture frames rectified onto
     the known wall plane (Reference/bedroom_fixtures_work/rect.py, final.py), +-0.5   SCAN
   frame widths: center 1.4 black, tree 0.4 black, south 1.1 white                   SCAN
-  back wall photo strip x 174.5..191.5, z 60.5..67: stays an abstract painted strip (privacy)
-Artwork textures are the real pictures, rectified from the capture photos; signatures, a
-game logo and a place name are blurred or blanked (see final.py).
+  back wall six-panel flower print, unframed paper 19 x 13 (A3+; the capture gives 18.8 x 12.3
+    and IMG_1515's aspect 1.46 = 19/13), centred on the capture at x 183.1, z 64.0 ->
+    x 173.6..192.6, z 57.5..70.5; black band 16.9 x 5.5 inside it                SPEC / SCAN
+  east-wall prints/cards by the plushes: positions re-checked on Cassidy's IMG_1517 through a
+    homography anchored on the roller-skate poster (y 37.15..45.75, z 59.85..71.0); the cards
+    agree with the capture within 0.2; the kraft card is 2.0 x 3.5 (y 43.15..45.15,
+    z 55.7..59.2) and the sword print 8 x 10 (y 27.25..35.25, z 56.4..66.4)       PHOTO
+  keychains (y 13..24, z 64..77): traced from IMG_1520 at 185 px/in, fitted to the capture's
+    charm positions (residual < 0.5); outlines/rings/pins in charms.py; acrylic 3 mm (0.12),
+    split rings 1.0..1.1 dia, wire 1.8 mm, plush ball 3.3 dia squashed to 2.6 deep   PHOTO / EST
+Artwork textures are the real pictures, rectified from the capture photos, except: the holiday
+tree is the artist's clean original file (Reference/CorVous_commission17.jpg, centre-cropped to
+the frame opening's 15.8 x 19.4), the moon print is rectified from Cassidy's close-up IMG_1504
+(white border kept, balanced off it), the flower print from IMG_1515, and the prints/cards and
+charm faces by the plushes from IMG_1517..1521 (balanced off the wall / paper white). Signatures
+are kept (Cassidy's request); only the space poster's game logo is blanked (see final.py).
 """
 
 import math
@@ -54,10 +70,14 @@ WALLS = {
 }
 
 import layout  # noqa: E402  (package dir is on sys.path during builds)
+import charms as CH  # noqa: E402
 
 ATLAS = layout.ATLAS
 REGIONS = list(ATLAS["regions"])
-MATERIALS = {NAME: {"atlas": NAME, "mode": "opaque"}}
+CLEAR_ALPHA = 0.3
+MATERIALS = {NAME: {"atlas": NAME, "mode": "opaque"},
+             NAME + "_clear": {"atlas": NAME, "mode": "transparent", "alpha": CLEAR_ALPHA}}
+CLEAR_REGIONS = {"ch_clear"}
 COLLIDER = "none"
 STATIC = True
 VIEWS = [("east_wall", 270, 8, 0.45), ("south_wall", 0, 8, 0.45), ("north_side", 180, 10, 0.45)]
@@ -70,26 +90,19 @@ ART = [
     ("art_center", "center_e", 67.7, 82.1, 53.7, 71.0, "frame_black"),
     ("art_south", "south", 162.0, 169.8, 58.2, 69.7, "frame_white"),
     ("card_s", "south", 156.75, 160.0, 65.4, 70.25, "paper"),
-    ("art_strip", "back", 174.5, 191.5, 60.5, 67.0, "paper"),
+    ("art_flowers", "back", 173.6, 192.6, 57.5, 70.5, "paper"),
     ("art_moon", "east", 91.75, 117.0, 52.0, 67.1, "paper"),
     ("art_tree", "east", 70.8, 87.4, 51.3, 71.5, "frame_thin"),
     ("mid_poster", "east", 37.15, 45.75, 59.85, 71.0, "paper"),
     ("card_a", "east", 45.9, 50.1, 52.25, 58.6, "paper"),
     ("card_b", "east", 45.6, 50.25, 45.0, 51.15, "paper"),
-    ("card_c", "east", 42.7, 45.2, 55.6, 59.25, "paper"),
+    ("card_c", "east", 43.15, 45.15, 55.7, 59.2, "paper"),          # kraft card, 2 x 3.5 (IMG_1517)
     ("card_d", "east", 39.5, 43.6, 48.5, 54.65, "paper"),
-    ("drawing_bw", "east", 27.0, 35.25, 56.25, 65.5, "paper"),
+    ("drawing_bw", "east", 27.25, 35.25, 56.4, 66.4, "paper"),      # 8 x 10 print (IMG_1517/1519)
     ("corner_poster", "east", 6.0, 12.75, 67.5, 77.75, "paper"),
     ("art_space", "closet_s", 248.4, 266.5, 65.5, 89.75, "paper"),   # above the bag hooks (z 61.5)
     ("art_purple", "closet_fw", 137.3, 153.8, 85.8, 98.1, "paper"),
 ]
-# keychain charms, east wall corner: (u centre, z centre, w, h), measured on the rectified frame;
-# the photo of the whole cluster (y 13.25..23.25, z 64.75..77.75) is projected across them.
-CHARMS = [(21.75, 75.1, 3.0, 5.25), (16.6, 75.25, 1.75, 4.0), (18.75, 72.5, 4.5, 4.5),
-          (14.85, 71.15, 2.7, 6.5), (22.0, 68.25, 2.0, 5.0), (16.6, 67.5, 2.75, 5.5)]
-CHARM_BOX = (13.25, 23.25, 64.75, 77.75)
-
-
 def plan_box(wall, u, d, z):
     """(u0,u1),(d0,d1),(z0,z1) in a wall frame -> plan lo/hi in metres."""
     ax, s0, sign, _ = WALLS[wall]
@@ -133,10 +146,192 @@ def art(b, region, wall, u0, u1, z0, z1, style):
 
 
 def charms(b):
-    for uc, zc, w, h in CHARMS:
-        panel(b, "charms", "east", (uc - w / 2, uc + w / 2), (0.05, 0.2), (zc - h / 2, zc + h / 2), "charms")
-    u0, u1, z0, z1 = CHARM_BOX
-    PLANAR["charms"] = ("-X", (-m(u1), -m(u0)), (m(z0), m(z1)))
+    for k, reg in (("candy", "ch_candy"), ("boba", "ch_boba"), ("tall", "ch_tall"), ("hgroup", "ch_hgroup")):
+        a = CH.ACRYLIC[k]
+        acrylic(b, a["outer"], a["print"], reg, a["box"])
+    # the brand charm, replaced by a plain pink acrylic heart (ring on top)
+    h = CH.HEART
+    outer = heart_outline(h["centre"], h["w"], h["h"])
+    hu = [p[0] for p in outer]
+    hz = [p[1] for p in outer]
+    acrylic(b, outer, inset(outer, 0.1), "ch_pinkheart", (min(hu), max(hu), min(hz), max(hz)))
+    plush(b)
+    metal = {"candy": "rose_gold", "boba": "rose_gold", "plush": "gold", "tall": "nickel"}
+    for k, (kind, c, r, stem) in CH.CLASPS.items():
+        clasp(b, metal[k], kind, c, r, stem)
+    for k, (c, r) in CH.RINGS.items():
+        reg = "rose_gold" if k.startswith(("candy", "boba")) else "nickel"
+        big = r > 0.2
+        ring(b, reg, c, r, seg=10 if big else 5, wire=WIRE if big else 0.022, flat=big or k.endswith("jr2"))
+    for k, pts in CH.CHAINS.items():
+        if k == "plush":
+            ball_chain(b, "gold", pts[0], pts[1])
+        elif k == "tall":
+            chain(b, "nickel", CH.CLASPS["tall"][3][1], pts[1])
+        else:
+            chain(b, "nickel", pts[0], pts[1], link=0.32 if k == "hgroup" else 0.25)
+    for p in CH.PINS.values():
+        pin(b, p)
+
+
+# Keychain charms (east wall, y 13..24, z 64..77): real geometry, traced from Cassidy's close-up
+# IMG_1520 (charms.py holds the outlines and ring/chain/pin positions). Acrylic charms are 3 mm
+# slabs following their cut line, clear except the printed area on the front; rings, clasps and
+# chains are modelled metal; the plush is a squashed ball on a ball chain; each hangs from a small
+# wall pin. The brand charm (a clothing label's bunny-skull logo) is replaced by a plain pink
+# acrylic heart of the same size.
+
+EAST = 274.6
+ACR_D = (0.08, 0.2)          # acrylic slab, inches out from the wall (3 mm)
+RING_D = 0.12                # ring / chain centre-plane depth
+WIRE = 0.035                 # ring wire radius (about 1.8 mm dia)
+
+
+def wv(u, d, z):
+    """east-wall frame (u = plan y, d = out from the wall, z) -> plan metres"""
+    return Vector((m(EAST - d), m(u), m(z)))
+
+
+def acrylic(b, outer, printed, face_region, box):
+    """Clear slab along `outer`; its front face is split into the printed area (opaque,
+    textured) and a clear border ring. outer/printed: matching point lists (u, z)."""
+    bm = b.bm
+    area = sum(p[0] * q[1] - q[0] * p[1] for p, q in zip(outer, outer[1:] + outer[:1]))
+    if area < 0:
+        outer, printed = list(reversed(outer)), list(reversed(printed))
+    d0, d1 = ACR_D
+    back = [bm.verts.new(wv(u, d0, z)) for u, z in outer]
+    front = [bm.verts.new(wv(u, d1, z)) for u, z in outer]
+    inner = [bm.verts.new(wv(u, d1, z)) for u, z in printed]
+    n = len(outer)
+    faces = [bm.faces.new(back)]
+    for i in range(n):
+        k = (i + 1) % n
+        faces.append(bm.faces.new((back[i], back[k], front[k], front[i])))
+        faces.append(bm.faces.new((front[i], front[k], inner[k], inner[i])))
+    b._tag(faces, "ch_clear")
+    pf = bm.faces.new(list(reversed(inner)))
+    b._tag([pf], face_region)
+    u0, u1, z0, z1 = box
+    PLANAR[face_region] = ("-X", (-m(u1), -m(u0)), (m(z0), m(z1)))
+
+
+def wire_loop(b, region, path, radius, sides=4):
+    """closed metal loop along a list of plan-metre points"""
+    prof = [(radius * math.cos(2 * math.pi * k / sides), radius * math.sin(2 * math.pi * k / sides))
+            for k in range(sides)]
+    b.sweep(region, path, prof, up=(1, 0, 0), closed=True)
+
+
+def ring(b, region, c, r, d=RING_D, seg=12, wire=WIRE, flat=True):
+    """split / jump ring: a torus in the wall plane (flat) or edge-on to it"""
+    if flat:
+        path = [wv(c[0] + r * math.cos(2 * math.pi * k / seg), d, c[1] + r * math.sin(2 * math.pi * k / seg))
+                for k in range(seg)]
+    else:
+        path = [wv(c[0], d + r * math.cos(2 * math.pi * k / seg), c[1] + r * math.sin(2 * math.pi * k / seg))
+                for k in range(seg)]
+    wire_loop(b, region, path, m(wire), sides=3)
+
+
+def chain(b, region, p0, p1, link=0.25, wire=0.02):
+    """diamond links from p0 down to p1, alternating flat / edge-on"""
+    L = math.dist(p0, p1)
+    n = max(1, round(L / link))
+    for i in range(n):
+        t0, t1 = i / n, (i + 1) / n
+        a = (p0[0] + (p1[0] - p0[0]) * t0, p0[1] + (p1[1] - p0[1]) * t0)
+        c = (p0[0] + (p1[0] - p0[0]) * t1, p0[1] + (p1[1] - p0[1]) * t1)
+        mu, mz = (a[0] + c[0]) / 2, (a[1] + c[1]) / 2
+        w = L / n * 0.3
+        if i % 2 == 0:
+            path = [wv(a[0], RING_D, a[1]), wv(mu + w, RING_D, mz), wv(c[0], RING_D, c[1]), wv(mu - w, RING_D, mz)]
+        else:
+            path = [wv(a[0], RING_D, a[1]), wv(mu, RING_D + w, mz), wv(c[0], RING_D, c[1]), wv(mu, RING_D - w, mz)]
+        wire_loop(b, region, path, m(wire), sides=3)
+
+
+def ball_chain(b, region, p0, p1, pitch=0.12, r=0.035):
+    L = math.dist(p0, p1)
+    n = max(2, round(L / pitch))
+    for i in range(n + 1):
+        t = i / n
+        u, z = p0[0] + (p1[0] - p0[0]) * t, p0[1] + (p1[1] - p0[1]) * t
+        res = bmesh.ops.create_icosphere(b.bm, subdivisions=0, radius=m(r))
+        bmesh.ops.translate(b.bm, vec=wv(u, RING_D + 0.02, z), verts=res["verts"])
+        b._tag(list({f for v in res["verts"] for f in v.link_faces}), region)
+
+
+def clasp(b, region, kind, c, r, stem):
+    """heart / star shaped clasp loop plus the lobster body down to the jump ring"""
+    pts = []
+    if kind == "heart_clasp":
+        for k in range(14):
+            t = 2 * math.pi * k / 14
+            x = 16 * math.sin(t) ** 3
+            y = 13 * math.cos(t) - 5 * math.cos(2 * t) - 2 * math.cos(3 * t) - math.cos(4 * t)
+            pts.append((c[0] - x / 17 * r, c[1] + y / 17 * r))
+    elif kind.startswith("star_clasp"):
+        for k in range(10):
+            a = math.pi / 2 + math.pi * k / 5
+            rr = r if k % 2 == 0 else r * 0.45
+            pts.append((c[0] + rr * math.cos(a), c[1] + rr * math.sin(a)))
+    if pts:
+        wire_loop(b, region, [wv(u, RING_D, z) for u, z in pts], m(0.025), sides=3)
+    (u0, z0), (u1, z1) = stem
+    uc, zc = (u0 + u1) / 2, (z0 + z1) / 2
+    h, w = abs(z0 - z1) / 2 + 0.03, 0.06
+    lo, hi = wv(uc + w, RING_D + w, zc - h), wv(uc - w, RING_D - w, zc + h)
+    b.box(region, tuple(min(lo[i], hi[i]) for i in range(3)), tuple(max(lo[i], hi[i]) for i in range(3)))
+
+
+def pin(b, p):
+    """small wall pin: a short stub standing out from the wall under the ring"""
+    u, z = p
+    b.cylinder("pin", wv(u, 0.22, z), m(0.07), m(0.44), axis="X", segments=5)
+
+
+def heart_outline(c, w, h, n=24):
+    pts = []
+    for k in range(n):
+        t = 2 * math.pi * k / n
+        x = 16 * math.sin(t) ** 3
+        y = 13 * math.cos(t) - 5 * math.cos(2 * t) - 2 * math.cos(3 * t) - math.cos(4 * t)
+        pts.append((c[0] - x / 32 * w, c[1] + (y + 2.5) / 30 * h))
+    return pts
+
+
+def inset(pts, d):
+    """offset a closed outline inward by d (miter, capped), same vertex count"""
+    pts = list(pts)
+    area = sum(p[0] * q[1] - q[0] * p[1] for p, q in zip(pts, pts[1:] + pts[:1]))
+    s = 1.0 if area > 0 else -1.0
+    n, out = len(pts), []
+    for i in range(n):
+        a, p, c = Vector(pts[i - 1]), Vector(pts[i]), Vector(pts[(i + 1) % n])
+        e1, e2 = (p - a).normalized(), (c - p).normalized()
+        n1, n2 = Vector((-e1.y, e1.x)) * s, Vector((-e2.y, e2.x)) * s
+        nm = n1 + n2
+        nm = n1 if nm.length < 1e-6 else nm.normalized()
+        k = min(2.0, 1.0 / max(0.3, nm.dot(n1)))
+        q = p + nm * d * k
+        out.append((q.x, q.y))
+    return out
+
+
+def plush(b):
+    c, r = CH.PLUSH["centre"], CH.PLUSH["radius"]
+    depth = r * 0.78
+    res = bmesh.ops.create_uvsphere(b.bm, u_segments=12, v_segments=7, radius=1.0)
+    verts = res["verts"]
+    # squashed toward the wall: radius r in the wall plane, `depth` out from it
+    mat = Matrix.Translation(wv(c[0], depth + 0.02, c[1])) @ Matrix.Diagonal((m(depth), m(r), m(r * 0.97), 1.0))
+    bmesh.ops.transform(b.bm, matrix=mat, verts=verts)
+    b._tag(list({f for v in verts for f in v.link_faces}), "ch_plush")
+    u0, u1, z0, z1 = CH.PLUSH["box"]
+    PLANAR["ch_plush"] = ("-X", (-m(u1), -m(u0)), (m(z0), m(z1)))
+    # the sewn-in loop at the top that the ball chain passes through
+    ring(b, "gold", (c[0], c[1] + r + 0.02), 0.08, d=0.35, seg=6, wire=0.02, flat=False)
 
 
 # --- blinds (south window, as window_blinds does it) --------------------------------
@@ -239,6 +434,14 @@ def build(coll):
 
 def texture(objs):
     mat = common.atlas_material(NAME, ATLAS)
+    clear = common.atlas_material(NAME + "_clear", ATLAS)
+    # preview only: show the acrylic as see-through in the Blender renders
+    bsdf = next(n for n in clear.node_tree.nodes if n.type == "BSDF_PRINCIPLED")
+    bsdf.inputs["Alpha"].default_value = CLEAR_ALPHA
+    if hasattr(clear, "surface_render_method"):
+        clear.surface_render_method = "BLENDED"
+    else:
+        clear.blend_method = "BLEND"
     for ob in objs:
         common.atlas_uvs(ob, ATLAS, planar=dict(PLANAR))
-        common.collapse_materials(ob, {r: mat for r in REGIONS})
+        common.collapse_materials(ob, {r: (clear if r in CLEAR_REGIONS else mat) for r in REGIONS})

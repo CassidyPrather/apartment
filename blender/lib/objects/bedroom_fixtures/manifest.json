@@ -5,11 +5,16 @@
     "bedroom_fixtures": {
       "atlas": "bedroom_fixtures",
       "mode": "opaque"
+    },
+    "bedroom_fixtures_clear": {
+      "atlas": "bedroom_fixtures",
+      "mode": "transparent",
+      "alpha": 0.3
     }
   },
   "collider": "none",
   "static": true,
-  "triangles": 816,
+  "triangles": 2790,
   "bounds_m": {
     "min": [
       3.5243,

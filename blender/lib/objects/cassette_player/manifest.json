@@ -1,0 +1,37 @@
+{
+  "name": "cassette_player",
+  "fbx": "Assets/Apartment/Models/cassette_player.fbx",
+  "materials": {
+    "cassette_player": {
+      "atlas": "cassette_player",
+      "mode": "opaque",
+      "tiled": false
+    },
+    "cassette_player_art": {
+      "atlas": "cassette_player_art",
+      "mode": "opaque",
+      "tiled": false
+    },
+    "cassette_case_clear": {
+      "atlas": "cassette_player",
+      "mode": "transparent",
+      "alpha": 0.14,
+      "tiled": false
+    }
+  },
+  "collider": "box",
+  "static": false,
+  "triangles": 924,
+  "bounds_m": {
+    "min": [
+      -0.0673,
+      -0.081,
+      -0.0587
+    ],
+    "max": [
+      0.0803,
+      0.0528,
+      0.0513
+    ]
+  }
+}

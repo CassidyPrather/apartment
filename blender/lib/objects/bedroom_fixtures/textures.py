@@ -1,6 +1,9 @@
 """Bedroom fixtures atlas (2048). The wall art is the real pictures, rectified from the
 bedroom capture frames by Reference/bedroom_fixtures_work/final.py (local-only) and pasted
-into their regions; the back-wall photo strip stays an abstract painted strip (privacy).
+into their regions. The flower print, the moon print and the holiday tree come from Cassidy's
+close-up photos / the artist's original file via Reference/living_wall_art_work/v2/photo_prep.py.
+Signatures are kept. The keychain faces are crops of IMG_1520 (Reference/bedroom_fixtures_work/v3/
+charms_data.py), balanced off the wall.
 Plus blinds, base stations, smoke detector and thermostat swatches. Runs inside headless GIMP."""
 
 import os
@@ -9,60 +12,6 @@ import random
 exec(open(os.path.join(ROOT, "blender", "lib", "objects", "bedroom_fixtures", "layout.py"),
           encoding="utf-8").read())
 FINAL = os.path.join(REF, "bedroom_fixtures_work", "final")
-
-WHITE = (240, 238, 232)
-
-
-def lerp(c0, c1, t):
-    return tuple(round(a + (b - a) * t) for a, b in zip(c0, c1))
-
-
-def vgrad(a, rect, c0, c1, band=3):
-    x, y, w, h = rect
-    for r in range(0, h, band):
-        fill_rect(a.img, a.lay, (x, y + r, w, min(band, h - r)), lerp(c0, c1, r / max(1, h - 1)))
-
-
-CLIP = [None]
-
-
-def clip(a, region):
-    CLIP[0] = a.rect(region)
-
-
-def _fill_sel(a, rgb):
-    if CLIP[0] is not None:
-        x, y, w, h = CLIP[0]
-        a.img.select_rectangle(Gimp.ChannelOps.INTERSECT, x, y, w, h)
-    if not Gimp.Selection.is_empty(a.img):
-        Gimp.context_set_foreground(color(tuple(rgb[:3])))
-        Gimp.context_set_opacity(100.0 * (rgb[3] if len(rgb) == 4 else 1.0))
-        a.lay.edit_fill(Gimp.FillType.FOREGROUND)
-        Gimp.context_set_opacity(100.0)
-    Gimp.Selection.none(a.img)
-
-
-def blur(a, rect, s):
-    x, y, w, h = rect
-    a.img.select_rectangle(Gimp.ChannelOps.REPLACE, x, y, w, h)
-    gegl(a.lay, "gegl:gaussian-blur", std_dev_x=s, std_dev_y=s)
-    Gimp.Selection.none(a.img)
-
-
-def strip(a):
-    clip(a, "art_strip")
-    # abstract stand-in for a strip of photos: six soft colour panels on white card
-    r = a.rect("art_strip")
-    x, y, w, h = r
-    fill_rect(a.img, a.lay, r, WHITE)
-    cols = [((150, 200, 150), (230, 170, 190)), ((230, 180, 200), (140, 190, 140)), ((120, 180, 130), (200, 230, 190)),
-            ((240, 190, 200), (170, 210, 160)), ((160, 210, 170), (230, 160, 180)), ((210, 230, 190), (130, 180, 140))]
-    pw = (w - 14) / 6
-    for i, (c0, c1) in enumerate(cols):
-        px = round(x + 7 + i * pw + 2)
-        vgrad(a, (px, y + 10, round(pw - 4), h - 20), c0, c1)
-    blur(a, (x + 6, y + 9, w - 12, h - 18), 1.5)
-    a.material("art_strip", 0.0, 0.3)
 
 
 def photo(a, region, smooth):
@@ -82,8 +31,6 @@ def build():
     a = Atlas(ATLAS)
     for r in PHOTOS:
         photo(a, r, GLAZED.get(r, 0.25))
-    strip(a)
-    CLIP[0] = None
     a.fill("vane", (232, 231, 224), 0.0, 0.25, noise=0.025, blur=3.0)
     a.fill("rail", (236, 236, 231), 0.0, 0.4, noise=0.015, blur=1.5)
     a.fill("carrier", (60, 60, 58), 0.0, 0.2)
@@ -106,4 +53,14 @@ def build():
     fill_rect(a.img, a.lay, (tx + 30, ty + 30, tw - 60, 36), (120, 132, 128))
     for k in range(3):
         fill_rect(a.img, a.lay, (tx + 30 + k * 26, ty + 86, 16, 10), (200, 200, 196))
+    # keychain charms: clear acrylic, metals, wall pins, and the plain pink heart that stands in
+    # for the brand charm (a soft glossy pink with a highlight)
+    a.fill("ch_clear", (236, 240, 242), 0.0, 0.9)
+    a.fill("nickel", (196, 198, 202), 1.0, 0.75)
+    a.fill("rose_gold", (214, 150, 128), 1.0, 0.7)
+    a.fill("gold", (222, 186, 96), 1.0, 0.7)
+    a.fill("pin", (200, 200, 204), 1.0, 0.6)
+    hx, hy, hw, hh = a.rect("ch_pinkheart")
+    a.fill("ch_pinkheart", (238, 150, 190), 0.0, 0.85)
+    fill_ellipse(a.img, a.lay, (hx + 8, hy + 10, hx + 30, hy + 28), (252, 206, 226))
     a.save()

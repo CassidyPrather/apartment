@@ -21,7 +21,7 @@ public static class ObjectImporter
 
     // Only these keep colliders; everything else is walk-through so the small rooms are easy
     // to move around in (the walls, floors and drawer handles keep theirs elsewhere).
-    static readonly HashSet<string> Solid = new HashSet<string> { "kitchen_cabinets", "fridge" };
+    static readonly HashSet<string> Solid = new HashSet<string> { "kitchen_cabinets", "fridge", "range" };
 
     static string ObjectsDir => Path.GetFullPath(Path.Combine(Application.dataPath, "..", "blender", "lib", "objects"));
 

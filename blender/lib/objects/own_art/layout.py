@@ -59,12 +59,10 @@ GAINS = {
     REF_P1: (1.145, 1.199, 1.217),
 }
 
-# Privacy blurs, (x, y, w, h) inside the region, in region pixels: pencil signature and the
-# edition number under the isopod print, the painted signature mark in the cat's corner.
-BLURS = {
-    "isopod": [(24, 214, 96, 50), (318, 214, 82, 52)],
-    "cat": [(0, 900, 96, 108)],
-}
+# Blurs, (x, y, w, h) inside the region, in region pixels. Empty: Cassidy asked that the
+# signatures (the isopod's pencil signature and edition number, the cat's signature mark)
+# not be blurred.
+BLURS = {}
 
 # solid colours (sampled): frame black, mat white, raw canvas back, cat canvas edge
 SOLIDS = {
