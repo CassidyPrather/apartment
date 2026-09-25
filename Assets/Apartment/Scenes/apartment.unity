@@ -602,7 +602,7 @@ AudioSource:
     m_RotationOrder: 4
 --- !u!114 &56463393
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 2
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
@@ -619,7 +619,7 @@ MonoBehaviour:
   SynchronizePosition: 0
   AllowCollisionOwnershipTransfer: 0
   Reliable: 0
-  _syncMethod: 0
+  _syncMethod: 1
   serializedProgramAsset: {fileID: 11400000, guid: b945b39286b64e64382fba2d0a4da104,
     type: 2}
   programSource: {fileID: 11400000, guid: 2b1eb143d5fdc2c43b85fe27e3c6a301, type: 2}
@@ -822,6 +822,11 @@ PrefabInstance:
       objectReference: {fileID: 4300000, guid: f353416e95037334ba8cacd3f41b0145, type: 2}
     - target: {fileID: 6992882800786100981, guid: 5e5bb7899dd80044cb17ac7af793cf53,
         type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1.0833334
+      objectReference: {fileID: 0}
+    - target: {fileID: 6992882800786100981, guid: 5e5bb7899dd80044cb17ac7af793cf53,
+        type: 3}
       propertyPath: m_LocalPosition.x
       value: -5.3041544
       objectReference: {fileID: 0}
@@ -912,7 +917,7 @@ PrefabInstance:
     - target: {fileID: 6947327702757782600, guid: 4ada83ad0e8847e4b8ffc594eaf42db0,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: -0.3048
+      value: -0.3937
       objectReference: {fileID: 0}
     - target: {fileID: 6947327702757782600, guid: 4ada83ad0e8847e4b8ffc594eaf42db0,
         type: 3}
@@ -1761,7 +1766,7 @@ AudioSource:
     m_RotationOrder: 4
 --- !u!114 &175700983
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 2
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
@@ -1778,7 +1783,7 @@ MonoBehaviour:
   SynchronizePosition: 0
   AllowCollisionOwnershipTransfer: 0
   Reliable: 0
-  _syncMethod: 0
+  _syncMethod: 1
   serializedProgramAsset: {fileID: 11400000, guid: b945b39286b64e64382fba2d0a4da104,
     type: 2}
   programSource: {fileID: 11400000, guid: 2b1eb143d5fdc2c43b85fe27e3c6a301, type: 2}
@@ -3333,7 +3338,7 @@ PrefabInstance:
     - target: {fileID: 7343052906422369194, guid: 6c932489811aba041b610cae29bcf1ef,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: -1.9049999
+      value: -1.6764
       objectReference: {fileID: 0}
     - target: {fileID: 7343052906422369194, guid: 6c932489811aba041b610cae29bcf1ef,
         type: 3}
@@ -4259,7 +4264,7 @@ Transform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &711148146
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 2
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
@@ -4276,7 +4281,7 @@ MonoBehaviour:
   SynchronizePosition: 0
   AllowCollisionOwnershipTransfer: 0
   Reliable: 0
-  _syncMethod: 0
+  _syncMethod: 1
   serializedProgramAsset: {fileID: 11400000, guid: b954d146637028b4b84453ccc938ddad,
     type: 2}
   programSource: {fileID: 11400000, guid: 970e8feb514d70248b25f6440e7e047b, type: 2}
@@ -5367,7 +5372,7 @@ PrefabInstance:
     - target: {fileID: 539001162418092142, guid: 0ee55b6ef1b59a0429401c5be48e6a85,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: -6.7691
+      value: -6.2839603
       objectReference: {fileID: 0}
     - target: {fileID: 539001162418092142, guid: 0ee55b6ef1b59a0429401c5be48e6a85,
         type: 3}
@@ -5377,7 +5382,7 @@ PrefabInstance:
     - target: {fileID: 539001162418092142, guid: 0ee55b6ef1b59a0429401c5be48e6a85,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: -1.3588998
+      value: -1.4325597
       objectReference: {fileID: 0}
     - target: {fileID: 539001162418092142, guid: 0ee55b6ef1b59a0429401c5be48e6a85,
         type: 3}
@@ -6348,7 +6353,7 @@ PrefabInstance:
     - target: {fileID: 2938223861577522860, guid: 247f36ce299464e489d0db1671df3732,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: -2.8448
+      value: -2.159
       objectReference: {fileID: 0}
     - target: {fileID: 2938223861577522860, guid: 247f36ce299464e489d0db1671df3732,
         type: 3}
@@ -6358,7 +6363,7 @@ PrefabInstance:
     - target: {fileID: 2938223861577522860, guid: 247f36ce299464e489d0db1671df3732,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: -6.0959997
+      value: -6.019799
       objectReference: {fileID: 0}
     - target: {fileID: 2938223861577522860, guid: 247f36ce299464e489d0db1671df3732,
         type: 3}
@@ -6534,7 +6539,7 @@ AudioSource:
     m_RotationOrder: 4
 --- !u!114 &985157138
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 2
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
@@ -6551,7 +6556,7 @@ MonoBehaviour:
   SynchronizePosition: 0
   AllowCollisionOwnershipTransfer: 0
   Reliable: 0
-  _syncMethod: 0
+  _syncMethod: 1
   serializedProgramAsset: {fileID: 11400000, guid: b945b39286b64e64382fba2d0a4da104,
     type: 2}
   programSource: {fileID: 11400000, guid: 2b1eb143d5fdc2c43b85fe27e3c6a301, type: 2}
@@ -7684,7 +7689,7 @@ AudioSource:
     m_RotationOrder: 4
 --- !u!114 &1082294559
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 2
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
@@ -7701,7 +7706,7 @@ MonoBehaviour:
   SynchronizePosition: 0
   AllowCollisionOwnershipTransfer: 0
   Reliable: 0
-  _syncMethod: 0
+  _syncMethod: 1
   serializedProgramAsset: {fileID: 11400000, guid: b945b39286b64e64382fba2d0a4da104,
     type: 2}
   programSource: {fileID: 11400000, guid: 2b1eb143d5fdc2c43b85fe27e3c6a301, type: 2}
@@ -9233,7 +9238,7 @@ PrefabInstance:
     - target: {fileID: 2938223861577522860, guid: 247f36ce299464e489d0db1671df3732,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: -1.9176999
+      value: -2.159
       objectReference: {fileID: 0}
     - target: {fileID: 2938223861577522860, guid: 247f36ce299464e489d0db1671df3732,
         type: 3}
@@ -11768,22 +11773,22 @@ PrefabInstance:
     - target: {fileID: 6947327702757782600, guid: 4ada83ad0e8847e4b8ffc594eaf42db0,
         type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0.9659258
+      value: 0.7071068
       objectReference: {fileID: 0}
     - target: {fileID: 6947327702757782600, guid: 4ada83ad0e8847e4b8ffc594eaf42db0,
         type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 6947327702757782600, guid: 4ada83ad0e8847e4b8ffc594eaf42db0,
         type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0.2588191
+      value: 0.7071068
       objectReference: {fileID: 0}
     - target: {fileID: 6947327702757782600, guid: 4ada83ad0e8847e4b8ffc594eaf42db0,
         type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 6947327702757782600, guid: 4ada83ad0e8847e4b8ffc594eaf42db0,
         type: 3}
@@ -11939,7 +11944,7 @@ AudioSource:
     m_RotationOrder: 4
 --- !u!114 &1579551184
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 2
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
@@ -11956,7 +11961,7 @@ MonoBehaviour:
   SynchronizePosition: 0
   AllowCollisionOwnershipTransfer: 0
   Reliable: 0
-  _syncMethod: 0
+  _syncMethod: 1
   serializedProgramAsset: {fileID: 11400000, guid: b945b39286b64e64382fba2d0a4da104,
     type: 2}
   programSource: {fileID: 11400000, guid: 2b1eb143d5fdc2c43b85fe27e3c6a301, type: 2}
@@ -12885,7 +12890,7 @@ AudioSource:
     m_RotationOrder: 4
 --- !u!114 &1682390051
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 2
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
@@ -12902,7 +12907,7 @@ MonoBehaviour:
   SynchronizePosition: 0
   AllowCollisionOwnershipTransfer: 0
   Reliable: 0
-  _syncMethod: 0
+  _syncMethod: 1
   serializedProgramAsset: {fileID: 11400000, guid: b945b39286b64e64382fba2d0a4da104,
     type: 2}
   programSource: {fileID: 11400000, guid: 2b1eb143d5fdc2c43b85fe27e3c6a301, type: 2}
@@ -15204,7 +15209,7 @@ AudioSource:
     m_RotationOrder: 4
 --- !u!114 &2070775468
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 2
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
@@ -15221,7 +15226,7 @@ MonoBehaviour:
   SynchronizePosition: 0
   AllowCollisionOwnershipTransfer: 0
   Reliable: 0
-  _syncMethod: 0
+  _syncMethod: 1
   serializedProgramAsset: {fileID: 11400000, guid: b945b39286b64e64382fba2d0a4da104,
     type: 2}
   programSource: {fileID: 11400000, guid: 2b1eb143d5fdc2c43b85fe27e3c6a301, type: 2}

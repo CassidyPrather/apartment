@@ -117,8 +117,8 @@ PLACES = {
     "dining_table": (85.0, 205.0, 0.0),
     "dining_chair__w": (63.0, 211.5, 90.0),
     "dining_chair__e": (97.0, 199.0, -90.0),     # pushed in; back clears the table edge (x 104)
-    "dining_chair__n": (112.0, 240.0, 0.0),      # clear of the table leg at the corner
-    "dining_chair__s": (75.5, 176.0, 180.0),     # pulled out
+    "dining_chair__n": (85.0, 237.0, 0.0),       # pushed in at the north end (was in front of the fridge)
+    "dining_chair__s": (85.0, 176.0, 180.0),     # centred on the south end, clear of the corner legs
     "plant_tall": (16.5, 16.5, 0.0),
     "plant_broadleaf": (68.0, 15.0, 0.0),
     "portable_ac": (12.5, 131.0, 90.0),          # body clear of the couch arm (y 112.5); hose still in window 2
@@ -137,10 +137,10 @@ PLACES = {
     "dresser_items": (264.75, 18.0, -90.0),
     "plushies": (264.75, 18.0, -90.0),          # dresser-local, like dresser_items
     "floor_lamp": (265.0, 42.0, -90.0),
-    "plastic_drawers": (265.0, 75.0, -90.0),
-    "floor_boxes": (266.5, 53.5, -90.0),
-    "light_stand__center": (147.0, 104.5, 30.0),   # origin at the pole; legs at 0/120/240 so the west feet clear the wall (x 138.75 + baseboard)
-    "light_stand__patio": (235.0, 12.0, 180.0),    # box faces north
+    "plastic_drawers": (265.0, 66.0, -90.0),     # right after the lamp foot, so the wastebasket clears the headboard (y 82)
+    "floor_boxes": (247.4, 56.4, -90.0),         # on the floor west of the drawers: the lamp-drawers-headboard run is too short for them
+    "light_stand__center": (147.0, 104.5, -90.0),  # origin at the pole; the only turn whose feet clear the wall (checked in Unity, whose mirror flips turns)
+    "light_stand__patio": (235.0, 15.5, 180.0),    # box faces north; the south foot clears the patio door
     "bedroom_fixtures": (0.0, 0.0, 0.0),
     "hanging_bags": (0.0, 0.0, 0.0),             # built in plan coordinates
     "shoes": (238.8, 135.2, 0.0),

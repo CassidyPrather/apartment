@@ -6,6 +6,7 @@
 // milestone (baked lightmaps, Light Volumes, reflection probes).
 
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -90,6 +91,11 @@ public static class ApartmentSetup
             // Living room, just inside the entry, facing into the room.
             vw.transform.SetPositionAndRotation(new Vector3(-1.2f, 0f, -3.9f) * WorldScale, Quaternion.Euler(0, 200f, 0));
         }
+        // The hall's laundry opening is 32.5 in; the stock door kit is 30, which left a gap
+        // against the bedroom wall. Stretch it across from its north jamb (its origin).
+        var laundry = Object.FindObjectsOfType<Transform>().Where(t => t.name == "door_laundry" && t.parent != null && t.parent.name == "apartment")
+            .OrderBy(t => Mathf.Abs(t.position.x + 208.825f * 0.0254f * WorldScale)).FirstOrDefault();
+        if (laundry != null) laundry.localScale = new Vector3(32.5f / 30f, 1f, 1f);
         VideoSetup.Setup();
         MirrorSetup.Setup();
         EditorSceneManager.SaveScene(scene, Root + "/Scenes/apartment.unity");

@@ -79,7 +79,7 @@ INLINE = (150.4, 40.0, 25.0)           # PHOTO (x, y, heading deg); 2.0 x 2.8 x 
 BRICK = (146.5, 52.5, 20.0)            # PHOTO (x, y, heading deg); 2.5 x 2.5 x 1.0 EST
 TOWER_BACK_Y = 8.0                     # desk_computer: tower y 8..26
 DESK_TOP = 29.5                        # desk package
-STAND = (147.0, 104.5, 30.0)           # shell_layout light_stand__center (x, y, rot)
+STAND = (147.0, 104.5, -90.0)          # shell_layout light_stand__center (x, y, rot)
 SW_BS_CABLE = (138.875, 26.025, 30.0)  # bedroom_fixtures base station cable bottom
 # cable radii (inches)
 R_PWR = 0.0022 / IN                    # matches cable_stubs' power stubs
