@@ -260,7 +260,7 @@ public static class FilingCabinetSetup
         return go;
     }
 
-    static BoxCollider FitCollider(GameObject go, Renderer r)
+    internal static BoxCollider FitCollider(GameObject go, Renderer r)
     {
         var mf = r.GetComponent<MeshFilter>();
         var col = go.AddComponent<BoxCollider>();

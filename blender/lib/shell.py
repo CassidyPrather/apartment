@@ -174,16 +174,18 @@ def build_glass(coll):
 
 
 def build_markers(coll):
-    """Where furniture sets stand; Unity drops their prefabs on these."""
+    """Where furniture and appliances stand; Unity drops their prefabs on these."""
     import math
     import bpy
-    x, y, rot = L.CABINET_SPOT
-    ob = bpy.data.objects.new("place_filing_cabinet_set", None)
-    ob.empty_display_type = "ARROWS"
-    ob.location = (m(x), m(y), 0.0)
-    ob.rotation_euler = (0, 0, math.radians(rot))
-    coll.objects.link(ob)
-    return [ob]
+    obs = []
+    for name, (x, y, rot) in L.PLACES.items():
+        ob = bpy.data.objects.new(f"place_{name}", None)
+        ob.empty_display_type = "ARROWS"
+        ob.location = (m(x), m(y), 0.0)
+        ob.rotation_euler = (0, 0, math.radians(rot))
+        coll.objects.link(ob)
+        obs.append(ob)
+    return obs
 
 
 def build(coll):

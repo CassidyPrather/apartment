@@ -65,7 +65,12 @@ FLOORS = [
     (138.75, 282.75, 201.65, 289.9, "floor_vinyl"),     # bath and kitchen closet A
 ]
 
-# Where the filing cabinet set stands: bedroom side of the center wall, south of the
-# bedroom door, back to the wall, drawers facing east. (x, y of the footprint centre,
-# rotation about Z in degrees, from the cabinet's front = -Y.)
-CABINET_SPOT = (138.75 + 13.25 + 0.5, 95.0, 90.0)   # A: from photos; the new splat will pin it
+# Where things stand: name -> (x, y of the footprint centre, rotation about Z in degrees
+# from the object's front = -Y). The shell exports a place_<name> marker for each, and
+# Unity drops the <name> prefab on it.
+PLACES = {
+    # Bedroom side of the center wall, south of the bedroom door, drawers facing east.
+    "filing_cabinet_set": (138.75 + 13.25 + 0.5, 95.0, 90.0),   # A: from photos
+    # Laundry closet: against its west wall, facing the door in the hall wall (east).
+    "washer_dryer": (177.75 + 13.75 + 0.5, (164.25 + 201.65) / 2, 90.0),   # A
+}

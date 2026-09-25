@@ -58,6 +58,18 @@ public static class ApartmentSetup
             AssetDatabase.LoadAssetAtPath<GameObject>(Root + "/Prefabs/filing_cabinet_set.prefab"));
         set.transform.SetPositionAndRotation(spot.position, spot.rotation);
 
+        // Every other object package with a marker in the shell goes on its marker.
+        foreach (Transform t in shellInst.transform)
+        {
+            if (!t.name.StartsWith("place_") || t.name == "place_filing_cabinet_set")
+                continue;
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>($"{Root}/Prefabs/{t.name.Substring(6)}.prefab");
+            if (prefab == null)
+                continue;
+            var inst = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
+            inst.transform.SetPositionAndRotation(t.position, t.rotation);
+        }
+
         var world = AssetDatabase.FindAssets("VRCWorld t:Prefab");
         if (world.Length > 0)
         {

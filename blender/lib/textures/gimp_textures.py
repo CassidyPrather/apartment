@@ -3,7 +3,11 @@
 Runs inside GIMP's Python (through the GIMP MCP's pyGObject console, or the Python-Fu
 console):
 
-    exec(open(r"<repo>/blender/lib/textures/gimp_textures.py").read(), {"ROOT": r"<repo>"})
+    exec(open(r"<repo>/blender/lib/textures/gimp_textures.py").read(), {"ROOT": r"<repo>", "RUN": True})
+
+or headless, one builder or several at a time:
+
+    python blender/lib/textures/gimp_headless.py router modem
 
 Every pixel operation happens in GIMP: photo regions are perspective-corrected with
 the transform tool, shading is flattened with a divide-by-blur layer, tiles are made
@@ -232,15 +236,16 @@ def flatten_lighting(img, sigma, target_rgb, detail=100.0):
 class Atlas:
     """Three GIMP images per atlas: albedo, mask (R metallic, A smoothness), emission."""
 
-    def __init__(self, name):
-        self.name = name
-        n = ATLAS_SIZE[name]
-        self.img, self.lay = new_image(n, n, name + "_albedo")
-        self.mimg, self.mlay = new_image(n, n, name + "_mask", alpha=True)
+    def __init__(self, atlas):
+        # atlas: a name registered in atlas_layout, or an object package's atlas dict.
+        self.name, n, self.regions = atlas_layout.resolve(atlas)
+        self.size = n
+        self.img, self.lay = new_image(n, n, self.name + "_albedo")
+        self.mimg, self.mlay = new_image(n, n, self.name + "_mask", alpha=True)
         self.eimg, self.elay = None, None
 
     def rect(self, region):
-        return LAYOUT[self.name][region]
+        return self.regions[region]
 
     def fill(self, region, rgb, metallic, smoothness, noise=0.0, blur=1.0):
         r = self.rect(region)
@@ -255,7 +260,7 @@ class Atlas:
 
     def glow_layer(self):
         if self.eimg is None:
-            n = ATLAS_SIZE[self.name]
+            n = self.size
             self.eimg, self.elay = new_image(n, n, self.name + "_emission")
         return self.eimg, self.elay
 
@@ -627,5 +632,5 @@ def build(which=("cabinet_paint", "cabinet_hardware", "router", "modem", "headse
     Gimp.displays_flush()
 
 
-if globals().get("RUN", True):
+if globals().get("RUN", False) or __name__ == "__main__":
     build()

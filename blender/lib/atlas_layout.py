@@ -53,10 +53,18 @@ LAYOUT = {
 }
 
 
+def resolve(atlas):
+    """An atlas is a name registered above, or a dict {"name", "size", "regions"} owned
+    by an object package (blender/lib/objects/<name>/object.py)."""
+    if isinstance(atlas, dict):
+        return atlas["name"], atlas["size"], atlas["regions"]
+    return atlas, ATLAS_SIZE[atlas], LAYOUT[atlas]
+
+
 def uv_rect(atlas, region, inset=2):
     """Return (u0, v0, u1, v1) in UV space for a region, inset by a few pixels to avoid bleed."""
-    size = ATLAS_SIZE[atlas]
-    x, y, w, h = LAYOUT[atlas][region]
+    _, size, regions = resolve(atlas)
+    x, y, w, h = regions[region]
     u0 = (x + inset) / size
     u1 = (x + w - inset) / size
     v1 = 1.0 - (y + inset) / size

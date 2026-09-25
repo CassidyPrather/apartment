@@ -226,6 +226,8 @@ def _image(path, non_color=False):
 
 
 def atlas_material(name, atlas, tiled=False):
+    if isinstance(atlas, dict):
+        atlas = atlas["name"]
     """Principled material wired like VRChat Standard Lite: albedo, mask (R metallic,
     A smoothness) and optional emission."""
     mat = bpy.data.materials.get(name) or bpy.data.materials.new(name)

@@ -1,0 +1,116 @@
+// Imports every object package built by blender/lib/build_object.py: reads
+// blender/lib/objects/<name>/manifest.json, makes the Mochie materials (opaque, or
+// translucent via Transparent mode), configures the FBX with material remaps, and saves
+// Assets/Apartment/Prefabs/<name>.prefab with static flags and colliders.
+// Apartment > Build Apartment Scene then drops each prefab on the shell marker
+// place_<name> when one exists.
+
+using System.Collections.Generic;
+using System.IO;
+using UnityEditor;
+using UnityEngine;
+
+public static class ObjectImporter
+{
+    [System.Serializable]
+    class MaterialSpec { public string atlas; public string mode = "opaque"; public float alpha = 1f; public bool tiled; }
+
+    // JsonUtility can't read dictionaries, so the materials object is parsed by hand below.
+    [System.Serializable]
+    class Manifest { public string name; public string fbx; public string collider = "box"; public bool @static = true; }
+
+    static string ObjectsDir => Path.GetFullPath(Path.Combine(Application.dataPath, "..", "blender", "lib", "objects"));
+
+    [MenuItem("Apartment/Import Objects")]
+    public static void ImportAll()
+    {
+        if (!Directory.Exists(ObjectsDir))
+            return;
+        FilingCabinetSetup.ConfigureTextures();
+        foreach (var dir in Directory.GetDirectories(ObjectsDir))
+        {
+            var path = Path.Combine(dir, "manifest.json");
+            if (File.Exists(path))
+                Import(File.ReadAllText(path));
+        }
+        AssetDatabase.SaveAssets();
+        Debug.Log("[ObjectImporter] done");
+    }
+
+    static void Import(string json)
+    {
+        var man = JsonUtility.FromJson<Manifest>(json);
+        var mats = new Dictionary<string, Material>();
+        foreach (var kv in ParseMaterials(json))
+        {
+            var spec = kv.Value;
+            if (spec.tiled)
+                SetRepeat(spec.atlas);
+            mats[kv.Key] = spec.mode == "transparent"
+                ? FilingCabinetSetup.ShellMat(kv.Key, spec.atlas, spec.alpha)
+                : FilingCabinetSetup.Mat(kv.Key, spec.atlas, Color.white);
+        }
+        FilingCabinetSetup.ConfigureModels(mats, new[] { man.name });
+
+        var go = (GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(man.fbx));
+        try
+        {
+            foreach (var r in go.GetComponentsInChildren<MeshRenderer>())
+            {
+                if (man.@static)
+                    GameObjectUtility.SetStaticEditorFlags(r.gameObject,
+                        StaticEditorFlags.ContributeGI | StaticEditorFlags.BatchingStatic |
+                        StaticEditorFlags.OccluderStatic | StaticEditorFlags.OccludeeStatic |
+                        StaticEditorFlags.ReflectionProbeStatic);
+                if (man.collider == "box")
+                    FilingCabinetSetup.FitCollider(r.gameObject, r);
+                else if (man.collider == "mesh")
+                    r.gameObject.AddComponent<MeshCollider>();
+            }
+            PrefabUtility.SaveAsPrefabAsset(go, $"Assets/Apartment/Prefabs/{man.name}.prefab");
+        }
+        finally
+        {
+            Object.DestroyImmediate(go);
+        }
+    }
+
+    static void SetRepeat(string atlas)
+    {
+        foreach (var suffix in new[] { "_albedo", "_mask", "_emission" })
+        {
+            var imp = AssetImporter.GetAtPath($"Assets/Apartment/Textures/{atlas}{suffix}.png") as TextureImporter;
+            if (imp != null && imp.wrapMode != TextureWrapMode.Repeat)
+            {
+                imp.wrapMode = TextureWrapMode.Repeat;
+                imp.SaveAndReimport();
+            }
+        }
+    }
+
+    // "materials": { "<name>": { ...MaterialSpec... }, ... }
+    static Dictionary<string, MaterialSpec> ParseMaterials(string json)
+    {
+        var result = new Dictionary<string, MaterialSpec>();
+        int i = json.IndexOf("\"materials\"");
+        if (i < 0)
+            return result;
+        i = json.IndexOf('{', i);
+        int depth = 0, start = i;
+        for (int j = i; j < json.Length; j++)
+        {
+            if (json[j] == '{') depth++;
+            else if (json[j] == '}' && --depth == 0) { json = json.Substring(start + 1, j - start - 1); break; }
+        }
+        int k = 0;
+        while ((k = json.IndexOf('"', k)) >= 0)
+        {
+            int end = json.IndexOf('"', k + 1);
+            string key = json.Substring(k + 1, end - k - 1);
+            int o = json.IndexOf('{', end), c = json.IndexOf('}', o);
+            result[key] = JsonUtility.FromJson<MaterialSpec>(json.Substring(o, c - o + 1));
+            k = c + 1;
+        }
+        return result;
+    }
+}

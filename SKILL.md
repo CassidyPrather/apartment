@@ -101,12 +101,22 @@ Real products get parody brands. No real brand ever appears in the world.
   `CREDITS.md` line at intake, and every real brand shape, logo, and text on it is
   replaced per Branding. If nothing with a usable license exists, model it. Textures
   are still made here (see below), never downloaded.
-- Textures are made from scratch too, and the pixel work happens in GIMP 3 through
-  the GIMP MCP (logos are drawn as SVG in Inkscape and composited in GIMP; G'MIC is
-  fine for filters). Keep the GIMP code in `blender/lib/textures/` so atlases can be
-  regenerated.
-- Model in the live Blender through the Blender MCP, executing the build scripts
-  in `blender/lib/`, so Cassidy can watch the work in Blender.
+- Textures are made from scratch too, and the pixel work happens in GIMP 3 (logos
+  are drawn as SVG in Inkscape and composited in GIMP; G'MIC is fine for filters).
+  Keep the GIMP code in the repo so atlases can be regenerated.
+- Builds run headless: `blender -b` for models and `blender/lib/textures/gimp_headless.py`
+  for textures. Headless runs don't block each other, so objects are built in parallel
+  by separate agents, each owning its own files. The coordinator reviews each finished
+  object in the live Blender and GIMP through their MCPs (rebuild it there, open its
+  atlas) and assembles the rooms in the live Blender, so the work stays visible on
+  Cassidy's screen recordings.
+- Fill the apartment coarse-to-fine: block in every room's big pieces first (shell,
+  doors, built-ins, large furniture and appliances), then lighting and an uploadable
+  build, then smaller objects and detail. A walkable, complete apartment beats a few
+  perfect objects if time runs out.
+- Splats arrive over time (another agent announces each finished training). Use both
+  the splat and the photos it was trained from: the splat for 3D shape and placement,
+  the photos for colour and detail.
 - The apartment photos can go into textures. Crop, perspective-correct,
   make tileable, and color-match regions of them (carpet, countertop,
   wood grain) in GIMP. The finished texture must still pass the Privacy and
