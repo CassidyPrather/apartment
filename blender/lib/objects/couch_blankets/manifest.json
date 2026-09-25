@@ -1,0 +1,26 @@
+{
+  "name": "couch_blankets",
+  "fbx": "Assets/Apartment/Models/couch_blankets.fbx",
+  "materials": {
+    "couch_blankets": {
+      "atlas": "couch_blankets",
+      "mode": "opaque",
+      "tiled": false
+    }
+  },
+  "collider": "none",
+  "static": true,
+  "triangles": 2128,
+  "bounds_m": {
+    "min": [
+      -0.883,
+      -0.5446,
+      0.2263
+    ],
+    "max": [
+      1.0865,
+      0.4572,
+      0.9921
+    ]
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "name": "ceiling_dome_light",
+  "fbx": "Assets/Apartment/Models/ceiling_dome_light.fbx",
+  "materials": {
+    "ceiling_dome_light": {
+      "atlas": "ceiling_dome_light",
+      "mode": "opaque"
+    },
+    "ceiling_dome_light_diffuser": {
+      "atlas": "ceiling_dome_light",
+      "mode": "opaque"
+    }
+  },
+  "collider": "none",
+  "static": true,
+  "triangles": 768,
+  "bounds_m": {
+    "min": [
+      -0.1651,
+      -0.1651,
+      -0.127
+    ],
+    "max": [
+      0.1651,
+      0.1651,
+      0.0
+    ]
+  }
+}

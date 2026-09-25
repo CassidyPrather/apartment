@@ -21,20 +21,55 @@ public static class ObjectImporter
 
     static string ObjectsDir => Path.GetFullPath(Path.Combine(Application.dataPath, "..", "blender", "lib", "objects"));
 
+    // Only packages whose FBX, manifest or textures changed since their prefab was saved.
     [MenuItem("Apartment/Import Objects")]
-    public static void ImportAll()
+    public static void ImportChanged() => ImportAll(false);
+
+    [MenuItem("Apartment/Import Objects (All)")]
+    public static void ImportEverything() => ImportAll(true);
+
+    static void ImportAll(bool all)
     {
         if (!Directory.Exists(ObjectsDir))
             return;
         FilingCabinetSetup.ConfigureTextures();
+        int n = 0;
         foreach (var dir in Directory.GetDirectories(ObjectsDir))
         {
             var path = Path.Combine(dir, "manifest.json");
-            if (File.Exists(path))
-                Import(File.ReadAllText(path));
+            if (!File.Exists(path))
+                continue;
+            var json = File.ReadAllText(path);
+            if (!all && UpToDate(json, path))
+                continue;
+            try
+            {
+                Import(json);
+                n++;
+            }
+            catch (System.Exception e)                                   // a package mid-build
+            {
+                Debug.LogWarning($"[ObjectImporter] skipped {Path.GetFileName(dir)}: {e.Message}");
+            }
         }
         AssetDatabase.SaveAssets();
-        Debug.Log("[ObjectImporter] done");
+        Debug.Log($"[ObjectImporter] done ({n} imported)");
+    }
+
+    static bool UpToDate(string json, string manifestPath)
+    {
+        var man = JsonUtility.FromJson<Manifest>(json);
+        var prefab = Path.Combine(Application.dataPath, "..", $"Assets/Apartment/Prefabs/{man.name}.prefab");
+        if (!File.Exists(prefab))
+            return false;
+        var saved = File.GetLastWriteTimeUtc(prefab);
+        var inputs = new List<string> { manifestPath, Path.Combine(Application.dataPath, "..", man.fbx) };
+        foreach (var spec in ParseMaterials(json).Values)
+            inputs.AddRange(Directory.GetFiles(Path.Combine(Application.dataPath, "Apartment", "Textures"), spec.atlas + "_*.png"));
+        foreach (var f in inputs)
+            if (File.Exists(f) && File.GetLastWriteTimeUtc(f) > saved)
+                return false;
+        return true;
     }
 
     static void Import(string json)
@@ -65,6 +100,8 @@ public static class ObjectImporter
                         StaticEditorFlags.ContributeGI | StaticEditorFlags.BatchingStatic |
                         StaticEditorFlags.OccluderStatic | StaticEditorFlags.OccludeeStatic |
                         StaticEditorFlags.ReflectionProbeStatic);
+                if (r.name.EndsWith("_leaves") || r.name.EndsWith("_mat"))   // foliage cards, floor mats: walk-through
+                    continue;
                 if (man.collider == "box")
                     FilingCabinetSetup.FitCollider(r.gameObject, r);
                 else if (man.collider == "mesh")

@@ -1,0 +1,25 @@
+{
+  "name": "trash_can",
+  "fbx": "Assets/Apartment/Models/trash_can.fbx",
+  "materials": {
+    "trash_can": {
+      "atlas": "trash_can",
+      "mode": "opaque"
+    }
+  },
+  "collider": "box",
+  "static": true,
+  "triangles": 500,
+  "bounds_m": {
+    "min": [
+      -0.1603,
+      -0.2667,
+      0.0
+    ],
+    "max": [
+      0.1603,
+      0.2682,
+      0.7366
+    ]
+  }
+}

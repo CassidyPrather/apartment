@@ -1,0 +1,31 @@
+{
+  "name": "plastic_drawers",
+  "fbx": "Assets/Apartment/Models/plastic_drawers.fbx",
+  "materials": {
+    "plastic_drawers": {
+      "atlas": "plastic_drawers",
+      "mode": "opaque",
+      "tiled": false
+    },
+    "plastic_drawers_clear": {
+      "atlas": "plastic_drawers",
+      "mode": "transparent",
+      "alpha": 0.4
+    }
+  },
+  "collider": "box",
+  "static": true,
+  "triangles": 2224,
+  "bounds_m": {
+    "min": [
+      -0.3302,
+      -0.2254,
+      0.0
+    ],
+    "max": [
+      0.4318,
+      0.2032,
+      1.0922
+    ]
+  }
+}

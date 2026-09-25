@@ -1,12 +1,13 @@
-"""Bathroom toilet: two-piece, elongated bowl, closed seat and lid, tank with lid and a
-chrome flush lever.
+"""Bathroom toilet: two-piece, elongated bowl, closed seat and lid, squared tank with a
+push-button flush in the lid, on the west wall facing east.
 
-Source of truth: scripted. Coarse block-in from standard fixture sizes (no photos of the
-real toilet yet): every size is EST.
+Source of truth: scripted, from the bathroom LiDAR survey (Reference/bathroom_survey/,
+fixtures.py box "toilet" and the chk_toilet_* check images). SCAN = measured from the
+registered capture (about +-1 in); EST = from the photos or standard sizes.
 
-Local frame: front faces -Y, tank back toward the wall at +Y (1 in off it). Origin on
-the floor at the footprint centre; the footprint runs y -14..+14 in, so the marker sits
-14 in out from the wall face.
+Local frame: front faces -Y, tank back toward the wall at +Y. Origin on the floor at the
+footprint centre; the footprint runs y -14.875..+14.875 in (29.75 deep), the wall face
+is 1.25 in behind the tank (plan: wall x 177.75, toilet x 179.0..208.75).
 """
 
 import importlib
@@ -26,15 +27,17 @@ ATLAS = S.ATLAS
 MATERIALS = S.MATERIALS
 COLLIDER = "box"
 STATIC = True
-VIEWS = [("plan_top", 0, 89.9, 1.0)]
+VIEWS = [("plan_top", 0, 89.9, 1.0), ("survey_view", 35, 40, 0.8)]
 
-DEPTH = 28.0          # EST wall to bowl front, incl. 1 in gap behind the tank
-RIM_Z = 14.5          # EST bowl rim; seat + lid bring it to ~16
-BOWL_W, BOWL_L = 14.4, 19.5   # EST elongated bowl outside
-BOWL_CY = -4.25       # EST bowl centre (front at -14)
-TANK_W, TANK_D = 20.0, 8.0    # EST
-TANK_Z0, TANK_Z1 = 15.0, 29.5  # EST tank body; lid to ~30.8
-WALL_GAP = 1.0        # EST
+DEPTH = 29.75         # SCAN tank back to bowl front
+LID_TOP = 18.5        # SCAN top of the closed seat lid
+RIM_Z = 16.3          # EST bowl rim (comfort height; seat + lid bring it to 18.5)
+BOWL_W, BOWL_L = 14.6, 19.5   # EST elongated bowl outside
+TANK_W, TANK_D = 19.5, 8.0    # EST (the survey box is 15.8 wide, but the check photo shows
+                              # the tank overhanging it on both sides)
+TANK_TOP = 30.9       # SCAN top of the tank lid
+TANK_Z0 = 16.0        # EST tank bottom on the rear deck
+LID_T = 1.3           # EST tank lid
 
 REGIONS = ["porcelain", "seat", "chrome"]
 
@@ -42,41 +45,43 @@ REGIONS = ["porcelain", "seat", "chrome"]
 def build(coll):
     b = common.Builder(REGIONS)
     n = 32
-    cy = m(BOWL_CY)
+    front = -m(DEPTH / 2)
+    cy = front + m(BOWL_L / 2)
     # Pedestal and bowl as one loft: foot, waist, belly, rim.
     secs = [
-        (S.ellipse(0, m(-1.5), m(4.8), m(7.5), n), 0.0),
-        (S.ellipse(0, m(-1.5), m(4.3), m(6.6), n), m(1.0)),
-        (S.ellipse(0, m(-2.0), m(4.2), m(6.2), n), m(5.0)),
-        (S.ellipse(0, cy, m(6.0), m(8.8), n), m(9.5)),
-        (S.ellipse(0, cy, m(BOWL_W / 2), m(BOWL_L / 2), n), m(12.8)),
+        (S.ellipse(0, cy + m(2.8), m(4.9), m(7.8), n), 0.0),
+        (S.ellipse(0, cy + m(2.8), m(4.4), m(6.9), n), m(1.0)),
+        (S.ellipse(0, cy + m(2.3), m(4.3), m(6.5), n), m(5.5)),
+        (S.ellipse(0, cy, m(6.2), m(9.0), n), m(10.5)),
+        (S.ellipse(0, cy, m(BOWL_W / 2), m(BOWL_L / 2), n), m(RIM_Z - 1.6)),
         (S.ellipse(0, cy, m(BOWL_W / 2), m(BOWL_L / 2), n), m(RIM_Z)),
     ]
     S.loft(b, "porcelain", secs)
-    # Rear deck under the tank.
-    b.box("porcelain", (-m(5.5), m(1.0), m(4.0)), (m(5.5), m(12.0), m(TANK_Z0)), bevel=m(0.8))
-    # Seat and closed lid.
-    S.loft(b, "seat", [(S.ellipse(0, cy - m(0.3), m(7.1), m(9.9), n), m(RIM_Z)),
-                       (S.ellipse(0, cy - m(0.3), m(7.1), m(9.9), n), m(RIM_Z + 0.9))])
-    S.loft(b, "seat", [(S.ellipse(0, cy - m(0.1), m(6.9), m(9.6), n), m(RIM_Z + 0.9)),
-                       (S.ellipse(0, cy - m(0.1), m(6.7), m(9.3), n), m(RIM_Z + 1.6))])
-    b.box("seat", (-m(4.5), m(4.8), m(RIM_Z)), (m(4.5), m(6.2), m(RIM_Z + 1.8)), bevel=m(0.4))
-    # Tank and lid.
-    ty1 = m(DEPTH / 2 - WALL_GAP)
+    ty1 = m(DEPTH / 2)
     ty0 = ty1 - m(TANK_D)
-    b.box("porcelain", (-m(TANK_W / 2), ty0, m(TANK_Z0)), (m(TANK_W / 2), ty1, m(TANK_Z1)),
-          bevel=m(0.6))
-    b.box("porcelain", (-m(TANK_W / 2 + 0.4), ty0 - m(0.4), m(TANK_Z1)),
-          (m(TANK_W / 2 + 0.4), ty1 + m(0.3), m(TANK_Z1 + 1.3)), bevel=m(0.5))
-    # Flush lever, front left.
-    b.cylinder("chrome", (-m(7.0), ty0 - m(0.2), m(26.5)), m(0.8), m(0.5), axis="Y",
-               segments=12)
-    b.box("chrome", (-m(6.8), ty0 - m(0.7), m(26.2)), (-m(3.8), ty0 - m(0.3), m(26.8)),
-          bevel=m(0.15))
+    # Rear deck under the tank.
+    b.box("porcelain", (-m(4.3), cy + m(5.0), m(1.0)), (m(4.3), ty0 + m(2.5), m(TANK_Z0)),
+          bevel=m(1.5))
+    # Seat and closed lid.
+    zs = m(RIM_Z)
+    S.loft(b, "seat", [(S.ellipse(0, cy - m(0.3), m(7.2), m(10.0), n), zs),
+                       (S.ellipse(0, cy - m(0.3), m(7.2), m(10.0), n), zs + m(1.0))])
+    S.loft(b, "seat", [(S.ellipse(0, cy - m(0.1), m(7.0), m(9.7), n), zs + m(1.0)),
+                       (S.ellipse(0, cy - m(0.1), m(6.8), m(9.4), n), m(LID_TOP))])
+    b.box("seat", (-m(4.5), cy + m(9.3), zs), (m(4.5), cy + m(10.8), m(LID_TOP) + m(0.2)),
+          bevel=m(0.4))
+    # Tank and lid (squared, softly rounded).
+    b.box("porcelain", (-m(TANK_W / 2), ty0, m(TANK_Z0)),
+          (m(TANK_W / 2), ty1, m(TANK_TOP - LID_T)), bevel=m(0.9))
+    b.box("porcelain", (-m(TANK_W / 2 + 0.3), ty0 - m(0.35), m(TANK_TOP - LID_T)),
+          (m(TANK_W / 2 + 0.3), ty1 + m(0.1), m(TANK_TOP)), bevel=m(0.55))
+    # Dual push button in the lid, left of centre.
+    b.cylinder("chrome", (-m(3.0), (ty0 + ty1) / 2, m(TANK_TOP) + m(0.1)), m(1.1), m(0.25),
+               segments=16)
     # Supply valve and line at the wall, left.
-    b.cylinder("chrome", (-m(6.0), m(DEPTH / 2 - 0.8), m(7.0)), m(0.6), m(1.6), axis="Y",
+    b.cylinder("chrome", (-m(6.0), ty1 + m(0.6), m(7.0)), m(0.6), m(1.4), axis="Y",
                segments=10)
-    b.cylinder("chrome", (-m(6.0), m(DEPTH / 2 - 1.6), m(11.0)), m(0.2), m(8.0), axis="Z",
+    b.cylinder("chrome", (-m(6.0), ty1 - m(0.2), m(11.5)), m(0.2), m(9.0), axis="Z",
                segments=8)
     return [b.to_object("toilet", coll)]
 

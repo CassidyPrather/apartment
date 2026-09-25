@@ -1,0 +1,26 @@
+{
+  "name": "desk",
+  "fbx": "Assets/Apartment/Models/desk.fbx",
+  "materials": {
+    "desk": {
+      "atlas": "desk",
+      "mode": "opaque",
+      "tiled": false
+    }
+  },
+  "collider": "box",
+  "static": true,
+  "triangles": 768,
+  "bounds_m": {
+    "min": [
+      -0.9017,
+      -0.362,
+      0.0
+    ],
+    "max": [
+      0.9017,
+      0.362,
+      0.7493
+    ]
+  }
+}

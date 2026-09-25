@@ -1,0 +1,26 @@
+{
+  "name": "bed",
+  "fbx": "Assets/Apartment/Models/bed.fbx",
+  "materials": {
+    "bed": {
+      "atlas": "bed",
+      "mode": "opaque",
+      "tiled": false
+    }
+  },
+  "collider": "box",
+  "static": true,
+  "triangles": 5216,
+  "bounds_m": {
+    "min": [
+      -0.5157,
+      -0.9499,
+      0.0015
+    ],
+    "max": [
+      0.517,
+      0.9347,
+      0.8847
+    ]
+  }
+}

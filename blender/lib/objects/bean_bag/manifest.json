@@ -1,0 +1,25 @@
+{
+  "name": "bean_bag",
+  "fbx": "Assets/Apartment/Models/bean_bag.fbx",
+  "materials": {
+    "bean_bag": {
+      "atlas": "bean_bag",
+      "mode": "opaque"
+    }
+  },
+  "collider": "box",
+  "static": true,
+  "triangles": 624,
+  "bounds_m": {
+    "min": [
+      -0.3175,
+      -0.3302,
+      0.0
+    ],
+    "max": [
+      0.3175,
+      0.3302,
+      0.4572
+    ]
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "name": "desk_computer",
+  "fbx": "Assets/Apartment/Models/desk_computer.fbx",
+  "materials": {
+    "desk_computer": {
+      "atlas": "desk_computer",
+      "mode": "opaque",
+      "tiled": false
+    },
+    "desk_computer_screen": {
+      "atlas": "desk_computer_screen",
+      "mode": "opaque",
+      "tiled": false
+    }
+  },
+  "collider": "box",
+  "static": true,
+  "triangles": 1000,
+  "bounds_m": {
+    "min": [
+      -0.936,
+      -0.2921,
+      0.7493
+    ],
+    "max": [
+      0.7341,
+      0.2462,
+      1.2751
+    ]
+  }
+}

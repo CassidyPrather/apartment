@@ -4,10 +4,10 @@ gimp_textures helpers in scope:
     python blender/lib/textures/gimp_headless.py --object bathtub
 
 Flat fills for porcelain, acrylic, chrome, nickel, marble, curtain, mirror and wall
-paint (no bathroom photos exist yet). The oak grain is photo-derived: a plain stretch
-of the kitchen's tall oak cabinet door (the vanity is assumed to match the kitchen),
-rectified, lighting-flattened and tinted; the vanity's shaker door frames are drawn on
-top at the positions vanity/object.py builds them.
+paint, in the albedo colours sampled by the bathroom survey (Reference/bathroom_survey/).
+The oak grain is photo-derived: a plain stretch of the kitchen's oak cabinet door
+(same honey-oak species as the vanity), rectified, lighting-flattened and tinted to the
+vanity's surveyed colour. Door and drawer shapes are geometry, not drawn.
 """
 
 import importlib
@@ -22,7 +22,7 @@ import bathroom_shared as S  # noqa: E402
 importlib.reload(S)
 ATLAS = S.ATLAS
 
-OAK = (192, 130, 70)           # golden oak, sampled mid-tone from the kitchen cabinets
+OAK = (178, 104, 32)           # tint; lands at the survey albedo #9a5a1c after flattening
 OAK_QUAD = [(2198, 300), (2288, 300), (2288, 460), (2198, 460)]   # plain door panel
 
 
@@ -38,51 +38,6 @@ def paste(a, src, region):
     a.lay = flatten(a.img)
 
 
-def vanity_doors(a):
-    """Face frame + two shaker doors, mapped planar over the vanity front."""
-    x, y, w, h = a.rect("oak_doors")
-    F = S.VANITY_FRONT
-    fx0, fx1 = F["x"]
-    fz0, fz1 = F["z"]
-
-    def px(v):
-        return x + (v - fx0) / (fx1 - fx0) * w
-
-    def pz(v):
-        return y + (fz1 - v) / (fz1 - fz0) * h
-
-    shadow = (92, 56, 26, 0.55)
-    light = (238, 196, 140, 0.35)
-    dz0, dz1 = F["door_z"]
-    s = F["stile"]
-    for d0, d1 in F["doors"]:
-        # gap shadow around each door
-        fill_rect(a.img, a.lay, (round(px(d0)) - 3, round(pz(dz1)) - 3,
-                                 round(px(d1) - px(d0)) + 6, 3), shadow)
-        fill_rect(a.img, a.lay, (round(px(d0)) - 3, round(pz(dz0)),
-                                 round(px(d1) - px(d0)) + 6, 3), shadow)
-        # recessed centre panel: slightly darker, with a shadowed top/left bevel and a
-        # lit bottom/right bevel.
-        p0, p1, q0, q1 = px(d0 + s), px(d1 - s), pz(dz1 - s), pz(dz0 + s)
-        fill_rect(a.img, a.lay, (round(p0), round(q0), round(p1 - p0), round(q1 - q0)),
-                  (150, 95, 45, 0.18))
-        fill_rect(a.img, a.lay, (round(p0), round(q0), round(p1 - p0), 5), shadow)
-        fill_rect(a.img, a.lay, (round(p0), round(q0), 5, round(q1 - q0)), shadow)
-        fill_rect(a.img, a.lay, (round(p0), round(q1) - 4, round(p1 - p0), 4), light)
-        fill_rect(a.img, a.lay, (round(p1) - 4, round(q0), 4, round(q1 - q0)), light)
-        # rail/stile joints on the door frame
-        for zz in (dz1 - s, dz0 + s):
-            fill_rect(a.img, a.lay, (round(px(d0)), round(pz(zz)), round(p0 - px(d0)), 1),
-                      (110, 70, 35, 0.5))
-            fill_rect(a.img, a.lay, (round(p1), round(pz(zz)), round(px(d1) - p1), 1),
-                      (110, 70, 35, 0.5))
-    # centre gap between the doors
-    fill_rect(a.img, a.lay, (round(px(-0.25)), round(pz(dz1)), round(px(0.25) - px(-0.25)),
-                             round(pz(dz0) - pz(dz1))), (70, 42, 20))
-    # top rail of the face frame: faint horizontal joint under it
-    fill_rect(a.img, a.lay, (x, round(pz(fz1 - 0.3)), w, 2), (110, 70, 35, 0.4))
-
-
 def build():
     a = Atlas(ATLAS)
     # Oak: photo grain for both oak regions.
@@ -92,19 +47,17 @@ def build():
         paste(a, g, region)
         g.delete()
         a.material(region, 0.0, 0.45)       # satin lacquer
-    vanity_doors(a)
 
-    a.fill("marble", (232, 222, 204), 0.0, 0.8, noise=0.03, blur=6.0)   # cultured marble, cream
-    # soft two-scale mottling instead of hard veins
-    grain(a.img, a.lay, a.rect("marble"), 0.05, 14.0)
-    grain(a.img, a.lay, a.rect("marble"), 0.015, 1.0)
+    a.fill("marble", (226, 226, 221), 0.0, 0.8, noise=0.02, blur=4.0)   # survey #e2e2dd
+    grain(a.img, a.lay, a.rect("marble"), 0.04, 0.6)                     # fine speckle
     a.fill("chrome", (214, 216, 220), 1.0, 0.92, noise=0.01)
-    a.fill("nickel", (178, 176, 170), 1.0, 0.55, noise=0.03)
-    a.fill("porcelain", (240, 240, 238), 0.0, 0.9, noise=0.008)
-    a.fill("acrylic", (238, 236, 231), 0.0, 0.78, noise=0.01)
-    a.fill("curtain", (226, 226, 220), 0.0, 0.12, noise=0.05, blur=0.6)  # light woven fabric
+    a.fill("nickel", (168, 166, 160), 1.0, 0.55, noise=0.03)            # survey #a8a6a0
+    a.fill("porcelain", (242, 237, 230), 0.0, 0.9, noise=0.006)         # survey #f2ede6
+    a.fill("acrylic", (233, 230, 225), 0.0, 0.8, noise=0.006)           # survey #e9e6e1
+    a.fill("curtain", (228, 224, 214), 0.0, 0.12, noise=0.05, blur=0.6)  # plain neutral
     a.fill("mirror", (188, 196, 200), 1.0, 0.97)
-    a.fill("wall_paint", (206, 200, 191), 0.0, 0.18, noise=0.04, blur=1.6)  # = shell_wall
+    a.fill("wall_paint", (207, 197, 180), 0.0, 0.18, noise=0.04, blur=1.6)  # survey #cfc5b4
     a.fill("dark", (34, 32, 30), 0.0, 0.2, noise=0.02)
-    a.fill("seat", (236, 235, 230), 0.0, 0.7, noise=0.008)
+    a.fill("seat", (240, 236, 229), 0.0, 0.7, noise=0.006)
+    a.fill("paper", (244, 243, 238), 0.0, 0.05, noise=0.03)
     a.save()

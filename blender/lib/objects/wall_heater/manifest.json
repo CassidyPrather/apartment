@@ -1,0 +1,26 @@
+{
+  "name": "wall_heater",
+  "fbx": "Assets/Apartment/Models/wall_heater.fbx",
+  "materials": {
+    "wall_heater": {
+      "atlas": "wall_heater",
+      "mode": "opaque",
+      "tiled": false
+    }
+  },
+  "collider": "box",
+  "static": true,
+  "triangles": 468,
+  "bounds_m": {
+    "min": [
+      -0.1207,
+      -0.0191,
+      0.381
+    ],
+    "max": [
+      0.1207,
+      0.0,
+      0.8382
+    ]
+  }
+}

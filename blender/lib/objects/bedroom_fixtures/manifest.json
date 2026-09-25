@@ -1,0 +1,25 @@
+{
+  "name": "bedroom_fixtures",
+  "fbx": "Assets/Apartment/Models/bedroom_fixtures.fbx",
+  "materials": {
+    "bedroom_fixtures": {
+      "atlas": "bedroom_fixtures",
+      "mode": "opaque"
+    }
+  },
+  "collider": "none",
+  "static": true,
+  "triangles": 876,
+  "bounds_m": {
+    "min": [
+      3.5243,
+      -0.066,
+      0.6921
+    ],
+    "max": [
+      6.9748,
+      4.0234,
+      2.7432
+    ]
+  }
+}

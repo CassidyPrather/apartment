@@ -1,0 +1,29 @@
+{
+  "name": "ceiling_light_bar",
+  "fbx": "Assets/Apartment/Models/ceiling_light_bar.fbx",
+  "materials": {
+    "ceiling_light_bar": {
+      "atlas": "ceiling_light_bar",
+      "mode": "opaque"
+    },
+    "ceiling_light_bar_lens": {
+      "atlas": "ceiling_light_bar",
+      "mode": "opaque"
+    }
+  },
+  "collider": "none",
+  "static": true,
+  "triangles": 1116,
+  "bounds_m": {
+    "min": [
+      -0.6109,
+      -0.0936,
+      -0.2369
+    ],
+    "max": [
+      0.6109,
+      0.0936,
+      0.0
+    ]
+  }
+}

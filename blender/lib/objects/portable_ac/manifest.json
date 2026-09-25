@@ -1,0 +1,25 @@
+{
+  "name": "portable_ac",
+  "fbx": "Assets/Apartment/Models/portable_ac.fbx",
+  "materials": {
+    "portable_ac": {
+      "atlas": "portable_ac",
+      "mode": "opaque"
+    }
+  },
+  "collider": "box",
+  "static": true,
+  "triangles": 1540,
+  "bounds_m": {
+    "min": [
+      -0.5474,
+      -0.5453,
+      0.0
+    ],
+    "max": [
+      0.0825,
+      0.3767,
+      2.1209
+    ]
+  }
+}

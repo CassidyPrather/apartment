@@ -22,11 +22,11 @@ public static class LightingSetup
         ("living", 0f, 134f, 0f, 120f, 67f, 70f, 0.8f),
         ("dining", 0f, 134f, 120f, 186f, 67f, 152f, 0.7f),
         ("kitchen", 0f, 134f, 186f, 286f, 68f, 235f, 0.9f),
-        ("bedroom", 138.75f, 282.75f, 0f, 159.5f, 210f, 70f, 0.8f),
-        ("hall", 209.75f, 255.55f, 130.5f, 197.75f, 232f, 166f, 0.5f),
-        ("bath", 177.75f, 282.75f, 202.5f, 286f, 230f, 244f, 0.8f),
-        ("laundry", 177.75f, 205f, 164.25f, 197.75f, 191f, 181f, 0.3f),
-        ("closet", 260.3f, 282.75f, 135.25f, 197.75f, 271f, 166f, 0.25f),
+        ("bedroom", 138.75f, 274.6f, 0f, 158.4f, 262f, 42f, 0.8f),     // lit by the torchiere, high in its corner
+        ("hall", 211.2f, 247.7f, 130.35f, 197.75f, 229f, 183.5f, 0.5f),
+        ("bath", 171.3f, 274.6f, 202.5f, 286f, 222.9f, 249.2f, 0.8f),
+        ("laundry", 171.3f, 206.45f, 163.15f, 197.75f, 189f, 181f, 0.3f),
+        ("closet", 252.45f, 274.6f, 135.1f, 197.75f, 263.5f, 166f, 0.25f),
     };
     const float CeilingIn = 108f;
     const float VolumePadIn = 3f;
@@ -46,7 +46,9 @@ public static class LightingSetup
                 Object.DestroyImmediate(t.gameObject);
         var root = new GameObject("lighting");
 
-        var warm = Mathf.CorrelatedColorTemperatureToRGB(4200f);
+        // Warm white as the eye sees it: Mathf.CorrelatedColorTemperatureToRGB gives a linear
+        // value that reads deep orange once baked and bounced around off-white walls.
+        var warm = new Color(1f, 0.89f, 0.77f);
         foreach (var r in Rooms)
         {
             var go = new GameObject("light_" + r.name);
@@ -102,7 +104,7 @@ public static class LightingSetup
         sun.transform.SetParent(root.transform);
         sun.type = LightType.Directional;
         sun.lightmapBakeType = LightmapBakeType.Baked;
-        sun.color = Mathf.CorrelatedColorTemperatureToRGB(5600f);
+        sun.color = new Color(1f, 0.97f, 0.93f);
         sun.intensity = 1.4f;
         sun.shadows = LightShadows.Soft;
         sun.transform.rotation = Quaternion.Euler(40f, 150f, 0f);

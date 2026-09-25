@@ -19,7 +19,7 @@ public static class ViewShots
         ("living_to_kitchen", 100f, 20f, 40f, 260f, 40f),
         ("kitchen_to_living", 60f, 270f, 90f, 10f, 40f),
         ("entry_to_windows", 20f, 170f, 110f, 10f, 40f),
-        ("bedroom", 270f, 15f, 150f, 140f, 40f),
+        ("bedroom", 245f, 60f, 150f, 130f, 40f),
         ("bedroom_to_window", 180f, 150f, 230f, 0f, 40f),
         ("hall", 232f, 150f, 232f, 260f, 40f),
         ("bath", 236f, 210f, 200f, 285f, 30f),

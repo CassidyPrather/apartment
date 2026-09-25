@@ -1,19 +1,23 @@
-"""Bathroom vanity: 30 in oak sink base (two shaker doors, brushed-nickel pulls, toe
-kick), cultured-marble top with an integral oval basin and backsplash, a chrome
-single-lever faucet, and a frameless wall mirror above.
+"""Bathroom vanity: 50 in honey-oak sink base on the west wall (full-width top rail
+false front, one door with a bar pull on the south half, two stacked drawers with knobs
+on the north half, toe kick), white cultured-marble top with an integral oval basin set
+off-centre to the south, back and south side splashes, a brushed-nickel two-handle
+faucet, a toilet-paper holder on the north side panel, and the frameless clip-hung
+mirror above.
 
-Source of truth: scripted. Coarse block-in from standard sizes (no photos of the real
-bathroom yet): every size is EST. The oak is assumed to match the kitchen cabinets
-(golden oak shaker), whose grain the atlas borrows.
+Source of truth: scripted, from the bathroom LiDAR survey (Reference/bathroom_survey/,
+fixtures.py boxes vanity_counter, vanity_cabinet, backsplash, sink_bowl, mirror, and the
+chk_vanity_* check images). SCAN = measured from the registered capture (about +-1 in);
+EST = from the photos or standard sizes.
 
-Local frame: front faces -Y, back against the wall at +Y. Origin on the floor at the
-footprint centre; the footprint runs y -10.75..+10.75 in, so the marker sits 10.75 in
-out from the wall face.
+Local frame: front faces -Y, back against the wall at +Y. Placed at rotation 90 the
+front faces east, local +X points north and local +Y west (the wall):
+  plan y = 227.55 + local x,  plan x = 189.1 - local y   (inches, model plan coords)
+Origin on the floor at the counter's footprint centre; the wall face is at y +11.35 in.
 
 Objects:
-  vanity         cabinet, top, basin, faucet (static; the doors are part of it in this
-                 block-in pass, split them out when they get hinges)
-  vanity_mirror  wall mirror, 30 x 36 in, bottom 40 in above the floor
+  vanity         cabinet, top, basin, faucet, toilet-paper holder (static)
+  vanity_mirror  frameless wall mirror with clips
 """
 
 import importlib
@@ -28,118 +32,178 @@ import bathroom_shared as S  # noqa: E402
 
 importlib.reload(S)
 m = S.m
-F = S.VANITY_FRONT
 
 NAME = "vanity"
 ATLAS = S.ATLAS
 MATERIALS = S.MATERIALS
 COLLIDER = "box"
 STATIC = True
-VIEWS = [("plan_top", 0, 89.9, 1.0), ("basin", 0, 55, 0.6)]
+VIEWS = [("plan_top", 0, 89.9, 1.0), ("basin", 0, 55, 0.6), ("survey_view", 330, 30, 0.8)]
 
-HALF_D = 10.75        # EST top depth 21.5 (cabinet 20.75 + overhang)
-TOP_W = 31.0          # EST top 0.5 in over each side
-TOP_T = 0.75          # EST
-TOP_Z = 32.0          # EST finished counter height
-TOE_H, TOE_D = 3.5, 3.0   # EST toe kick
-SPLASH_H, SPLASH_T = 4.0, 0.75   # EST
-BASIN_W, BASIN_D, BASIN_DEPTH = 16.0, 12.5, 6.0   # EST integral oval bowl
-BASIN_CY = -1.0       # EST
-MIRROR_W, MIRROR_H, MIRROR_Z = 30.0, 36.0, 40.0   # EST
-MIRROR_T = 0.25       # EST
+# --- dimensions (inches) ---------------------------------------------------------
+TOP_W, TOP_D = 50.1, 22.65     # SCAN counter
+TOP_Z0, TOP_Z = 30.4, 31.9     # SCAN counter underside / finished height
+CAB_W, CAB_D = 49.6, 21.95     # SCAN cabinet (flush with the south wall, 0.5 short at N)
+WALL_Y = 11.35                 # SCAN wall face (plan x 177.75) from the placement centre
+TOE_H, TOE_D = 3.5, 3.0        # EST (survey: 3-4 in)
+SPLASH_H, SPLASH_T = 3.9, 0.75  # SCAN height / EST thickness
+SINK_W, SINK_D = 17.0, 13.0    # SCAN integral oval, along the counter x across it
+SINK_X, SINK_Y = -13.95, 1.6   # SCAN centre (plan 217.5 - 3.9, 187.5)
+SINK_DEPTH = 6.5               # SCAN (box z 25..31.9)
+RAIL_Z = (25.3, 29.8)          # EST top rail false front (~5 in, survey)
+DOOR_Z = (4.2, 24.8)           # EST
+GAP = 0.4                      # EST between fronts
+FRONT_T = 0.75                 # EST door/drawer slab
+MIRROR_W, MIRROR_Z = 23.4, (39.2, 76.1)   # SCAN
+MIRROR_X = -0.45               # SCAN centre (plan y 231.0 - 3.9)
+MIRROR_T = 0.25                # EST
 
-REGIONS = ["oak_doors", "oak", "dark", "marble", "chrome", "nickel"]
+REGIONS = ["oak_doors", "oak", "dark", "marble", "nickel", "paper"]
 
 
-def build_vanity(coll):
-    b = common.Builder(REGIONS)
-    x0, x1 = m(F["x"][0]), m(F["x"][1])
-    yb = m(HALF_D)
-    yf = yb - m(20.75)                     # cabinet front
-    ztop = m(TOP_Z - TOP_T)
-    # Toe kick and carcass (front face mapped with the door drawing).
-    b.box("dark", (x0 + m(0.75), yf + m(TOE_D), 0), (x1 - m(0.75), yb, m(TOE_H)))
-    # Open-topped carcass (sides, back, deck, face frame) so the basin can hang inside.
-    t = m(0.75)
-    b.box("oak", (x0, yf, m(TOE_H)), (x0 + t, yb, ztop))
-    b.box("oak", (x1 - t, yf, m(TOE_H)), (x1, yb, ztop))
-    b.box("oak", (x0 + t, yb - t, m(TOE_H)), (x1 - t, yb, ztop))
-    b.box("oak", (x0 + t, yf, m(TOE_H)), (x1 - t, yb - t, m(TOE_H) + t))
-    faces = b.box("oak", (x0 + t, yf, m(TOE_H)), (x1 - t, yf + t, ztop))
+def counter_outline(cx, cy, x0, x1, y0, y1, n=44):
+    """Rectangle outline sampled at polar angles about (cx, cy), plus its corners, so it
+    bridges to the basin rings."""
+    corners = [math.atan2(y - cy, x - cx) for x, y in ((x1, y1), (x0, y1), (x0, y0), (x1, y0))]
+    angs = sorted({round(2 * math.pi * i / n - math.pi, 6) for i in range(n)}
+                  | {round(a, 6) for a in corners})
+    out = []
+    for a in angs:
+        c, s = math.cos(a), math.sin(a)
+        kx = ((x1 - cx) / c if c > 0 else (x0 - cx) / c) if abs(c) > 1e-9 else 1e9
+        ky = ((y1 - cy) / s if s > 0 else (y0 - cy) / s) if abs(s) > 1e-9 else 1e9
+        k = min(kx, ky)
+        out.append((cx + k * c, cy + k * s))
+    return out
+
+
+def front_slab(b, x0, x1, z0, z1, yf, frame=0.0):
+    """A door/drawer slab proud of the face at yf; frame > 0 adds a raised frame."""
+    t = m(FRONT_T)
+    faces = b.box("oak", (x0, yf - t, z0), (x1, yf, z1))
     b.bm.normal_update()
     for f in faces:
         if f.normal.y < -0.9:
             f.material_index = b.idx("oak_doors")
-    b.box("dark", (x0 + t, yf + t, m(TOE_H) + t), (x1 - t, yb - t, m(TOE_H) + t + m(0.05)))
-    # Doors: slabs proud of the face frame.
-    dz0, dz1 = m(F["door_z"][0]), m(F["door_z"][1])
-    for d0, d1 in F["doors"]:
-        fs = b.box("oak", (m(d0), yf - m(0.75), dz0), (m(d1), yf, dz1))
-        b.bm.normal_update()
-        for f in fs:
-            if f.normal.y < -0.9:
-                f.material_index = b.idx("oak_doors")
-        # Bar pull near the centre gap, vertical, top of the door.
-        px = m(d1 - 2.0) if d1 < 0 else m(d0 + 2.0)
-        b.box("nickel", (px - m(0.25), yf - m(1.9), dz1 - m(6.0)),
-              (px + m(0.25), yf - m(1.4), dz1 - m(2.0)), bevel=m(0.15))
-        for pz in (dz1 - m(5.6), dz1 - m(2.4)):
-            b.box("nickel", (px - m(0.2), yf - m(1.5), pz - m(0.2)),
-                  (px + m(0.2), yf - m(0.75), pz + m(0.2)))
+    if frame:
+        fr, p = m(frame), m(0.22)
+        for lo, hi in (((x0, z1 - fr), (x1, z1)), ((x0, z0), (x1, z0 + fr)),
+                       ((x0, z0 + fr), (x0 + fr, z1 - fr)), ((x1 - fr, z0 + fr), (x1, z1 - fr))):
+            fs = b.box("oak", (lo[0], yf - t - p, lo[1]), (hi[0], yf - t, hi[1]))
+            b.bm.normal_update()
+            for f in fs:
+                if f.normal.y < -0.9:
+                    f.material_index = b.idx("oak_doors")
 
-    # Counter with the integral basin: outer rounded rect -> rim -> bowl -> floor.
-    cy = m(BASIN_CY)
-    # Uniform polar angles about the basin centre plus the four exact corner angles.
-    W2, D2 = m(TOP_W / 2), m(HALF_D)
-    corners = [math.atan2(sy * D2 - cy, sx * W2) for sx, sy in ((1, 1), (-1, 1), (-1, -1), (1, -1))]
-    angs = sorted({round(2 * math.pi * i / 44 - math.pi, 6) for i in range(44)}
-                  | {round(a, 6) for a in corners})
-    outer = []
-    for a in angs:
-        c, sn = math.cos(a), math.sin(a)
-        k = min(W2 / abs(c) if abs(c) > 1e-9 else 1e9,
-                ((D2 - cy) if sn > 0 else (D2 + cy)) / abs(sn) if abs(sn) > 1e-9 else 1e9)
-        outer.append((k * c, cy + k * sn))
-    rim = S.match_polar(outer, 0, cy, S.ellipse_at(0, cy, m(BASIN_W / 2), m(BASIN_D / 2)))
-    mid = S.match_polar(outer, 0, cy, S.ellipse_at(0, cy, m(BASIN_W / 2 - 1.2),
-                                                    m(BASIN_D / 2 - 1.2)))
-    bot = S.match_polar(outer, 0, cy, S.ellipse_at(0, cy, m(BASIN_W / 2 - 4.0),
-                                                    m(BASIN_D / 2 - 3.5)))
+
+def build_vanity(coll):
+    b = common.Builder(REGIONS)
+    xs, xn = -m(TOP_W / 2), m(TOP_W / 2)           # south, north counter ends
+    cx0, cx1 = xs, xs + m(CAB_W)
+    yb = m(WALL_Y)
+    yf = yb - m(CAB_D)
+    ytf = yb - m(TOP_D)
+    ztop = m(TOP_Z0)
+    t = m(0.75)
+    # Toe kick, carcass (sides, back, deck, face).
+    b.box("dark", (cx0 + t, yf + m(TOE_D), 0), (cx1 - t, yb, m(TOE_H)))
+    b.box("oak", (cx0, yf, 0), (cx0 + t, yb, ztop))
+    b.box("oak", (cx1 - t, yf, 0), (cx1, yb, ztop))
+    b.box("oak", (cx0 + t, yb - t, m(TOE_H)), (cx1 - t, yb, ztop))
+    b.box("oak", (cx0 + t, yf, m(TOE_H)), (cx1 - t, yb - t, m(TOE_H) + t))
+    faces = b.box("oak", (cx0 + t, yf, m(TOE_H)), (cx1 - t, yf + t, ztop))
+    b.bm.normal_update()
+    for f in faces:
+        if f.normal.y < -0.9:
+            f.material_index = b.idx("oak_doors")
+    # Fronts: rail false front, south door, north drawers.
+    g = m(GAP)
+    fx0, fx1 = cx0 + m(0.6), cx1 - m(0.6)
+    mid = (fx0 + fx1) / 2
+    front_slab(b, fx0, fx1, m(RAIL_Z[0]), m(RAIL_Z[1]), yf)
+    dz0, dz1 = m(DOOR_Z[0]), m(DOOR_Z[1])
+    front_slab(b, fx0, mid - g / 2, dz0, dz1, yf, frame=2.3)
+    dzm = (dz0 + dz1) / 2
+    front_slab(b, mid + g / 2, fx1, dz0, dzm - g / 2, yf)
+    front_slab(b, mid + g / 2, fx1, dzm + g / 2, dz1, yf)
+    yface = yf - m(FRONT_T)
+    # Door bar pull: vertical, near the centre gap, upper half.
+    px = mid - g / 2 - m(2.4)
+    pz0, pz1 = dz1 - m(9.5), dz1 - m(3.0)
+    b.cylinder("nickel", (px, yface - m(1.25), (pz0 + pz1) / 2), m(0.25), pz1 - pz0 + m(0.4),
+               axis="Z", segments=10)
+    for pz in (pz0 + m(0.3), pz1 - m(0.3)):
+        b.cylinder("nickel", (px, yface - m(0.6), pz), m(0.2), m(1.3), axis="Y", segments=8)
+    # Drawer knobs.
+    kx = (mid + fx1) / 2
+    for kz in ((dz0 + dzm) / 2, (dzm + dz1) / 2 + m(0.8)):
+        b.cylinder("nickel", (kx, yface - m(0.5), kz), m(0.25), m(1.0), axis="Y", segments=8)
+        b.cylinder("nickel", (kx, yface - m(1.15), kz), m(0.6), m(0.45), axis="Y", segments=14,
+                   bevel=m(0.12))
+
+    # Counter with the integral basin: outer rectangle -> rim -> bowl -> floor.
+    sx, sy = m(SINK_X), m(SINK_Y)
+    outer = counter_outline(sx, sy, xs, xn, ytf, yb)
+    rim = S.match_polar(outer, sx, sy, S.ellipse_at(sx, sy, m(SINK_W / 2), m(SINK_D / 2)))
+    mid_r = S.match_polar(outer, sx, sy, S.ellipse_at(sx, sy, m(SINK_W / 2 - 1.3),
+                                                      m(SINK_D / 2 - 1.2)))
+    bot = S.match_polar(outer, sx, sy, S.ellipse_at(sx, sy, m(SINK_W / 2 - 4.5),
+                                                    m(SINK_D / 2 - 3.8)))
     zt = m(TOP_Z)
     r_ob = S.ring(b, outer, ztop)
     r_ot = S.ring(b, outer, zt)
     r_rim = S.ring(b, rim, zt)
-    r_mid = S.ring(b, mid, zt - m(BASIN_DEPTH * 0.55))
-    r_bot = S.ring(b, bot, zt - m(BASIN_DEPTH))
+    r_mid = S.ring(b, mid_r, zt - m(SINK_DEPTH * 0.55))
+    r_bot = S.ring(b, bot, zt - m(SINK_DEPTH))
     S.bridge(b, "marble", r_ob, r_ot)
     S.bridge(b, "marble", r_ot, r_rim)
     S.bridge(b, "marble", r_rim, r_mid)
     S.bridge(b, "marble", r_mid, r_bot)
     S.cap(b, "marble", r_bot)
     S.cap(b, "marble", r_ob)
-    b.cylinder("chrome", (0, cy, zt - m(BASIN_DEPTH) + m(0.06)), m(0.9), m(0.12),
-               segments=12)
-    # Backsplash.
-    b.box("marble", (-m(TOP_W / 2), yb - m(SPLASH_T), zt), (m(TOP_W / 2), yb, zt + m(SPLASH_H)),
+    b.cylinder("nickel", (sx, sy, zt - m(SINK_DEPTH) + m(0.06)), m(0.9), m(0.12), segments=12)
+    # Back splash and the south side splash.
+    b.box("marble", (xs, yb - m(SPLASH_T), zt), (xn, yb, zt + m(SPLASH_H)), bevel=m(0.1))
+    b.box("marble", (xs, ytf + m(0.6), zt), (xs + m(SPLASH_T), yb - m(SPLASH_T), zt + m(SPLASH_H)),
           bevel=m(0.1))
-    # Faucet: deck plate, body, spout, lever.
-    fy = yb - m(SPLASH_T) - m(2.2)
-    b.box("chrome", (-m(3.0), fy - m(1.0), zt), (m(3.0), fy + m(1.0), zt + m(0.5)), bevel=m(0.2))
-    b.cylinder("chrome", (0, fy, zt + m(2.0)), m(0.8), m(3.0), segments=16)
-    b.box("chrome", (-m(0.45), fy - m(4.2), zt + m(2.8)), (m(0.45), fy, zt + m(3.5)),
-          bevel=m(0.2))
-    b.box("chrome", (-m(0.35), fy - m(4.2), zt + m(2.3)), (m(0.35), fy - m(3.4), zt + m(2.9)),
-          bevel=m(0.1))
-    b.box("chrome", (-m(0.3), fy - m(0.2), zt + m(3.5)), (m(0.3), fy + m(3.0), zt + m(4.1)),
-          bevel=m(0.15))
+    # Faucet: two-handle centerset, brushed nickel, behind the basin.
+    fy = sy + m(SINK_D / 2) + m(1.4)
+    b.box("nickel", (sx - m(3.2), fy - m(0.9), zt), (sx + m(3.2), fy + m(0.9), zt + m(0.7)),
+          bevel=m(0.3))
+    b.cylinder("nickel", (sx, fy, zt + m(1.6)), m(0.65), m(2.0), segments=14)
+    arc =[(sx, fy, zt + m(2.4))] + [(sx, fy - m(1.2) - m(3.0) * i / 3,
+                                      zt + m(3.0) - m(0.6) * (i / 3) ** 2) for i in range(4)]
+    b.sweep("nickel", arc, common.circle_profile(m(0.4), 10), up=(0, 0, 1))
+    for hx in (-4.0, 4.0):
+        b.cylinder("nickel", (sx + m(hx), fy, zt + m(0.6)), m(0.7), m(1.2), segments=12)
+        b.box("nickel", (sx + m(hx) - m(0.25), fy - m(2.6), zt + m(1.1)),
+              (sx + m(hx) + m(0.25), fy + m(0.3), zt + m(1.6)), bevel=m(0.15))
+
+    # Toilet-paper holder on the north side panel, with a roll.
+    hy, hz = -m(4.5), m(24.0)
+    b.cylinder("nickel", (cx1 + m(0.2), hy, hz), m(1.0), m(0.4), axis="X", segments=14)
+    b.cylinder("nickel", (cx1 + m(1.4), hy, hz), m(0.3), m(2.4), axis="X", segments=8)
+    b.cylinder("nickel", (cx1 + m(2.6), hy - m(1.4), hz), m(0.3), m(5.0), axis="Y", segments=8)
+    b.cylinder("paper", (cx1 + m(2.6), hy - m(1.6), hz), m(2.2), m(3.9), axis="Y", segments=18,
+               cap_region="paper")
     return b.to_object("vanity", coll)
 
 
 def build_mirror(coll):
-    b = common.Builder(["mirror"])
-    yb = m(HALF_D)
-    b.box("mirror", (-m(MIRROR_W / 2), yb - m(MIRROR_T), m(MIRROR_Z)),
-          (m(MIRROR_W / 2), yb, m(MIRROR_Z + MIRROR_H)), bevel=m(0.08))
+    b = common.Builder(["mirror", "nickel"])
+    yb = m(WALL_Y)
+    x0, x1 = m(MIRROR_X - MIRROR_W / 2), m(MIRROR_X + MIRROR_W / 2)
+    z0, z1 = m(MIRROR_Z[0]), m(MIRROR_Z[1])
+    b.box("mirror", (x0, yb - m(MIRROR_T), z0), (x1, yb, z1), bevel=m(0.06), segments=1)
+    # Clips: two along the bottom, two at the top, one on each side.
+    clips = [(x0 + m(4), z0), (x1 - m(4), z0), (x0 + m(4), z1), (x1 - m(4), z1)]
+    for cx, cz in clips:
+        b.box("nickel", (cx - m(0.5), yb - m(MIRROR_T + 0.15), cz - m(0.35)),
+              (cx + m(0.5), yb, cz + m(0.35)), bevel=m(0.1), segments=1)
+    for cx in (x0, x1):
+        cz = (z0 + z1) / 2
+        b.box("nickel", (cx - m(0.35), yb - m(MIRROR_T + 0.15), cz - m(0.5)),
+              (cx + m(0.35), yb, cz + m(0.5)), bevel=m(0.1), segments=1)
     return b.to_object("vanity_mirror", coll)
 
 
@@ -150,8 +214,8 @@ def build(coll):
 def texture(objs):
     mat = common.atlas_material("bathroom", ATLAS)
     planar = {
-        "oak_doors": ("-Y", (m(F["x"][0]), m(F["x"][1])), (m(F["z"][0]), m(F["z"][1]))),
-        "oak": ("+X", (-m(HALF_D), m(HALF_D)), (0, m(TOP_Z))),
+        "oak_doors": ("-Y", (-m(TOP_W / 2), m(TOP_W / 2)), (0, m(TOP_Z0))),
+        "oak": ("+X", (-m(WALL_Y), m(WALL_Y)), (0, m(TOP_Z0))),
     }
     for ob in objs:
         common.atlas_uvs(ob, ATLAS, planar=planar)

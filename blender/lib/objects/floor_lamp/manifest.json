@@ -1,0 +1,31 @@
+{
+  "name": "floor_lamp",
+  "fbx": "Assets/Apartment/Models/floor_lamp.fbx",
+  "materials": {
+    "floor_lamp": {
+      "atlas": "floor_lamp",
+      "mode": "opaque",
+      "tiled": false
+    },
+    "floor_lamp_glow": {
+      "atlas": "floor_lamp",
+      "mode": "opaque",
+      "tiled": false
+    }
+  },
+  "collider": "box",
+  "static": true,
+  "triangles": 1066,
+  "bounds_m": {
+    "min": [
+      -0.1651,
+      -0.1719,
+      0.0
+    ],
+    "max": [
+      0.1651,
+      0.1651,
+      1.8034
+    ]
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "name": "office_chair",
+  "fbx": "Assets/Apartment/Models/office_chair.fbx",
+  "materials": {
+    "office_chair": {
+      "atlas": "office_chair",
+      "mode": "opaque",
+      "tiled": false
+    },
+    "office_chair_mat": {
+      "atlas": "office_chair",
+      "mode": "transparent",
+      "alpha": 0.3
+    }
+  },
+  "collider": "box",
+  "static": false,
+  "triangles": 3292,
+  "bounds_m": {
+    "min": [
+      -0.5461,
+      -0.8001,
+      0.0
+    ],
+    "max": [
+      0.6223,
+      0.6477,
+      1.0591
+    ]
+  }
+}

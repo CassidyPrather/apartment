@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="420" height="140" viewBox="0 0 420 140">
+  <!-- Parody instant-noodle brand "Noodle Goblin": a grinning round cup with three steam curls, and a chunky two-line wordmark. Drawn from scratch. -->
+  <rect x="0" y="0" width="420" height="140" rx="22" fill="#ffffff"/>
+  <g fill="none" stroke="#9aa3ad" stroke-width="5" stroke-linecap="round">
+    <path d="M44 30 q-8 -10 0 -18 q8 -8 0 -16"/>
+    <path d="M64 30 q-8 -10 0 -18 q8 -8 0 -16"/>
+    <path d="M84 30 q-8 -10 0 -18 q8 -8 0 -16"/>
+  </g>
+  <path d="M22 38 h104 l-12 88 q-2 8 -10 8 h-60 q-8 0 -10 -8 z" fill="#2f9e4a"/>
+  <rect x="18" y="32" width="112" height="12" rx="6" fill="#1d6e31"/>
+  <circle cx="54" cy="72" r="9" fill="#ffffff"/><circle cx="94" cy="72" r="9" fill="#ffffff"/>
+  <circle cx="56" cy="74" r="4" fill="#1b1b1b"/><circle cx="92" cy="74" r="4" fill="#1b1b1b"/>
+  <path d="M50 96 q24 18 48 0" fill="none" stroke="#1b1b1b" stroke-width="6" stroke-linecap="round"/>
+  <path d="M60 99 l4 8 l4 -7 M80 100 l4 7 l4 -8" fill="#ffffff" stroke="#ffffff" stroke-width="2"/>
+  <g font-family="Arial Black, Arial, sans-serif" font-weight="900" fill="#d8321e">
+    <text x="146" y="66" font-size="52">NOODLE</text>
+    <text x="146" y="122" font-size="52">GOBLIN</text>
+  </g>
+</svg>

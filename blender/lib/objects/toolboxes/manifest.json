@@ -1,0 +1,26 @@
+{
+  "name": "toolboxes",
+  "fbx": "Assets/Apartment/Models/toolboxes.fbx",
+  "materials": {
+    "toolboxes": {
+      "atlas": "toolboxes",
+      "mode": "opaque",
+      "tiled": false
+    }
+  },
+  "collider": "box",
+  "static": true,
+  "triangles": 792,
+  "bounds_m": {
+    "min": [
+      -0.508,
+      -0.1473,
+      0.0
+    ],
+    "max": [
+      0.5385,
+      0.1461,
+      0.2743
+    ]
+  }
+}

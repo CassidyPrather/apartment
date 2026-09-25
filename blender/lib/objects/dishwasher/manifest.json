@@ -1,0 +1,26 @@
+{
+  "name": "dishwasher",
+  "fbx": "Assets/Apartment/Models/dishwasher.fbx",
+  "materials": {
+    "dishwasher": {
+      "atlas": "dishwasher",
+      "mode": "opaque",
+      "tiled": false
+    }
+  },
+  "collider": "box",
+  "static": true,
+  "triangles": 396,
+  "bounds_m": {
+    "min": [
+      -0.3048,
+      -0.3442,
+      0.0
+    ],
+    "max": [
+      0.3048,
+      0.3238,
+      0.8636
+    ]
+  }
+}

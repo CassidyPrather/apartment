@@ -1,0 +1,31 @@
+{
+  "name": "bath_fixtures",
+  "fbx": "Assets/Apartment/Models/bath_fixtures.fbx",
+  "materials": {
+    "bath_fixtures": {
+      "atlas": "bath_fixtures",
+      "mode": "opaque",
+      "tiled": false
+    },
+    "bath_fixtures_glow": {
+      "atlas": "bath_fixtures",
+      "mode": "opaque",
+      "tiled": false
+    }
+  },
+  "collider": "none",
+  "static": true,
+  "triangles": 3156,
+  "bounds_m": {
+    "min": [
+      4.5149,
+      5.1435,
+      0.5143
+    ],
+    "max": [
+      7.1819,
+      7.2644,
+      2.7432
+    ]
+  }
+}

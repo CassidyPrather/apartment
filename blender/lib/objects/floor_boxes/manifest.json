@@ -1,0 +1,26 @@
+{
+  "name": "floor_boxes",
+  "fbx": "Assets/Apartment/Models/floor_boxes.fbx",
+  "materials": {
+    "floor_boxes": {
+      "atlas": "floor_boxes",
+      "mode": "opaque",
+      "tiled": false
+    }
+  },
+  "collider": "box",
+  "static": true,
+  "triangles": 2004,
+  "bounds_m": {
+    "min": [
+      -0.2083,
+      -0.1778,
+      0.0
+    ],
+    "max": [
+      0.2286,
+      0.1956,
+      0.2375
+    ]
+  }
+}

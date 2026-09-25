@@ -1,0 +1,26 @@
+{
+  "name": "door_kitchen_closet",
+  "fbx": "Assets/Apartment/Models/door_kitchen_closet.fbx",
+  "materials": {
+    "doors": {
+      "atlas": "doors",
+      "mode": "opaque",
+      "tiled": false
+    }
+  },
+  "collider": "box",
+  "static": true,
+  "triangles": 1336,
+  "bounds_m": {
+    "min": [
+      -0.5969,
+      -0.0483,
+      0.0
+    ],
+    "max": [
+      0.5969,
+      0.1207,
+      2.032
+    ]
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "name": "plant_broadleaf",
+  "fbx": "Assets/Apartment/Models/plant_broadleaf.fbx",
+  "materials": {
+    "plant_broadleaf": {
+      "atlas": "plant_broadleaf",
+      "mode": "opaque"
+    },
+    "plant_broadleaf_leaves": {
+      "atlas": "plant_broadleaf",
+      "mode": "cutout",
+      "alpha": 0.5
+    }
+  },
+  "collider": "box",
+  "static": true,
+  "triangles": 788,
+  "bounds_m": {
+    "min": [
+      -0.3048,
+      -0.3142,
+      0.0
+    ],
+    "max": [
+      0.2925,
+      0.3175,
+      0.7638
+    ]
+  }
+}

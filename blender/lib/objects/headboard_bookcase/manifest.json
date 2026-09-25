@@ -1,0 +1,26 @@
+{
+  "name": "headboard_bookcase",
+  "fbx": "Assets/Apartment/Models/headboard_bookcase.fbx",
+  "materials": {
+    "headboard_bookcase": {
+      "atlas": "headboard_bookcase",
+      "mode": "opaque",
+      "tiled": false
+    }
+  },
+  "collider": "box",
+  "static": true,
+  "triangles": 3024,
+  "bounds_m": {
+    "min": [
+      -0.5906,
+      -0.1845,
+      0.0
+    ],
+    "max": [
+      0.5906,
+      0.1743,
+      1.1684
+    ]
+  }
+}

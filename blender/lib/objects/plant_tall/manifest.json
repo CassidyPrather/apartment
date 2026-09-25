@@ -1,0 +1,30 @@
+{
+  "name": "plant_tall",
+  "fbx": "Assets/Apartment/Models/plant_tall.fbx",
+  "materials": {
+    "plant_tall": {
+      "atlas": "plant_tall",
+      "mode": "opaque"
+    },
+    "plant_tall_leaves": {
+      "atlas": "plant_tall",
+      "mode": "cutout",
+      "alpha": 0.5
+    }
+  },
+  "collider": "box",
+  "static": true,
+  "triangles": 1464,
+  "bounds_m": {
+    "min": [
+      -0.3734,
+      -0.3734,
+      0.0
+    ],
+    "max": [
+      0.3734,
+      0.3734,
+      2.1336
+    ]
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "name": "window_blinds",
+  "fbx": "Assets/Apartment/Models/window_blinds.fbx",
+  "materials": {
+    "window_blinds": {
+      "atlas": "window_blinds",
+      "mode": "opaque"
+    }
+  },
+  "collider": "box",
+  "static": true,
+  "triangles": 648,
+  "bounds_m": {
+    "min": [
+      -0.0647,
+      -0.0698,
+      0.6921
+    ],
+    "max": [
+      2.7495,
+      3.4607,
+      2.159
+    ]
+  }
+}

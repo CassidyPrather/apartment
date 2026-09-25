@@ -412,12 +412,23 @@ def tri_count(ob):
 
 def render_setup(engine_pref=("BLENDER_EEVEE", "BLENDER_EEVEE_NEXT"), res=(900, 900)):
     scn = bpy.context.scene
+    if bpy.app.background:
+        # Headless builds run many at once: render on the CPU so they don't fight over
+        # the one GPU (Eevee instances starved it into driver resets).
+        engine_pref = ("CYCLES",)
     for eng in engine_pref:
         try:
             scn.render.engine = eng
             break
         except TypeError:
             continue
+    if scn.render.engine == "CYCLES":
+        scn.cycles.device = "CPU"
+        scn.cycles.samples = 24
+        scn.cycles.use_denoising = True
+        scn.cycles.max_bounces = 3
+        scn.render.threads_mode = "FIXED"
+        scn.render.threads = 4
     scn.render.resolution_x, scn.render.resolution_y = res
     scn.render.resolution_percentage = 100
     scn.render.film_transparent = False

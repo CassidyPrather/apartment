@@ -1,0 +1,31 @@
+{
+  "name": "dresser_items",
+  "fbx": "Assets/Apartment/Models/dresser_items.fbx",
+  "materials": {
+    "dresser_items": {
+      "atlas": "dresser_items",
+      "mode": "opaque",
+      "tiled": false
+    },
+    "dresser_items_clear": {
+      "atlas": "dresser_items",
+      "mode": "transparent",
+      "alpha": 0.45
+    }
+  },
+  "collider": "box",
+  "static": true,
+  "triangles": 6304,
+  "bounds_m": {
+    "min": [
+      -0.3734,
+      -0.2337,
+      1.4813
+    ],
+    "max": [
+      0.4137,
+      0.2286,
+      1.9221
+    ]
+  }
+}

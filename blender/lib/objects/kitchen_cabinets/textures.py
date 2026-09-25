@@ -3,8 +3,8 @@
 Oak: photo-derived from the flat centre panel of one upper door in the photo through the
 bedroom door (only the panel, no people or objects), lighting flattened to the sampled
 honey-oak colour, made seamless and tiled across the oak region with alternate columns
-offset by half a tile to hide the repeat. Everything else is a flat fill; the counter,
-steel and appliance colours are guesses (the photo doesn't show them clearly).
+offset by half a tile to hide the repeat. Everything else is a flat fill sampled by eye from the survey crops (white laminate top,
+light vinyl toe kick, brushed steel sink, brushed nickel pulls).
 """
 
 import ast
@@ -22,7 +22,7 @@ def _atlas():
 
 
 ATLAS = _atlas()
-OAK = (178, 116, 58)             # honey oak: the photo doors under warm light sample 180,117,64 (shaded) to 236,173,102 (lit)
+OAK = (192, 126, 60)             # honey oak: the photo doors under warm light sample 180,117,64 (shaded) to 236,173,102 (lit)
 PANEL = (2190, 290, 95, 280)     # x, y, w, h: centre panel of the wide west-wall upper door
 TILE = (128, 384)                # ~7.6 px/in in the atlas, close to the photo's own scale
 
@@ -55,11 +55,11 @@ def build():
     a.lay = flatten(a.img)
     # the tiles spill past the oak region; the fills below cover the spill
     a.material("oak", 0.0, 0.32)
-    a.fill("counter", (208, 202, 190), 0.0, 0.35, noise=0.14, blur=0.7)
+    a.fill("counter", (232, 230, 222), 0.0, 0.4, noise=0.08, blur=0.7)   # survey crops: white laminate
     a.fill("steel", (172, 174, 176), 1.0, 0.55, noise=0.05, blur=0.5)
     a.fill("nickel", (182, 180, 174), 1.0, 0.6, noise=0.04, blur=0.5)
-    a.fill("toe", (74, 52, 32), 0.0, 0.2, noise=0.05, blur=1.0)
-    a.fill("white", (234, 234, 230), 0.0, 0.6)
+    a.fill("toe", (168, 164, 154), 0.0, 0.25, noise=0.04, blur=1.0)   # light vinyl base in the crops
+    a.fill("oak_dark", (128, 78, 36), 0.0, 0.3, noise=0.06, blur=1.0)   # shadowed oak frame in the reveals
     a.fill("panel_black", (30, 30, 32), 0.0, 0.5)
     a.fill("drain", (70, 70, 72), 1.0, 0.4)
     # unused corner of the atlas: neutral

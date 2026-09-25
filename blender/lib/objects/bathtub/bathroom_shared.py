@@ -21,18 +21,19 @@ ATLAS = {
     "name": "bathroom",
     "size": 1024,
     "regions": {
-        "oak_doors": (0, 0, 512, 512),      # vanity front: face frame + two shaker doors
-        "oak": (512, 0, 256, 512),          # plain golden-oak grain (carcass sides)
-        "marble": (768, 0, 256, 256),       # cultured-marble countertop, cream
+        "oak_doors": (0, 0, 512, 512),      # honey-oak grain, vertical (vanity fronts)
+        "oak": (512, 0, 256, 512),          # honey-oak grain (carcass sides)
+        "marble": (768, 0, 256, 256),       # white cultured-marble countertop, fine speckle
         "chrome": (768, 256, 128, 128),
-        "nickel": (896, 256, 128, 128),     # brushed nickel (vanity pulls)
+        "nickel": (896, 256, 128, 128),     # brushed nickel (pulls, faucet, holder)
         "porcelain": (768, 384, 128, 128),  # vitreous china, bright white
-        "acrylic": (896, 384, 128, 128),    # tub + surround, slightly warmer white
+        "acrylic": (896, 384, 128, 128),    # one-piece tub/shower unit
         "curtain": (0, 512, 512, 256),      # plain light fabric
         "mirror": (512, 512, 256, 256),
         "wall_paint": (768, 512, 256, 256),  # matches shell_wall's sampled colour
         "dark": (512, 768, 128, 128),       # drains, toe kick shadow
-        "seat": (640, 768, 128, 128),       # toilet seat plastic, a touch warmer
+        "seat": (640, 768, 128, 128),       # toilet seat plastic
+        "paper": (768, 768, 128, 128),      # toilet-paper roll
     },
 }
 
@@ -125,14 +126,3 @@ def loft(b, region, sections, top_region=None, bottom_region=None):
     faces += cap(b, bottom_region or region, rings[0])
     faces += cap(b, top_region or region, rings[-1])
     return faces
-
-
-# --- vanity front layout (inches), shared by vanity/object.py and the door texture ---
-# x across the front (0 = centre), z up from the floor. All EST (standard 30 in sink base).
-VANITY_FRONT = {
-    "x": (-15.0, 15.0),         # carcass width 30
-    "z": (3.5, 31.25),          # above the toe kick, under the 0.75 in top
-    "doors": [(-14.25, -0.25), (0.25, 14.25)],   # two doors, 0.5 in centre gap
-    "door_z": (4.25, 27.0),
-    "stile": 2.4,               # shaker frame width on the doors
-}

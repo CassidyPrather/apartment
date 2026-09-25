@@ -1,0 +1,26 @@
+{
+  "name": "dining_table",
+  "fbx": "Assets/Apartment/Models/dining_table.fbx",
+  "materials": {
+    "dining_table": {
+      "atlas": "dining_table",
+      "mode": "opaque",
+      "tiled": false
+    }
+  },
+  "collider": "box",
+  "static": true,
+  "triangles": 332,
+  "bounds_m": {
+    "min": [
+      -0.4826,
+      -0.7747,
+      0.0
+    ],
+    "max": [
+      0.4826,
+      0.7747,
+      0.7493
+    ]
+  }
+}

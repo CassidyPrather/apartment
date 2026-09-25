@@ -1,0 +1,26 @@
+{
+  "name": "dining_chair",
+  "fbx": "Assets/Apartment/Models/dining_chair.fbx",
+  "materials": {
+    "dining_chair": {
+      "atlas": "dining_chair",
+      "mode": "opaque",
+      "tiled": false
+    }
+  },
+  "collider": "box",
+  "static": true,
+  "triangles": 584,
+  "bounds_m": {
+    "min": [
+      -0.2286,
+      -0.2413,
+      0.0
+    ],
+    "max": [
+      0.2286,
+      0.2666,
+      0.954
+    ]
+  }
+}

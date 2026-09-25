@@ -1,0 +1,25 @@
+{
+  "name": "light_stand",
+  "fbx": "Assets/Apartment/Models/light_stand.fbx",
+  "materials": {
+    "light_stand": {
+      "atlas": "light_stand",
+      "mode": "opaque"
+    }
+  },
+  "collider": "none",
+  "static": true,
+  "triangles": 644,
+  "bounds_m": {
+    "min": [
+      -0.3109,
+      -0.1854,
+      0.0
+    ],
+    "max": [
+      0.3109,
+      0.3569,
+      2.0808
+    ]
+  }
+}

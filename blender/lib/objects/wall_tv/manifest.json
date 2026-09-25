@@ -1,0 +1,31 @@
+{
+  "name": "wall_tv",
+  "fbx": "Assets/Apartment/Models/wall_tv.fbx",
+  "materials": {
+    "wall_tv": {
+      "atlas": "wall_tv",
+      "mode": "opaque",
+      "tiled": false
+    },
+    "wall_tv_screen": {
+      "atlas": "wall_tv_screen",
+      "mode": "opaque",
+      "tiled": false
+    }
+  },
+  "collider": "box",
+  "static": true,
+  "triangles": 254,
+  "bounds_m": {
+    "min": [
+      -0.6223,
+      -0.0775,
+      0.0
+    ],
+    "max": [
+      0.6223,
+      0.0,
+      0.6985
+    ]
+  }
+}
