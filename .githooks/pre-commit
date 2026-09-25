@@ -1,0 +1,8 @@
+#!/bin/sh
+# Runs the fast checks so nobody has to remember to.
+# Enable once per clone: git config core.hooksPath .githooks
+set -eu
+cd "$(git rev-parse --show-toplevel)"
+
+scripts/check-meta.sh
+scripts/check-manifests.py

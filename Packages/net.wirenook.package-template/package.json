@@ -1,0 +1,14 @@
+{
+  "name": "net.wirenook.package-template",
+  "displayName": "Wirenook Package Template",
+  "version": "0.1.0",
+  "unity": "2022.3",
+  "description": "Sample package proving the template's plumbing; replace wholesale.",
+  "author": {
+    "name": "Cassidy Prather",
+    "email": "cassidy@wirenook.net",
+    "url": "https://wirenook.net"
+  },
+  "license": "AGPL-3.0-or-later",
+  "vpmDependencies": {}
+}

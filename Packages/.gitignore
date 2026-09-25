@@ -1,0 +1,10 @@
+# Ignore every package, then allowlist our own. The inversion is load-bearing:
+# the VPM resolver drops the (non-redistributable) VRChat SDK and its friends
+# in here, and this file makes committing them structurally impossible.
+# The bootstrapper is the one VRChat package that ships with the repo; the
+# resolver it downloads (com.vrchat.core.vpm-resolver) stays local.
+/*/
+!com.vrchat.core.bootstrap
+
+# Keep this in sync with your package directories under Packages/
+!net.wirenook.package-template

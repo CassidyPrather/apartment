@@ -1,0 +1,60 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  release:
+    types: [ published ]
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Check meta files
+        run: scripts/check-meta.sh
+
+      - name: Validate package manifests
+        run: scripts/check-manifests.py
+
+      - name: Check formatting
+        run: scripts/format.sh --check
+
+      - name: Run tests
+        run: scripts/test.sh
+
+  build-and-publish:
+    needs: lint-and-test
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Required for uploading release assets
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build packages
+        run: scripts/build-packages.sh
+
+      - name: Select the released packages
+        run: |
+          # A release publishes every package whose version matches the tag
+          # (leading v tolerated). mv fails the job when nothing matches,
+          # which is the point: a release that would ship nothing is a typo.
+          tag="${GITHUB_REF_NAME#v}"
+          mkdir -p dist/release
+          mv dist/packages/*-"$tag".zip dist/packages/*-"$tag".unitypackage dist/release/
+
+      - name: Upload release assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/release/*
+          fail_on_unmatched_files: true

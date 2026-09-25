@@ -1,0 +1,25 @@
+{
+    // I find these handy. You may too!
+    "markdown.validate.enabled": true,
+    "markdown.updateLinksOnFileMove.enabled": "always",
+    "markdown.validate.fileLinks.enabled": "error",
+    "markdown.validate.fragmentLinks.enabled": "error",
+    "markdown.validate.duplicateLinkDefinitions.enabled": "error",
+    "markdown.validate.referenceLinks.enabled": "error",
+    "extensions.ignoreRecommendations": true,
+    "editor.formatOnSave": true,
+    "editor.tabSize": 4,
+    "editor.rulers": [
+        120,
+    ],
+    "editor.wordWrapColumn": 120,
+    "cSpell.words": [
+        "ALCOM",
+        "asmdef",
+        "testables",
+        "unitypackage",
+        "vpm",
+        "vrchat",
+        "wirenook",
+    ],
+}
