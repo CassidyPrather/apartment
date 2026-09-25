@@ -66,7 +66,7 @@ public static class FilingCabinetSetup
 
     // --- textures ---------------------------------------------------------------
 
-    static void ConfigureTextures()
+    internal static void ConfigureTextures()
     {
         foreach (var guid in AssetDatabase.FindAssets("t:Texture2D", new[] { Textures }))
         {
@@ -77,14 +77,14 @@ public static class FilingCabinetSetup
             // Masks are mostly flat regions and emission maps are black but for a few
             // LEDs, so they drop to 512; the hardware atlas is authored at 512.
             bool small = name.StartsWith("cabinet_hardware") || name.EndsWith("_emission") ||
-                         (isMask && !name.StartsWith("cabinet_paint"));
+                         (isMask && !name.StartsWith("cabinet_paint")) || name.StartsWith("shell_trim");
             int size = small ? 512 : 1024;
             imp.textureType = TextureImporterType.Default;
             imp.sRGBTexture = !isMask;
             imp.alphaSource = TextureImporterAlphaSource.FromInput;
             imp.alphaIsTransparency = false;
             imp.mipmapEnabled = true;
-            imp.wrapMode = name.StartsWith("cabinet_paint") ? TextureWrapMode.Repeat : TextureWrapMode.Clamp;
+            imp.wrapMode = name.StartsWith("cabinet_paint") || name.StartsWith("shell_") ? TextureWrapMode.Repeat : TextureWrapMode.Clamp;
             imp.anisoLevel = 2;
             imp.maxTextureSize = size;
             imp.textureCompression = TextureImporterCompression.Compressed;
@@ -105,7 +105,7 @@ public static class FilingCabinetSetup
 
     // A clean Mochie material at `name`, keeping the asset's GUID across reruns so
     // the FBX remaps and prefabs stay linked; stale properties are wiped each time.
-    static Material MochieMat(string name)
+    internal static Material MochieMat(string name)
     {
         var path = $"{Materials}/{name}.mat";
         var shader = Shader.Find(ShaderName);
@@ -133,7 +133,7 @@ public static class FilingCabinetSetup
 
     // Mirrors the keyword half of Mochie's StandardEditor.SetKeywords for the features
     // used here, so script-built materials match what the inspector would produce.
-    static void MochieKeywords(Material mat)
+    internal static void MochieKeywords(Material mat)
     {
         mat.shaderKeywords = new string[0];
         MaterialEditor.FixupEmissiveFlag(mat);
@@ -150,7 +150,7 @@ public static class FilingCabinetSetup
         EditorUtility.SetDirty(mat);
     }
 
-    static Material Mat(string name, string atlas, Color tint)
+    internal static Material Mat(string name, string atlas, Color tint)
     {
         var mat = MochieMat(name);
         mat.SetTexture("_MainTex", Tex(atlas + "_albedo"));
@@ -204,7 +204,7 @@ public static class FilingCabinetSetup
 
     // Tinted translucent plastic (the headset's visor shell): Mochie's Transparent
     // mode, premultiplied so glossy highlights stay bright over what shows through.
-    static Material ShellMat(string name, string atlas, float alpha)
+    internal static Material ShellMat(string name, string atlas, float alpha)
     {
         var mat = Mat(name, atlas, new Color(1f, 1f, 1f, alpha));
         mat.SetColor("_EmissionColor", Color.black);      // the LED glow lives on the internals
@@ -218,11 +218,15 @@ public static class FilingCabinetSetup
 
     // --- models -----------------------------------------------------------------
 
-    static void ConfigureModels(Dictionary<string, Material> mats)
+    // models: the FBX file names to configure (without extension); null = the cabinet set's.
+    internal static void ConfigureModels(Dictionary<string, Material> mats, string[] models = null)
     {
+        models = models ?? new[] { "filing_cabinet", "router", "modem", "vr_headset", "cable_stubs" };
         foreach (var guid in AssetDatabase.FindAssets("t:Model", new[] { Models }))
         {
             var path = AssetDatabase.GUIDToAssetPath(guid);
+            if (System.Array.IndexOf(models, Path.GetFileNameWithoutExtension(path)) < 0)
+                continue;
             var imp = (ModelImporter)AssetImporter.GetAtPath(path);
             imp.globalScale = 1f;
             imp.useFileScale = true;
@@ -381,7 +385,7 @@ public static class FilingCabinetSetup
     }
 
     // Untextured, non-metallic stand-in surfaces for the test scene.
-    static Material PlainMat(string name, Color color)
+    internal static Material PlainMat(string name, Color color)
     {
         var mat = MochieMat(name);
         mat.SetColor("_Color", color);

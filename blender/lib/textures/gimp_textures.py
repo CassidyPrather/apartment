@@ -539,6 +539,88 @@ def headset():
     a.save()
 
 
+# --- apartment shell (tiling materials, 1024 px per tile) ---------------------------
+
+def _tile_save(img, name, smoothness, metallic=0.0):
+    save(img, os.path.join(OUT, name + "_albedo.png"))
+    mimg, mlay = new_image(img.get_width(), img.get_height(), name + "_mask", alpha=True)
+    fill_rect(mimg, mlay, (0, 0, img.get_width(), img.get_height()), (round(metallic * 255), 0, 0, smoothness))
+    save(mimg, os.path.join(OUT, name + "_mask.png"))
+
+
+def shell_carpet():
+    """Bedroom carpet, photo-derived from a clean patch beside the filing cabinet
+    (about 30 cm across), shading flattened, made seamless. Tiles every 0.5 m."""
+    img = load(os.path.join(REF, "IMG_1493.jpg"))
+    img.crop(600, 440, 980, 2420)
+    flatten_lighting(img, 30, (132, 124, 117), detail=100.0)
+    img.scale(1024, 1024)                 # the pile has no direction, so a mild stretch is invisible
+    lay = img.get_layers()[0]
+    gegl(lay, "gegl:tile-seamless")
+    if SHOW:
+        Gimp.Display.new(img)
+    _tile_save(img, "shell_carpet", 0.08)
+
+
+def _plaster(name, base, amount, blur, smoothness):
+    """Orange-peel textured paint: fine bumps, faintly shaded, in the sampled colour."""
+    img, lay = new_image(1024, 1024, name)
+    fill_rect(img, lay, (0, 0, 1024, 1024), base)
+    gegl(lay, "gegl:noise-rgb", correlated=False, independent=False, red=amount, green=amount,
+         blue=amount, gaussian=True, seed=random.randint(0, 99999))
+    gegl(lay, "gegl:gaussian-blur", std_dev_x=blur, std_dev_y=blur)
+    gegl(lay, "gegl:tile-seamless")
+    _tile_save(img, name, smoothness)
+
+
+def shell_walls():
+    _plaster("shell_wall", (206, 200, 191), 0.10, 1.6, 0.18)      # warm off-white, eggshell
+
+
+def shell_ceiling():
+    _plaster("shell_ceiling", (214, 211, 204), 0.12, 2.2, 0.08)   # flat ceiling white
+
+
+def shell_trim():
+    img, lay = new_image(256, 256, "shell_trim")
+    fill_rect(img, lay, (0, 0, 256, 256), (232, 231, 226))           # semi-gloss white
+    _tile_save(img, "shell_trim", 0.55)
+
+
+def shell_vinyl():
+    """Wood-look vinyl planks: 7 planks across a 1.22 m tile, joints staggered, in the
+    grey-brown sampled from the kitchen floor, with long soft grain streaks."""
+    img, lay = new_image(1024, 1024, "shell_vinyl")
+    n = 7
+    pw = 1024 / n
+    for i in range(n):
+        tone = random.randint(-10, 10)
+        base = (116 + tone, 104 + tone, 94 + tone)
+        fill_rect(img, lay, (round(i * pw), 0, round(pw) + 1, 1024), base)
+    # grain: stretched noise, only along the plank length
+    grain = Gimp.Layer.new(img, "grain", 1024, 1024, Gimp.ImageType.RGB_IMAGE, 35, Gimp.LayerMode.OVERLAY)
+    img.insert_layer(grain, None, 0)
+    fill_rect(img, grain, (0, 0, 1024, 1024), (128, 128, 128))
+    gegl(grain, "gegl:noise-rgb", correlated=False, independent=False, red=0.35, green=0.35, blue=0.35,
+         gaussian=True, seed=7)
+    gegl(grain, "gegl:motion-blur", length=180.0, angle=90.0)
+    lay = flatten(img)
+    # plank seams and staggered end joints
+    for i in range(n):
+        x = round(i * pw)
+        fill_rect(img, lay, (x, 0, 2, 1024), (64, 56, 50))
+        j = random.randint(100, 900)
+        fill_rect(img, lay, (x, j, round(pw), 2), (64, 56, 50))
+    # No tile-seamless here: the planks already meet the tile edges, and blending
+    # offset copies would ghost extra seams.
+    _tile_save(img, "shell_vinyl", 0.42)
+
+
+def shell():
+    for f in (shell_carpet, shell_walls, shell_ceiling, shell_trim, shell_vinyl):
+        f()
+
+
 def build(which=("cabinet_paint", "cabinet_hardware", "router", "modem", "headset")):
     for name in which:
         globals()[name]()
