@@ -24,7 +24,11 @@ public static class FilingCabinetSetup
     const string Materials = Root + "/Materials";
     const string Prefabs = Root + "/Prefabs";
     const string Scenes = Root + "/Scenes";
-    const string ShaderName = "VRChat/Mobile/Standard Lite";
+    // Mochie's Quest-grade standard shader (vendored in Assets/Mochie, MIT). It reads
+    // VRC Light Volumes, additive volumes on lightmapped surfaces included, and falls
+    // back to Unity light probes when a scene has no volumes.
+    const string ShaderName = "Mochie/Standard Mobile";
+    const string MochieDfg = "Assets/Mochie/Unity/Textures/dfg-multiscatter.exr";
 
     // dimensions.CABINET["drawer_travel"] (21 in, estimate).
     const float DrawerTravel = 21f * 0.0254f;
@@ -99,48 +103,103 @@ public static class FilingCabinetSetup
     static Texture2D Tex(string name) =>
         AssetDatabase.LoadAssetAtPath<Texture2D>($"{Textures}/{name}.png");
 
-    static Material Mat(string name, string atlas, Color tint)
+    // A clean Mochie material at `name`, keeping the asset's GUID across reruns so
+    // the FBX remaps and prefabs stay linked; stale properties are wiped each time.
+    static Material MochieMat(string name)
     {
         var path = $"{Materials}/{name}.mat";
+        var shader = Shader.Find(ShaderName);
+        var fresh = new Material(shader) { name = name };
         var mat = AssetDatabase.LoadAssetAtPath<Material>(path);
         if (mat == null)
         {
-            mat = new Material(Shader.Find(ShaderName));
-            AssetDatabase.CreateAsset(mat, path);
+            AssetDatabase.CreateAsset(fresh, path);
+            mat = fresh;
         }
-        mat.shader = Shader.Find(ShaderName);
+        else
+        {
+            EditorUtility.CopySerialized(fresh, mat);
+            Object.DestroyImmediate(fresh);
+        }
+        mat.SetTexture("_DFG", AssetDatabase.LoadAssetAtPath<Texture>(MochieDfg));
+        // Unused features' default textures would otherwise ride along into every build.
+        mat.SetTexture("_NoiseTexSSR", null);
+        mat.SetTexture("_WindNoiseTex", null);
+        mat.SetInt("_BicubicSampling", 0);          // bicubic lightmaps cost too much on Quest
+        mat.SetInt("_LightVolumesToggle", 1);
+        mat.SetInt("_AdditiveLightVolumesToggle", 1);
+        return mat;
+    }
+
+    // Mirrors the keyword half of Mochie's StandardEditor.SetKeywords for the features
+    // used here, so script-built materials match what the inspector would produce.
+    static void MochieKeywords(Material mat)
+    {
+        mat.shaderKeywords = new string[0];
+        MaterialEditor.FixupEmissiveFlag(mat);
+        bool emissive = (mat.globalIlluminationFlags & MaterialGlobalIlluminationFlags.EmissiveIsBlack) == 0;
+        mat.SetInt("_SampleMetallic", mat.GetTexture("_MetallicMap") ? 1 : 0);
+        mat.SetInt("_SampleRoughness", mat.GetTexture("_RoughnessMap") ? 1 : 0);
+        mat.SetInt("_SampleOcclusion", mat.GetTexture("_OcclusionMap") ? 1 : 0);
+        void Kw(string k, bool on) { if (on) mat.EnableKeyword(k); else mat.DisableKeyword(k); }
+        Kw("_EMISSION_ON", emissive);
+        Kw("_REFLECTIONS_ON", mat.GetInt("_ReflectionsToggle") == 1);
+        Kw("_SPECULAR_HIGHLIGHTS_ON", mat.GetInt("_SpecularHighlightsToggle") == 1);
+        Kw("_WORKFLOW_PACKED_ON", mat.GetInt("_PrimaryWorkflow") == 1);
+        Kw("_BICUBIC_SAMPLING_ON", mat.GetInt("_BicubicSampling") == 1);
+        EditorUtility.SetDirty(mat);
+    }
+
+    static Material Mat(string name, string atlas, Color tint)
+    {
+        var mat = MochieMat(name);
         mat.SetTexture("_MainTex", Tex(atlas + "_albedo"));
         mat.SetColor("_Color", tint);
-        mat.SetTexture("_MetallicGlossMap", Tex(atlas + "_mask"));
-        mat.SetFloat("_Metallic", 1f);
-        mat.SetFloat("_Glossiness", 1f);
+        // Our masks: metallic in R, smoothness in A; G and B are empty, so occlusion
+        // (which Mochie reads from R by default) must be switched off.
+        mat.SetInt("_PrimaryWorkflow", 1);
+        mat.SetTexture("_PackedMap", Tex(atlas + "_mask"));
+        mat.SetInt("_SmoothnessToggle", 1);
+        mat.SetInt("_MetallicChannel", 0);
+        mat.SetInt("_RoughnessChannel", 3);
+        mat.SetFloat("_PackedMetallicStrength", 1f);
+        mat.SetFloat("_PackedRoughnessStrength", 1f);
+        mat.SetFloat("_PackedOcclusionStrength", 0f);
         var emission = Tex(atlas + "_emission");
         if (emission != null)
         {
             mat.SetTexture("_EmissionMap", emission);
             mat.SetColor("_EmissionColor", Color.white);
-            mat.EnableKeyword("_EMISSION");
             // Status LEDs glow in-view only; keep them out of the lightmap bake.
             mat.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
         }
         else
         {
-            mat.DisableKeyword("_EMISSION");
+            mat.SetColor("_EmissionColor", Color.black);
+            mat.globalIlluminationFlags = MaterialGlobalIlluminationFlags.EmissiveIsBlack;
         }
-        EditorUtility.SetDirty(mat);
+        MochieKeywords(mat);
         return mat;
     }
 
-    static Dictionary<string, Material> BuildMaterials() => new Dictionary<string, Material>
+    static Dictionary<string, Material> BuildMaterials()
     {
-        // Keys are the Blender material names carried in the FBX files.
-        ["cabinet_paint"] = Mat("cabinet_paint", "cabinet_paint", Color.white),
-        ["cabinet_interior"] = Mat("cabinet_interior", "cabinet_paint", new Color(0.55f, 0.55f, 0.55f)),
-        ["cabinet_hardware"] = Mat("cabinet_hardware", "cabinet_hardware", Color.white),
-        ["router"] = Mat("router", "router", Color.white),
-        ["modem"] = Mat("modem", "modem", Color.white),
-        ["vr_headset"] = Mat("vr_headset", "vr_headset", Color.white),
-    };
+        var hardware = Mat("cabinet_hardware", "cabinet_hardware", Color.white);
+        // Metals are almost all reflection, so the hardware also takes speculars from
+        // the Light Volumes; on dielectrics that cost buys little.
+        hardware.SetInt("_LightVolumeSpecularity", 1);
+        EditorUtility.SetDirty(hardware);
+        return new Dictionary<string, Material>
+        {
+            // Keys are the Blender material names carried in the FBX files.
+            ["cabinet_paint"] = Mat("cabinet_paint", "cabinet_paint", Color.white),
+            ["cabinet_interior"] = Mat("cabinet_interior", "cabinet_paint", new Color(0.55f, 0.55f, 0.55f)),
+            ["cabinet_hardware"] = hardware,
+            ["router"] = Mat("router", "router", Color.white),
+            ["modem"] = Mat("modem", "modem", Color.white),
+            ["vr_headset"] = Mat("vr_headset", "vr_headset", Color.white),
+        };
+    }
 
     // --- models -----------------------------------------------------------------
 
@@ -306,21 +365,16 @@ public static class FilingCabinetSetup
         return prefab;
     }
 
-    // Untextured Standard Lite. Its metallic map defaults to white, so without an
-    // explicit _Metallic of 0 the surface turns into a black mirror.
+    // Untextured, non-metallic stand-in surfaces for the test scene.
     static Material PlainMat(string name, Color color)
     {
-        var path = $"{Materials}/{name}.mat";
-        var mat = AssetDatabase.LoadAssetAtPath<Material>(path);
-        if (mat == null)
-        {
-            mat = new Material(Shader.Find(ShaderName));
-            AssetDatabase.CreateAsset(mat, path);
-        }
+        var mat = MochieMat(name);
         mat.SetColor("_Color", color);
-        mat.SetFloat("_Metallic", 0f);
-        mat.SetFloat("_Glossiness", 0.15f);
-        EditorUtility.SetDirty(mat);
+        mat.SetFloat("_MetallicStrength", 0f);
+        mat.SetFloat("_RoughnessStrength", 0.85f);
+        mat.SetColor("_EmissionColor", Color.black);
+        mat.globalIlluminationFlags = MaterialGlobalIlluminationFlags.EmissiveIsBlack;
+        MochieKeywords(mat);
         return mat;
     }
 

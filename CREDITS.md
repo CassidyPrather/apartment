@@ -6,6 +6,7 @@ VRChat/Unity linking exception: [LICENSE_ADDENDUM](LICENSE_ADDENDUM).
 | Asset | Source | Author | License |
 | --- | --- | --- | --- | --- |
 | `Packages/com.vrchat.core.bootstrap/` | VRChat's package bootstrapper, vendored unmodified from <https://github.com/vrchat-community/template-package> | VRChat | [VRCHAT DISTRO LICENSE FILE](Packages/com.vrchat.core.bootstrap/License.md) |
+| `Assets/Mochie/` | Mochie's Unity Shaders v1.76 (free package), subset: Standard shaders, shared includes, editor UI, lookup textures; files unmodified. Left out: water/glass/rain textures, the GIF tool and `csc.rsp`, a proprietary header font (Century Gothic), and a Patreon logo; the editor falls back without them. <https://github.com/MochiesCode/Mochies-Unity-Shaders> | MochiesCode | MIT ([Assets/Mochie/LICENSE.txt](Assets/Mochie/LICENSE.txt)); bundles VRC Light Volumes' `LightVolumes.cginc` (MIT, REDSIM) |
 
 ## Parody Brand Ledger
 

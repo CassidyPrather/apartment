@@ -113,7 +113,7 @@ Real products get parody brands. No real brand ever appears in the world.
   Branding rules. Check every photo-derived texture at full resolution for
   reflections, people, readable text, and logos before committing it.
 - Allowed non-art dependencies: a video player and VRC Light Volumes, plus any
-  shaders they need. Each goes through the intake rules below.
+  shaders they need (Mochie's shaders, for Light Volumes). Each goes through the intake rules below.
 - Views out the windows show a made-up exterior, built from scratch like
   everything else and resembling nothing identifiable.
 
@@ -169,8 +169,13 @@ Pick per object and record the choice in the object's script or `.blend`:
 
 The world targets both PC and Quest (Android). Every change must work on both.
 
-- Use Quest-compatible shaders (VRChat Mobile or equivalent) for anything that has
-  to ship on Android. Keep lighting baked. Real-time lights are the exception and need a stated reason.
+- Every material uses a shader that supports VRC Light Volumes and falls back to Unity
+  light probes when a scene has none. Today that's `Mochie/Standard Mobile`
+  (vendored in `Assets/Mochie/`), which also runs on Quest. VRChat's own mobile
+  shaders ignore Light Volumes, so don't use them. When Mochie updates, re-vendor
+  the same subset and check which Light Volumes version its `LightVolumes.cginc` matches.
+- No real-time lights. Static surfaces use baked lightmaps, and anything that moves
+  (drawers, avatars, pickups) is lit by Light Volumes.
 - Keep the Android upload well under VRChat's size limit. Prefer texture
   atlases, sensible texture resolutions (1K by default, 2K when you can justify it),
   and crunch/ASTC compression.
