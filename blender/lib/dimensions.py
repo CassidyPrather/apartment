@@ -67,15 +67,18 @@ MODEM = {
 
 # --- PC VR headset with a halo strap and off-ear speakers ---------------------------
 HEADSET = {
-    "visor_w": m(5.75),          # EST (the scan sees ~150 mm of purple across)
+    "visor_w": 0.120,            # SCAN matched-camera photos: ~84% of a 14 cm first guess
     "visor_h": m(1.9),           # EST
     "visor_d": m(1.5),           # EST
     "gasket_d": m(0.9),          # EST
     "arm_len": m(5.5),           # EST
     "halo_len": 0.205,           # SCAN splat: the head loop is ~22 cm across, visor included
     "halo_w": 0.205,             # SCAN
-    "halo_tilt": 22.0,           # SCAN back of the loop rides ~12-13 cm up, the front ~3 cm
-    "halo_band": 0.030,          # EST rear cradle band height
+    "halo_tilt": 2.0,            # SCAN the loop lies nearly flat, 2-5 cm up all the way round
+    "halo_band": 0.030,          # EST loop band height
+    "arch_x": -0.05,             # SCAN ear-to-ear headband stands ~5 cm behind the loop centre
+    "arch_half_span": 0.115,     # SCAN
+    "arch_height": 0.128,        # SCAN apex above the resting surface
     "speaker_d": m(1.6),         # EST
 }
 

@@ -198,7 +198,7 @@ public static class FilingCabinetSetup
             ["router"] = Mat("router", "router", Color.white),
             ["modem"] = Mat("modem", "modem", Color.white),
             ["vr_headset"] = Mat("vr_headset", "vr_headset", Color.white),
-            ["vr_headset_shell"] = ShellMat("vr_headset_shell", "vr_headset", 0.5f),
+            ["vr_headset_shell"] = ShellMat("vr_headset_shell", "vr_headset", 0.72f),   // vr_headset.SHELL_ALPHA
         };
     }
 

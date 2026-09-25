@@ -466,7 +466,7 @@ def modem():
 
 # --- VR headset ------------------------------------------------------------------
 
-VISOR_PURPLE = (150, 44, 186)      # the shell's tint; it is drawn translucent in-world
+VISOR_PURPLE = (92, 22, 118)       # deep purple, matched to the capture photos; drawn translucent
 
 
 def headset():
@@ -476,7 +476,7 @@ def headset():
     x, y, w, h = a.rect("visor_front")
     a.fill("visor_front", VISOR_PURPLE, 0.0, 0.9, noise=0.015, blur=6)
     for i in range(2):                            # faint moulding seams across the shell
-        fill_rect(a.img, a.lay, (x, y + 60 + i * 230, w, 3), (128, 36, 160))
+        fill_rect(a.img, a.lay, (x, y + 60 + i * 230, w, 3), (78, 18, 100))
     # top edge catches more light
     shade = Gimp.Layer.new(a.img, "shade", w, h, Gimp.ImageType.RGBA_IMAGE, 25, Gimp.LayerMode.OVERLAY)
     a.img.insert_layer(shade, None, 0)
@@ -487,14 +487,17 @@ def headset():
     shade.edit_gradient_fill(Gimp.GradientType.LINEAR, 0, False, 1, 0, True, 0, 0, 0, h)
     a.lay = flatten(a.img)
 
-    # Shell top: two rows of vent slots moulded into the purple.
+    # Shell top: plain tinted plastic, a little darker where the internals sit under it,
+    # with one row of small vents along the back edge.
     x, y, w, h = a.rect("visor_top")
     a.fill("visor_top", VISOR_PURPLE, 0.0, 0.85, noise=0.015, blur=6)
-    for row in range(2):
-        for i in range(14):
-            px = x + 40 + i * 70
-            fill_round_rect(a.img, a.lay, (px - 3, y + 37 + row * 70, px + 47, y + 83 + row * 70), 10, (176, 80, 206))
-            fill_round_rect(a.img, a.lay, (px, y + 40 + row * 70, px + 44, y + 80 + row * 70), 8, (60, 16, 76))
+    fill_rect(a.img, a.lay, (x, y + 70, w, 90), (76, 18, 98))
+    for i in range(10):
+        px = x + 70 + i * 92
+        fill_round_rect(a.img, a.lay, (px, y + 20, px + 36, y + 42), 6, (40, 10, 52))
+    a.img.select_rectangle(Gimp.ChannelOps.REPLACE, x, y, w, h)
+    gegl(a.lay, "gegl:gaussian-blur", std_dev_x=2.0, std_dev_y=2.0)
+    Gimp.Selection.none(a.img)
 
     # Internals behind the shell: dark frame, two lens housings, ribs, and the blue
     # status LED that glows through the purple (right end, as in the capture).
