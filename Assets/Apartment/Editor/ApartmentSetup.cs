@@ -63,7 +63,11 @@ public static class ApartmentSetup
         {
             if (!t.name.StartsWith("place_") || t.name == "place_filing_cabinet_set")
                 continue;
-            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>($"{Root}/Prefabs/{t.name.Substring(6)}.prefab");
+            var name = t.name.Substring(6);
+            int copy = name.IndexOf("__");                            // place_<name>__<n>: another copy
+            if (copy > 0)
+                name = name.Substring(0, copy);
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>($"{Root}/Prefabs/{name}.prefab");
             if (prefab == null)
                 continue;
             var inst = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
@@ -78,13 +82,9 @@ public static class ApartmentSetup
             // Living room, just inside the entry, facing into the room.
             vw.transform.SetPositionAndRotation(new Vector3(-1.2f, 0f, -3.9f), Quaternion.Euler(0, 200f, 0));
         }
-        var sun = new GameObject("temp_light").AddComponent<Light>();
-        sun.type = LightType.Directional;
-        sun.intensity = 0.8f;
-        sun.transform.rotation = Quaternion.Euler(55, 30, 0);
-        RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
-        RenderSettings.ambientLight = new Color(0.55f, 0.55f, 0.57f);
+        VideoSetup.Setup();
         EditorSceneManager.SaveScene(scene, Root + "/Scenes/apartment.unity");
+        LightingSetup.Setup();
         AssetDatabase.SaveAssets();
         Debug.Log("[ApartmentSetup] done");
     }

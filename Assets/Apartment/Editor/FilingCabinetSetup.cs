@@ -238,7 +238,7 @@ public static class FilingCabinetSetup
             imp.isReadable = false;
             imp.meshCompression = ModelImporterMeshCompression.Off;
             imp.importNormals = ModelImporterNormals.Import;
-            imp.generateSecondaryUV = false;   // UV2 comes from Blender
+            LightmapUVs(imp);
             imp.addCollider = false;
             imp.materialImportMode = ModelImporterMaterialImportMode.ImportViaMaterialDescription;
             imp.materialLocation = ModelImporterMaterialLocation.InPrefab;
@@ -249,6 +249,28 @@ public static class FilingCabinetSetup
                 foreach (var m in r.sharedMaterials)
                     if (m == null || m.shader.name != ShaderName)
                         Debug.LogWarning($"[FilingCabinetSetup] {path}: {r.name} has an unmapped material {m?.name}");
+        }
+    }
+
+    // Unity's unwrapper, with the margin worked out for the scene's lightmap resolution:
+    // Blender's packed UV2 overlapped once small parts got only a few texels.
+    internal static void LightmapUVs(ModelImporter imp)
+    {
+        imp.generateSecondaryUV = true;
+        imp.secondaryUVMarginMethod = ModelImporterSecondaryUVMarginMethod.Calculate;
+        imp.secondaryUVMinLightmapResolution = 20f;
+        imp.secondaryUVMinObjectScale = 1f;
+        imp.secondaryUVHardAngle = 70f;
+    }
+
+    [MenuItem("Apartment/Regenerate Lightmap UVs")]
+    static void RegenerateLightmapUVs()
+    {
+        foreach (var guid in AssetDatabase.FindAssets("t:Model", new[] { Models }))
+        {
+            var imp = (ModelImporter)AssetImporter.GetAtPath(AssetDatabase.GUIDToAssetPath(guid));
+            LightmapUVs(imp);
+            imp.SaveAndReimport();
         }
     }
 

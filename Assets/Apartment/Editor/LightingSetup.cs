@@ -1,0 +1,164 @@
+// Lighting for the apartment scene: baked ceiling lights per room, a baked daylight sun,
+// box-projected reflection probes, one VRC Light Volume per room (drives dynamic
+// objects and avatars), and Quest-friendly lightmap settings. No real-time lights.
+// Apartment > Setup Lighting builds it; Apartment > Bake Lighting bakes lightmaps,
+// probes and Light Volumes together.
+//
+// Room boxes and fixture spots are in the layout's inches (shell_layout.py); fixture
+// positions are estimates until the room captures place the real ones.
+
+using System.Collections.Generic;
+using UnityEditor;
+using UnityEditor.SceneManagement;
+using UnityEngine;
+
+public static class LightingSetup
+{
+    const float IN = 0.0254f;
+
+    // name, x0, x1, y0, y1 (inches), ceiling light spot (x, y), light intensity
+    static readonly (string name, float x0, float x1, float y0, float y1, float lx, float ly, float intensity)[] Rooms =
+    {
+        ("living", 0f, 134f, 0f, 120f, 67f, 70f, 0.8f),
+        ("dining", 0f, 134f, 120f, 186f, 67f, 152f, 0.7f),
+        ("kitchen", 0f, 134f, 186f, 286f, 68f, 235f, 0.9f),
+        ("bedroom", 138.75f, 282.75f, 0f, 159.5f, 210f, 70f, 0.8f),
+        ("hall", 209.75f, 255.55f, 130.5f, 197.75f, 232f, 166f, 0.5f),
+        ("bath", 177.75f, 282.75f, 202.5f, 286f, 230f, 244f, 0.8f),
+        ("laundry", 177.75f, 205f, 164.25f, 197.75f, 191f, 181f, 0.3f),
+        ("closet", 260.3f, 282.75f, 135.25f, 197.75f, 271f, 166f, 0.25f),
+    };
+    const float CeilingIn = 108f;
+    const float VolumePadIn = 3f;
+
+    static Vector3 U(float xIn, float yIn, float zIn) => new Vector3(-xIn * IN, zIn * IN, -yIn * IN);
+
+    [MenuItem("Apartment/Setup Lighting")]
+    public static void Setup()
+    {
+        var scene = EditorSceneManager.GetActiveScene();
+        var old = GameObject.Find("lighting");
+        if (old != null) Object.DestroyImmediate(old);
+        var temp = GameObject.Find("temp_light");
+        if (temp != null) Object.DestroyImmediate(temp);
+        foreach (var t in Object.FindObjectsOfType<Transform>())      // volumes from an earlier run
+            if (t != null && t.name.StartsWith("volume_"))
+                Object.DestroyImmediate(t.gameObject);
+        var root = new GameObject("lighting");
+
+        var warm = Mathf.CorrelatedColorTemperatureToRGB(4200f);
+        foreach (var r in Rooms)
+        {
+            var go = new GameObject("light_" + r.name);
+            go.transform.SetParent(root.transform);
+            go.transform.position = U(r.lx, r.ly, CeilingIn - 6f);
+            var l = go.AddComponent<Light>();
+            l.type = LightType.Point;
+            l.lightmapBakeType = LightmapBakeType.Baked;
+            l.color = warm;
+            l.intensity = r.intensity;
+            l.range = 6f;
+            l.shadows = LightShadows.Soft;
+            l.shadowRadius = 0.15f;
+
+            // Reflection probe: box-projected over the room.
+            var pgo = new GameObject("probe_" + r.name);
+            pgo.transform.SetParent(root.transform);
+            var size = new Vector3((r.x1 - r.x0) * IN, CeilingIn * IN, (r.y1 - r.y0) * IN);
+            pgo.transform.position = U((r.x0 + r.x1) / 2, (r.y0 + r.y1) / 2, 60f);
+            var p = pgo.AddComponent<ReflectionProbe>();
+            p.mode = UnityEngine.Rendering.ReflectionProbeMode.Baked;
+            p.boxProjection = true;
+            p.size = size;
+            p.center = new Vector3(0, (CeilingIn / 2 - 60f) * IN, 0);
+            p.resolution = 128;
+            p.importance = 1;
+
+            // Light Volume: created through the package's own menu so it registers
+            // with the manager, then fitted to the room.
+            Selection.activeGameObject = root;
+            EditorApplication.ExecuteMenuItem("GameObject/Light Volume");
+            var vol = Selection.activeGameObject;
+            vol.name = "volume_" + r.name;
+            vol.transform.SetParent(root.transform, false);
+            vol.transform.position = U((r.x0 + r.x1) / 2, (r.y0 + r.y1) / 2, CeilingIn / 2);
+            vol.transform.rotation = Quaternion.identity;
+            // Padded past the wall faces so door jambs and anything in a wall's thickness
+            // sits inside a volume instead of falling back to the ambient probe.
+            vol.transform.localScale = size + new Vector3(2 * VolumePadIn * IN, 0f, 2 * VolumePadIn * IN);
+            foreach (var c in vol.GetComponents<Component>())
+            {
+                var so = new SerializedObject(c);
+                var vpu = so.FindProperty("VoxelsPerUnit");
+                if (vpu != null) vpu.floatValue = 4f;
+                var bake = so.FindProperty("Bake");
+                if (bake != null) bake.boolValue = true;
+                so.ApplyModifiedPropertiesWithoutUndo();
+            }
+        }
+
+        // Daylight: a baked sun from the south-west, so the windows and outside read as day.
+        var sun = new GameObject("sun").AddComponent<Light>();
+        sun.transform.SetParent(root.transform);
+        sun.type = LightType.Directional;
+        sun.lightmapBakeType = LightmapBakeType.Baked;
+        sun.color = Mathf.CorrelatedColorTemperatureToRGB(5600f);
+        sun.intensity = 1.4f;
+        sun.shadows = LightShadows.Soft;
+        sun.transform.rotation = Quaternion.Euler(40f, 150f, 0f);
+
+        // The sky backdrop and the big ground plane stay out of the lightmap (they'd waste
+        // most of it); probes light them instead.
+        foreach (var r in Object.FindObjectsOfType<MeshRenderer>())
+        {
+            if (r.name == "exterior_view" || r.name == "exterior_view_ground" || r.name == "exterior_view_foliage")
+            {
+                var flags = GameObjectUtility.GetStaticEditorFlags(r.gameObject) & ~StaticEditorFlags.ContributeGI;
+                GameObjectUtility.SetStaticEditorFlags(r.gameObject, flags);
+                r.receiveGI = ReceiveGI.LightProbes;
+            }
+        }
+
+        RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Trilight;
+        RenderSettings.ambientSkyColor = new Color(0.55f, 0.62f, 0.72f);
+        RenderSettings.ambientEquatorColor = new Color(0.45f, 0.44f, 0.42f);
+        RenderSettings.ambientGroundColor = new Color(0.25f, 0.24f, 0.22f);
+
+        var ls = new LightingSettings
+        {
+            name = "apartment_lighting",
+            lightmapper = LightingSettings.Lightmapper.ProgressiveGPU,
+            bakedGI = true,
+            realtimeGI = false,
+            lightmapResolution = 20f,
+            lightmapPadding = 4,
+            lightmapMaxSize = 2048,
+            directionalityMode = LightmapsMode.NonDirectional,
+            lightmapCompression = LightmapCompression.NormalQuality,
+            mixedBakeMode = MixedLightingMode.IndirectOnly,
+            directSampleCount = 32,
+            indirectSampleCount = 256,
+            environmentSampleCount = 128,
+            maxBounces = 3,
+            filteringMode = LightingSettings.FilterMode.Auto,
+            ao = true,
+            aoMaxDistance = 0.6f,
+        };
+        const string lsPath = "Assets/Apartment/Scenes/apartment_lighting.lighting";
+        AssetDatabase.DeleteAsset(lsPath);
+        AssetDatabase.CreateAsset(ls, lsPath);
+        Lightmapping.lightingSettings = ls;
+
+        EditorSceneManager.MarkSceneDirty(scene);
+        EditorSceneManager.SaveScene(scene);
+        Debug.Log("[LightingSetup] done");
+    }
+
+    [MenuItem("Apartment/Bake Lighting")]
+    public static void Bake()
+    {
+        EditorSceneManager.SaveScene(EditorSceneManager.GetActiveScene());
+        Lightmapping.BakeAsync();
+        Debug.Log("[LightingSetup] bake started");
+    }
+}

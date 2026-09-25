@@ -178,10 +178,10 @@ def build_markers(coll):
     import math
     import bpy
     obs = []
-    for name, (x, y, rot) in L.PLACES.items():
+    for name, (x, y, rot, *z) in L.PLACES.items():
         ob = bpy.data.objects.new(f"place_{name}", None)
         ob.empty_display_type = "ARROWS"
-        ob.location = (m(x), m(y), 0.0)
+        ob.location = (m(x), m(y), m(z[0]) if z else 0.0)
         ob.rotation_euler = (0, 0, math.radians(rot))
         coll.objects.link(ob)
         obs.append(ob)
