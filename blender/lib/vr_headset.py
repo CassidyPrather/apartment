@@ -101,10 +101,11 @@ def build(coll):
     b.cylinder("strap", tuple(knob + Vector((0, 0.008, 0))), 0.013, 0.01, axis="Y", segments=20,
                cap_region="badge")
     # Tether: short stub from the visor, along the right arm, across the cabinet top
-    # and down its left side (assumes the placement in dimensions.PLACEMENT).
+    # and down its left side; the edge comes from the placement (headset not rotated).
+    edge = -dimensions.CABINET["width"] / 2 - dimensions.PLACEMENT["vr_headset"][0]
     cpts = [(gx - 0.005, -0.02, z1 - 0.002), (gx - 0.03, -0.06, 0.055), (-0.05, -0.1, 0.06),
-            (-0.11, -0.115, 0.03), (-0.15, -0.12, 0.004), (-0.192, -0.125, 0.0022),
-            (-0.203, -0.128, -0.02), (-0.206, -0.13, -0.11)]   # over the cabinet's left edge
+            (-0.11, -0.115, 0.03), (-0.15, -0.12, 0.004), (edge + 0.03, -0.125, 0.0022),
+            (edge - 0.002, -0.127, -0.004), (edge - 0.006, -0.13, -0.11)]
     b.sweep("cable", common.smooth_path(cpts, 6), common.circle_profile(0.0022, 8), up=(0, 0, 1))
     ob = b.to_object("vr_headset", coll)
     return [ob]

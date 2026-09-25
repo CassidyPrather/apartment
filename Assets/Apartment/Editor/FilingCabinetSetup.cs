@@ -30,8 +30,8 @@ public static class FilingCabinetSetup
     const string ShaderName = "Mochie/Standard Mobile";
     const string MochieDfg = "Assets/Mochie/Unity/Textures/dfg-multiscatter.exr";
 
-    // dimensions.CABINET["drawer_travel"] (21 in, estimate).
-    const float DrawerTravel = 21f * 0.0254f;
+    // dimensions.CABINET["drawer_travel"] (22 in, estimate).
+    const float DrawerTravel = 22f * 0.0254f;
 
     static readonly string[] Items = { "router", "modem", "vr_headset" };
 
@@ -397,7 +397,9 @@ public static class FilingCabinetSetup
         floor.GetComponent<Renderer>().sharedMaterial = floorMat;
         var wall = GameObject.CreatePrimitive(PrimitiveType.Cube);
         wall.name = "test_wall";
-        wall.transform.SetPositionAndRotation(new Vector3(0, 1.25f, -0.33f), Quaternion.identity);
+        // Just behind the cabinet's back panel, wherever the current dimensions put it.
+        var back = set.transform.Find("filing_cabinet/filing_cabinet_body").GetComponent<MeshFilter>().sharedMesh.bounds.min.z;
+        wall.transform.SetPositionAndRotation(new Vector3(0, 1.25f, back - 0.012f), Quaternion.identity);
         wall.transform.localScale = new Vector3(4f, 2.5f, 0.02f);
         wall.GetComponent<Renderer>().sharedMaterial = wallMat;
         foreach (var g in new[] { floor, wall })

@@ -1,10 +1,10 @@
 """Filing cabinet: 2-drawer vertical letter file, putty paint (bedroom).
 
-Source of truth: scripted. Dimensions come from dimensions.CABINET (estimates until
-measured). Object origin is the floor at the center of the footprint; front faces -Y.
+Source of truth: scripted. Dimensions come from dimensions.CABINET (mostly SCAN values
+from the LiDAR capture; EST where the scan can't resolve a detail). Object origin is the floor at the center of the footprint; front faces -Y.
 
 Objects:
-  filing_cabinet_body      static shell: sides, back, top cap, base, frame, slides
+  filing_cabinet_body      static shell: sides, back, top cap, plinth, frame, slides, lock
   filing_cabinet_drawer_1  top drawer (moves); origin on its face, slides along -Y
   filing_cabinet_drawer_2  bottom drawer (moves)
   corner_guard_fl / _fr    white L-shaped corner protectors on the front top corners
@@ -19,8 +19,8 @@ importlib.reload(common)
 importlib.reload(dimensions)
 
 C = dimensions.CABINET
-REGIONS_BODY = ["paint", "slide_steel", "interior"]
-REGIONS_DRAWER = ["paint", "nickel", "blue_anodized", "lock_face", "slide_steel"]
+REGIONS_BODY = ["paint", "slide_steel", "interior", "nickel", "lock_face"]
+REGIONS_DRAWER = ["paint", "nickel", "blue_anodized", "slide_steel"]
 REGIONS_GUARD = ["guard_plastic"]
 
 
@@ -28,10 +28,8 @@ def drawer_faces():
     """(z_bottom, z_top) of each drawer face, top drawer first."""
     H, gap = C["height"], C["gap"]
     top = H - C["top_rail"]
-    avail = top - C["base"] - gap          # one gap between the two faces
-    fh = avail / 2
-    d1 = (top - fh, top)
-    d2 = (d1[0] - gap - fh, d1[0] - gap)
+    d1 = (top - C["top_face_h"], top)
+    d2 = (C["base"], d1[0] - gap)          # the bottom face takes what's left above the plinth
     return [d1, d2]
 
 
@@ -69,10 +67,18 @@ def build_body(coll):
             x_in = sx * (W / 2 - 0.012)
             xa, xb = sorted((x_in, x_in - sx * 0.012))
             b.box("slide_steel", (xa, y0 + fr, z), (xb, y1 - 0.02, z + 0.03))
+    # Lock cylinder in the top rail's right end.
+    lx, lz = lock_xz()
+    b.cylinder("nickel", (lx, y0 - C["lock_proud"] / 2, lz), C["lock_d"] / 2, C["lock_proud"],
+               axis="Y", segments=20, cap_region="lock_face", bevel=0.0008)
     return b.to_object("filing_cabinet_body", coll)
 
 
-def build_drawer(coll, index, zb, zt, with_lock):
+def lock_xz():
+    return C["width"] / 2 - C["lock_from_right"], C["height"] - C["lock_from_top"]
+
+
+def build_drawer(coll, index, zb, zt):
     W, D = C["width"], C["depth"]
     st, gap = C["stile"], C["gap"]
     fw = W - 2 * st - 2 * gap
@@ -125,11 +131,6 @@ def build_drawer(coll, index, zb, zt, with_lock):
     lw_, lh_, ld_ = C["latch_w"], C["latch_h"], C["latch_d"]
     lx = -hw / 2 - 0.012 - lw_ / 2
     b.box("nickel", (lx - lw_ / 2, yf - ld_, hz - lh_ / 2), (lx + lw_ / 2, yf, hz + lh_ / 2), bevel=0.0015)
-    if with_lock:
-        lx = fw / 2 - C["lock_from_right"]
-        lzz = zt - C["lock_from_top"]
-        b.cylinder("nickel", (lx, yf - C["lock_proud"] / 2, lzz), C["lock_d"] / 2, C["lock_proud"],
-                   axis="Y", segments=20, cap_region="lock_face", bevel=0.0008)
     ob = b.to_object(f"filing_cabinet_drawer_{index}", coll, origin=(0, y_face, zc))
     # Marker at the pull's grip: Unity turns it into the drawer's invisible grab handle.
     marker(coll, f"filing_cabinet_drawer_{index}_grab", (0, yf - so + bar / 2, hz))
@@ -169,7 +170,7 @@ def build_guard(coll, side):
 def build(coll):
     body = build_body(coll)
     faces = drawer_faces()
-    drawers = [build_drawer(coll, i + 1, zb, zt, with_lock=(i == 0)) for i, (zb, zt) in enumerate(faces)]
+    drawers = [build_drawer(coll, i + 1, zb, zt) for i, (zb, zt) in enumerate(faces)]
     guards = [build_guard(coll, -1), build_guard(coll, 1)]
     # Where each item sits on the top (Unity parents the item prefabs here).
     import math
@@ -184,28 +185,19 @@ def texture(body, drawers, guards):
     hw = common.atlas_material("cabinet_hardware", "cabinet_hardware")
     interior = bpy_interior_material()
     tile = 0.5   # meters per paint tile
-    common.atlas_uvs(body, "cabinet_hardware", tiled={"paint": tile, "interior": tile})
-    common.collapse_materials(body, {"paint": paint, "interior": interior, "slide_steel": hw})
+    lx, lz = lock_xz()
+    r = C["lock_d"] / 2
+    common.atlas_uvs(body, "cabinet_hardware", tiled={"paint": tile, "interior": tile},
+                     planar={"lock_face": ("-Y", (lx - r, lx + r), (lz - r, lz + r))})
+    common.collapse_materials(body, {"paint": paint, "interior": interior, "slide_steel": hw,
+                                     "nickel": hw, "lock_face": hw})
     for d in drawers:
-        common.atlas_uvs(d, "cabinet_hardware", tiled={"paint": tile},
-                         planar={"lock_face": ("-Y", (d_lock_x(d) - C["lock_d"] / 2, d_lock_x(d) + C["lock_d"] / 2),
-                                               (d_lock_z(d) - C["lock_d"] / 2, d_lock_z(d) + C["lock_d"] / 2))})
+        common.atlas_uvs(d, "cabinet_hardware", tiled={"paint": tile})
         common.collapse_materials(d, {"paint": paint, "nickel": hw, "blue_anodized": hw,
-                                      "lock_face": hw, "slide_steel": hw})
+                                      "slide_steel": hw})
     for g in guards:
         common.atlas_uvs(g, "cabinet_hardware")
         common.collapse_materials(g, {"guard_plastic": hw})
-
-
-def d_lock_x(drawer):
-    W = C["width"]
-    fw = W - 2 * C["stile"] - 2 * C["gap"]
-    return fw / 2 - C["lock_from_right"]
-
-
-def d_lock_z(drawer):
-    zb, zt = drawer_faces()[0]
-    return zt - C["lock_from_top"] - (zb + zt) / 2   # drawer-local (origin at face center)
 
 
 def bpy_interior_material():

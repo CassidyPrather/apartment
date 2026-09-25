@@ -2,56 +2,86 @@
 over the cabinet's left edge. Long runs to the outlet wait for the walls.
 
 Source of truth: scripted. Built in cabinet space (origin = cabinet origin) because the
-cables connect items placed on the cabinet; paths follow dimensions.PLACEMENT.
+cables connect items placed on the cabinet. Port positions are item-local (matching
+the port artwork in the router and modem atlases) and follow dimensions.PLACEMENT, so
+moving an item re-routes its cables.
 """
 
 import importlib
+import math
+
+from mathutils import Vector
 
 import common
 import dimensions
 
 importlib.reload(dimensions)
 
-C = dimensions.CABINET
+C, R, M = dimensions.CABINET, dimensions.ROUTER, dimensions.MODEM
 REGIONS = ["plug_white", "cable_black"]
 H = C["height"]
 LEFT = -C["width"] / 2
 DROP = 0.12        # how far the stubs hang down the side before ending
 
 
-def runs():
-    """(region, cable radius, [points]) in cabinet space."""
+def to_cabinet(item, local):
+    """Item-local point -> cabinet space, using the item's placement on the top."""
+    px, py, rot = dimensions.PLACEMENT[item]
+    a = math.radians(rot)
+    x, y, z = local
+    return Vector((px + x * math.cos(a) - y * math.sin(a), py + x * math.sin(a) + y * math.cos(a), H + z))
+
+
+def router_port(x_local):
+    """A port on the router's back edge (+Y local); returns (port, point 3 cm out)."""
+    y = R["width"] / 2
+    return to_cabinet("router", (x_local, y + 0.004, 0.016)), to_cabinet("router", (x_local, y + 0.035, 0.012))
+
+
+def modem_port(z_frac):
+    """A port on the modem's -X end, at a fraction of the shell height above the foot."""
+    x = -M["length"] / 2
+    z = M["foot_h"] + z_frac * (M["height"] - M["foot_h"])
+    return to_cabinet("modem", (x - 0.004, 0.0, z)), to_cabinet("modem", (x - 0.035, 0.0, z - 0.01))
+
+
+def over_left_edge(p, y_shift=0.0):
+    """Lie across the top to the left edge, then hang down the side."""
+    y = p.y + y_shift
     t = H + 0.004
+    return [Vector((LEFT + 0.03, y, t)), Vector((LEFT - 0.002, y, H - 0.004)),
+            Vector((LEFT - 0.006, y - 0.01, H - DROP))]
+
+
+def runs():
+    """(region, radius, [points]) in cabinet space; the first point is the plug end."""
+    t = H + 0.004
+    wan, wan_out = router_port(0.052)         # blue WAN port in the router atlas
+    lan, lan_out = router_port(-0.002)
+    pwr, pwr_out = router_port(0.095)
+    m_eth, m_eth_out = modem_port(0.206)
+    m_coax, m_coax_out = modem_port(0.36)
+    m_pwr, m_pwr_out = modem_port(0.079)
+    mid = (m_eth_out + wan_out) / 2
     return [
-        # modem <-> router ethernet (white)
-        ("plug_white", 0.0028, [(-0.037, 0.246, H + 0.07), (-0.07, 0.262, H + 0.05),
-                                (-0.14, 0.24, t + 0.01), (-0.165, 0.15, t), (-0.16, 0.09, t + 0.004),
-                                (-0.148, 0.068, H + 0.014)]),
-        # router LAN out, off the left edge
-        ("cable_black", 0.0026, [(-0.148, 0.03, H + 0.014), (-0.172, 0.015, t),
-                                 (LEFT - 0.002, -0.01, H - 0.004), (LEFT - 0.006, -0.02, H - DROP)]),
-        # router power
-        ("cable_black", 0.0022, [(-0.148, -0.03, H + 0.012), (-0.175, -0.05, t),
-                                 (LEFT - 0.002, -0.06, H - 0.004), (LEFT - 0.006, -0.07, H - DROP)]),
-        # modem power
-        ("cable_black", 0.0022, [(-0.037, 0.232, H + 0.035), (-0.09, 0.27, t + 0.004),
-                                 (LEFT - 0.002, 0.285, H - 0.004), (LEFT - 0.006, 0.29, H - DROP)]),
-        # modem coax
-        ("cable_black", 0.0032, [(-0.037, 0.244, H + 0.105), (-0.1, 0.29, H + 0.05),
-                                 (-0.16, 0.302, t + 0.004), (LEFT - 0.003, 0.305, H - 0.006),
-                                 (LEFT - 0.007, 0.305, H - DROP)]),
+        # modem <-> router ethernet (white), sagging onto the top between them
+        ("plug_white", 0.0028, [m_eth, m_eth_out, Vector((mid.x, mid.y, t + 0.006)), wan_out, wan]),
+        ("cable_black", 0.0026, [lan, lan_out, Vector((lan_out.x - 0.02, lan_out.y, t))] + over_left_edge(lan_out)),
+        ("cable_black", 0.0022, [pwr, pwr_out, Vector((pwr_out.x - 0.02, pwr_out.y, t))] + over_left_edge(pwr_out)),
+        ("cable_black", 0.0022, [m_pwr, m_pwr_out, Vector((m_pwr_out.x - 0.02, m_pwr_out.y, t))]
+         + over_left_edge(m_pwr_out, 0.01)),
+        ("cable_black", 0.0032, [m_coax, m_coax_out, Vector((m_coax_out.x - 0.03, m_coax_out.y + 0.02, t + 0.01))]
+         + over_left_edge(m_coax_out, 0.03)),
     ]
 
 
 def build(coll):
     b = common.Builder(REGIONS)
     for region, r, pts in runs():
-        b.sweep("cable_black" if region == "cable_black" else "plug_white",
-                common.smooth_path(pts, 6), common.circle_profile(r, 8), up=(0, 0, 1))
-        # plug body at the device end
-        x, y, z = pts[-1] if region == "plug_white" else pts[0]
-        b.box("plug_white" if region == "plug_white" else "cable_black",
-              (x - 0.008, y - 0.007, z - 0.006), (x + 0.008, y + 0.007, z + 0.006), bevel=0.0015)
+        b.sweep(region, common.smooth_path([tuple(p) for p in pts], 6), common.circle_profile(r, 8), up=(0, 0, 1))
+        ends = [pts[0], pts[-1]] if region == "plug_white" else [pts[0]]
+        for x, y, z in ends:          # plug bodies at the device ends
+            b.box(region, (x - 0.008, y - 0.007, z - 0.006), (x + 0.008, y + 0.007, z + 0.006), bevel=0.0015)
     ob = b.to_object("cable_stubs", coll)
     return [ob]
 
