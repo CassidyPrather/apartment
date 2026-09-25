@@ -106,6 +106,15 @@ Real products get parody brands. No real brand ever appears in the world.
 - Views out the windows show a made-up exterior, built from scratch like
   everything else and resembling nothing identifiable.
 
+### Fidelity
+
+Match the real apartment as closely as the references allow: architecture,
+furniture, fixtures, and décor. Get the proportions, placement, materials, and wear right.
+Where the real thing carries PII or a brand, change only that detail (see
+Privacy and Branding) and keep the rest faithful. Where the Quest budget
+forces a simplification, keep the silhouette and color and spend the detail
+where a visitor looks.
+
 ### Source of Truth, Case by Case
 
 Pick per object and record the choice in the object's script or `.blend`:
