@@ -2,8 +2,7 @@
   - vertical vane blinds in the bedroom's south window
   - two tracking base stations on swivel wall brackets (cable run down the wall)
   - ceiling smoke detector, thermostat on the center wall
-  - all the wall art: stand-in pictures painted from scratch (no copyrighted artwork,
-    no people) that read like the real pieces from across the room
+  - all the wall art, textured from rectified capture photos (the photo strip stays abstract)
 
 Source of truth: scripted, positions from the bedroom LiDAR survey (Reference/bedroom_survey).
 Frame: PLAN coordinates. Origin = plan (0, 0, 0), +X east, +Y north, Z up, metres; the package
@@ -20,16 +19,12 @@ Dimensions (inches, plan):
   base station 3.4 x 3.4 x 3.0, bracket arm 2.0                  EST
   smoke detector (166, 142), 6 dia x 2, ceiling z 108            S
   thermostat y 110..114, z 45.5..50.5, 1.1 deep                  A (survey z 45..51)
-  center print y 67.25..82.25, z 53.5..71, black frame 1.4, mat  S / photo
-  south print x 162..169, z 59..67, white frame                  S/A; photo shows a white frame
-  back wall strip x 174.5..191.5, z 60.5..67                      S (abstract stand-in: privacy)
-  moon print y 92.5..114.5, z 51..66, unframed                   S
-  holiday tree print y 71.5..88, z 50..70, thin black frame      S
-  east mid prints y 32..47, z 46..75 (poster + 4 cards)           S/A, layout EST from photo
-  east corner y 3..25, z 60..78 (poster + 6 charms)               S/A, layout EST from photo
-  space poster x 248.5..265.5, z 68..92, unframed                S/A
-  purple print y 138..152, z 86.5..96 (landscape card)           SCAN (LiDAR colour); inventory
-                                                                 had z 86..104, photo is landscape
+  wall art: every piece's bounds are in ART below, measured on capture frames rectified onto
+    the known wall plane (Reference/bedroom_fixtures_work/rect.py, final.py), +-0.5   SCAN
+  frame widths: center 1.4 black, tree 0.4 black, south 1.1 white                   SCAN
+  back wall photo strip x 174.5..191.5, z 60.5..67: stays an abstract painted strip (privacy)
+Artwork textures are the real pictures, rectified from the capture photos; signatures, a
+game logo and a place name are blurred or blanked (see final.py).
 """
 
 import math
@@ -58,47 +53,10 @@ WALLS = {
     "closet_fw": (0, 247.7, -1, "-X"),
 }
 
-ART_REGIONS = ["art_moon", "art_space", "art_tree", "art_center", "art_strip", "art_purple",
-               "art_south", "mid_poster", "card_a", "card_b", "card_c", "card_d",
-               "corner_poster", "charms"]
-REGIONS = ART_REGIONS + ["vane", "rail", "carrier", "wand", "frame_black", "mat_white", "paper",
-                         "bs_body", "bs_face", "bracket", "cable", "smoke", "thermo",
-                         "thermo_face", "ring"]
-ATLAS = {
-    "name": NAME,
-    "size": 1024,
-    "regions": {
-        "art_moon": (0, 0, 352, 240),
-        "art_space": (352, 0, 240, 340),
-        "art_tree": (592, 0, 256, 313),
-        "art_center": (848, 0, 160, 194),
-        "art_strip": (0, 250, 340, 130),
-        "art_purple": (0, 400, 224, 150),
-        "art_south": (224, 400, 106, 128),
-        "mid_poster": (352, 368, 144, 192),
-        "card_a": (512, 368, 64, 92),
-        "card_b": (576, 368, 64, 92),
-        "card_c": (640, 368, 40, 64),
-        "card_d": (704, 368, 64, 88),
-        "corner_poster": (768, 368, 116, 160),
-        "charms": (896, 368, 128, 160),
-        "vane": (0, 640, 128, 384),
-        "rail": (128, 640, 128, 128),
-        "carrier": (128, 768, 64, 64),
-        "wand": (192, 768, 64, 64),
-        "frame_black": (256, 640, 64, 64),
-        "mat_white": (320, 640, 64, 64),
-        "paper": (384, 640, 64, 64),
-        "bs_body": (448, 640, 64, 64),
-        "bs_face": (512, 640, 128, 128),
-        "bracket": (640, 640, 64, 64),
-        "cable": (704, 640, 64, 64),
-        "smoke": (768, 640, 128, 128),
-        "thermo": (896, 640, 64, 64),
-        "thermo_face": (896, 704, 128, 128),
-        "ring": (960, 640, 64, 64),
-    },
-}
+import layout  # noqa: E402  (package dir is on sys.path during builds)
+
+ATLAS = layout.ATLAS
+REGIONS = list(ATLAS["regions"])
 MATERIALS = {NAME: {"atlas": NAME, "mode": "opaque"}}
 COLLIDER = "none"
 STATIC = True
@@ -107,24 +65,29 @@ VIEWS = [("east_wall", 270, 8, 0.45), ("south_wall", 0, 8, 0.45), ("north_side",
 PLANAR = {}
 
 # (region, wall, u0, u1, z0, z1, style)   style: paper | frame_black | frame_thin | frame_white
+# Bounds re-measured on the rectified capture frames (Reference/bedroom_fixtures_work/final).
 ART = [
-    ("art_center", "center_e", 67.25, 82.25, 53.5, 71.0, "frame_black"),
-    ("art_south", "south", 162.0, 169.0, 59.0, 67.0, "frame_white"),
+    ("art_center", "center_e", 67.7, 82.1, 53.7, 71.0, "frame_black"),
+    ("art_south", "south", 162.0, 169.8, 58.2, 69.7, "frame_white"),
+    ("card_s", "south", 156.75, 160.0, 65.4, 70.25, "paper"),
     ("art_strip", "back", 174.5, 191.5, 60.5, 67.0, "paper"),
-    ("art_moon", "east", 92.5, 114.5, 51.0, 66.0, "paper"),
-    ("art_tree", "east", 71.5, 88.0, 50.0, 70.0, "frame_thin"),
-    ("mid_poster", "east", 36.0, 45.0, 63.0, 75.0, "paper"),
-    ("card_a", "east", 42.5, 47.0, 54.0, 60.5, "paper"),
-    ("card_b", "east", 42.5, 47.0, 46.0, 52.5, "paper"),
-    ("card_c", "east", 38.5, 41.0, 57.0, 61.0, "paper"),
-    ("card_d", "east", 34.0, 38.0, 49.0, 54.5, "paper"),
-    ("corner_poster", "east", 3.0, 11.0, 62.0, 75.0, "paper"),
-    ("art_space", "closet_s", 248.5, 265.5, 68.0, 92.0, "paper"),
-    ("art_purple", "closet_fw", 138.0, 152.0, 86.5, 96.0, "paper"),
+    ("art_moon", "east", 91.75, 117.0, 52.0, 67.1, "paper"),
+    ("art_tree", "east", 70.8, 87.4, 51.3, 71.5, "frame_thin"),
+    ("mid_poster", "east", 37.15, 45.75, 59.85, 71.0, "paper"),
+    ("card_a", "east", 45.9, 50.1, 52.25, 58.6, "paper"),
+    ("card_b", "east", 45.6, 50.25, 45.0, 51.15, "paper"),
+    ("card_c", "east", 42.7, 45.2, 55.6, 59.25, "paper"),
+    ("card_d", "east", 39.5, 43.6, 48.5, 54.65, "paper"),
+    ("drawing_bw", "east", 27.0, 35.25, 56.25, 65.5, "paper"),
+    ("corner_poster", "east", 6.0, 12.75, 67.5, 77.75, "paper"),
+    ("art_space", "closet_s", 248.4, 266.5, 61.75, 86.0, "paper"),
+    ("art_purple", "closet_fw", 137.3, 153.8, 85.8, 98.1, "paper"),
 ]
-# keychain charms, east wall corner: (u centre, z centre, w, h)
-CHARMS = [(22.0, 72.0, 2.5, 2.2), (17.0, 73.0, 1.2, 2.4), (19.5, 68.0, 2.6, 2.6),
-          (15.0, 67.0, 1.4, 2.4), (23.0, 64.5, 1.3, 3.0), (19.5, 62.5, 1.8, 1.8)]
+# keychain charms, east wall corner: (u centre, z centre, w, h), measured on the rectified frame;
+# the photo of the whole cluster (y 13.25..23.25, z 64.75..77.75) is projected across them.
+CHARMS = [(21.75, 75.1, 3.0, 5.25), (16.6, 75.25, 1.75, 4.0), (18.75, 72.5, 4.5, 4.5),
+          (14.85, 71.15, 2.7, 6.5), (22.0, 68.25, 2.0, 5.0), (16.6, 67.5, 2.75, 5.5)]
+CHARM_BOX = (13.25, 23.25, 64.75, 77.75)
 
 
 def plan_box(wall, u, d, z):
@@ -161,29 +124,19 @@ def panel(b, region, wall, u, d, z, side_region=None, planar=False):
 def art(b, region, wall, u0, u1, z0, z1, style):
     if style == "paper":
         panel(b, region, wall, (u0, u1), (0.0, 0.06), (z0, z1), "paper", True)
-    elif style == "frame_black":
-        fw = 1.4
-        panel(b, "frame_black", wall, (u0, u1), (0.0, 0.8), (z0, z1))
-        panel(b, "mat_white", wall, (u0 + fw, u1 - fw), (0.8, 0.84), (z0 + fw, z1 - fw))
-        iu, iz = 3.5, 3.9
-        panel(b, region, wall, (u0 + iu, u1 - iu), (0.84, 0.87), (z0 + iz, z1 - iz), "mat_white", True)
-    elif style == "frame_thin":
-        fw = 0.4
-        panel(b, "frame_black", wall, (u0, u1), (0.0, 0.6), (z0, z1))
-        panel(b, region, wall, (u0 + fw, u1 - fw), (0.6, 0.63), (z0 + fw, z1 - fw), "frame_black", True)
-    elif style == "frame_white":
-        fw = 0.9
-        panel(b, "mat_white", wall, (u0, u1), (0.0, 0.8), (z0, z1))
-        panel(b, region, wall, (u0 + fw, u1 - fw), (0.8, 0.83), (z0 + fw, z1 - fw), "mat_white", True)
+        return
+    fw, dep, fr = {"frame_black": (1.4, 0.8, "frame_black"), "frame_thin": (0.4, 0.6, "frame_black"),
+                   "frame_white": (1.1, 0.8, "frame_white")}[style]
+    panel(b, fr, wall, (u0, u1), (0.0, dep), (z0, z1))
+    # the photo covers everything inside the frame (mat and print), just proud of the frame
+    panel(b, region, wall, (u0 + fw, u1 - fw), (dep - 0.2, dep + 0.03), (z0 + fw, z1 - fw), fr, True)
 
 
 def charms(b):
     for uc, zc, w, h in CHARMS:
-        panel(b, "charms", "east", (uc - w / 2, uc + w / 2), (0.05, 0.25), (zc - h / 2, zc + h / 2), "charms")
-        panel(b, "ring", "east", (uc - 0.3, uc + 0.3), (0.05, 0.2), (zc + h / 2, zc + h / 2 + 0.9))
-    us = [c[0] - c[2] / 2 for c in CHARMS] + [c[0] + c[2] / 2 for c in CHARMS]
-    zs = [c[1] - c[3] / 2 for c in CHARMS] + [c[1] + c[3] / 2 for c in CHARMS]
-    PLANAR["charms"] = ("-X", (-m(max(us)), -m(min(us))), (m(min(zs)), m(max(zs))))
+        panel(b, "charms", "east", (uc - w / 2, uc + w / 2), (0.05, 0.2), (zc - h / 2, zc + h / 2), "charms")
+    u0, u1, z0, z1 = CHARM_BOX
+    PLANAR["charms"] = ("-X", (-m(u1), -m(u0)), (m(z0), m(z1)))
 
 
 # --- blinds (south window, as window_blinds does it) --------------------------------

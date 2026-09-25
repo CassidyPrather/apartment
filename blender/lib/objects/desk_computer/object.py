@@ -36,20 +36,22 @@ LAPTOP = (13.5, 9.2, 0.7)        # EST 14 in laptop base
 LID_T, LID_ANG = 0.25, 108.0     # EST
 KB_C = (-14.6, -5.5)             # PHOTO keyboard east of the mouse pad, world (190, 20)
 KB = (17.3, 5.4, 1.0)            # EST full-size keyboard
-PAD_C = (2.4, -5.5)              # PHOTO world (173, 20)
-PAD = (12.6, 10.4, 0.12)         # EST
+PAD_C = (2.9, -4.0)              # SCAN splat: light patch x 167.5..177, y 14.4..22.4 -> world (172.5, 18.5)
+PAD = (9.25, 7.75, 0.12)         # PHOTO aspect 1.19-1.21 (rectified) = standard 9.25 x 7.75 pad; SCAN ~9.5 x 8
+PAD_R = 0.85                     # PHOTO rounded corners
 DECK_C = (9.4, -6.5)             # PHOTO small button pad, world (166, 21)
 
 NAME = "desk_computer"
 ATLAS = {
     "name": "desk_computer",
-    "size": 512,
+    "size": 1024,
     "regions": {
         "black": (0, 0, 128, 128),
         "tower_front": (128, 0, 128, 256),
         "tower_glass": (256, 0, 128, 256),
         "keyboard": (0, 256, 256, 128),
-        "mousepad": (384, 0, 128, 128),
+        "mousepad": (512, 0, 512, 430),
+        "spare": (384, 0, 128, 128),
         "deck": (384, 128, 128, 128),
         "vent": (0, 128, 128, 128),
         "grey": (256, 256, 128, 128),
@@ -123,7 +125,8 @@ def build(coll):
     bx("keyboard", (kx - kw / 2 + 0.3, ky - kd / 2 + 0.3, TOP + 0.55), (kx + kw / 2 - 0.3, ky + kd / 2 - 0.3, TOP + kh), 0.05)
     px, py = PAD_C
     pw, pd, ph = PAD
-    bx("mousepad", (px - pw / 2, py - pd / 2, TOP), (px + pw / 2, py + pd / 2, TOP + ph), 0.05)
+    b.prism("mousepad", [(m(x), m(y)) for x, y in common.rounded_rect(px, py, pw, pd, PAD_R, 4)],
+            m(TOP), m(TOP + ph))
     mz = TOP + ph
     bx("black", (px - 1.2, py - 2.4, mz), (px + 1.2, py + 2.2, mz + 1.35), 0.55, None, 2)
     dx, dy = DECK_C

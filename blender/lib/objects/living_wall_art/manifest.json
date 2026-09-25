@@ -1,0 +1,25 @@
+{
+  "name": "living_wall_art",
+  "fbx": "Assets/Apartment/Models/living_wall_art.fbx",
+  "materials": {
+    "living_wall_art": {
+      "atlas": "living_wall_art",
+      "mode": "opaque"
+    }
+  },
+  "collider": "none",
+  "static": true,
+  "triangles": 96,
+  "bounds_m": {
+    "min": [
+      0.0,
+      2.0396,
+      1.3886
+    ],
+    "max": [
+      3.4036,
+      4.4653,
+      2.6543
+    ]
+  }
+}

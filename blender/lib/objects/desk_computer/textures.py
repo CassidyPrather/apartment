@@ -32,6 +32,37 @@ def line(img, lay, p0, p1, width, rgb):
         fill_rect(img, lay, (int(x - width / 2), int(y), max(1, int(width)), 2), rgb)
 
 
+PAD_PHOTO = os.path.join(REF, "IMG_1503.jpeg")
+# pad corners (TL, TR, BR, BL; sharp-corner line intersections) in the photo as displayed
+# (EXIF-upright, 3024 x 4032); TL is the far-left corner seen from the chair
+PAD_QUAD = [(128, 1078), (2674, 1033), (2824, 3112), (96, 3342)]
+
+
+def mousepad(a):
+    x, y, w, h = a.rect("mousepad")
+    probe = load(PAD_PHOTO)
+    raw_landscape = probe.get_width() > probe.get_height()
+    probe.delete()
+    quad = PAD_QUAD
+    if raw_landscape:        # GIMP kept the sensor orientation (EXIF 6): map back to raw pixels
+        quad = [(py, 3023 - px) for px, py in PAD_QUAD]
+    img = rectify(PAD_PHOTO, quad, w, h)
+    lay = img.get_layers()[0]
+    # gentle lighting evening: inverted, heavily blurred luminance in overlay at low opacity
+    ev = lay.copy()
+    img.insert_layer(ev, None, 0)
+    ev.desaturate(Gimp.DesaturateMode.LUMINANCE)
+    gegl(ev, "gegl:gaussian-blur", std_dev_x=90.0, std_dev_y=90.0)
+    ev.invert(False)
+    ev.set_mode(Gimp.LayerMode.OVERLAY)
+    ev.set_opacity(35.0)
+    flatten(img)
+    add_layer_from(a.img, img, "mousepad", x, y)
+    img.delete()
+    a.lay = flatten(a.img)
+    a.material("mousepad", 0.0, 0.12)
+
+
 def build():
     a = Atlas(ATLAS)
     eimg, elay = a.glow_layer()
@@ -83,23 +114,9 @@ def build():
             fill_rect(a.img, a.lay, (x + main_w + 16 + k * 14, ky + 1, 12, kh - 2), (26, 26, 28))
     fill_rect(a.img, a.lay, (x, y + h - 3, w, 3), (150, 150, 155))   # light front edge (photo)
 
-    # mouse pad: pastel camouflage blobs
-    x, y, w, h = a.rect("mousepad")
-    a.fill("mousepad", (112, 122, 140), 0.0, 0.1)
-    random.seed(7)
-    cols = ((70, 95, 150), (190, 120, 140), (170, 145, 105), (70, 72, 85), (200, 185, 170))
-    for i in range(46):
-        cx, cy = x + random.randint(0, w), y + random.randint(0, h)
-        rx, ry = random.randint(6, 18), random.randint(4, 12)
-        box = (max(x, cx - rx), max(y, cy - ry), min(x + w, cx + rx), min(y + h, cy + ry))
-        if box[2] > box[0] and box[3] > box[1]:
-            fill_ellipse(a.img, a.lay, box, random.choice(cols))
-    a.img.select_rectangle(Gimp.ChannelOps.REPLACE, x, y, w, h)
-    gegl(a.lay, "gegl:gaussian-blur", std_dev_x=1.5, std_dev_y=1.5)
-    Gimp.Selection.none(a.img)
-    fill_rect(a.img, a.lay, (x, y, w, 2), (40, 40, 45))
-    fill_rect(a.img, a.lay, (x, y + h - 2, w, 2), (40, 40, 45))
-
+    # mouse pad: Cassidy's illustrated pad, rectified from her straight-on photo
+    mousepad(a)
+    a.fill("spare", (20, 20, 22), 0.0, 0.3)
     # button pad: six softly lit keys, 3 x 2
     x, y, w, h = a.rect("deck")
     a.fill("deck", (16, 16, 18), 0.0, 0.4)

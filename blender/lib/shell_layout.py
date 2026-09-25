@@ -122,6 +122,7 @@ PLACES = {
     "bean_bag": (91.0, 16.5, 0.0),
     "trash_can": (30.5, 183.0, 90.0),
     "window_blinds": (0.0, 0.0, 0.0),
+    "living_wall_art": (0.0, 0.0, 0.0),         # built in plan coordinates
     # Bedroom (bedroom capture, S).
     "wall_heater__bedroom": (138.75, 104.0, 90.0),
     "bed": (224.5, 107.5, -90.0),
