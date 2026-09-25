@@ -77,3 +77,10 @@ __pycache__/
 
 # ClientSim play-mode persistence (local test data).
 /ClientSimStorage/
+
+# Photo-derived art (real wall art, prints, the mouse pad illustration): kept in the Unity
+# project so it's uploaded to VRChat with the world, never committed. Rebuilt locally from
+# Reference/ by the packages' textures.py.
+Assets/Apartment/Textures/bedroom_fixtures_albedo.png*
+Assets/Apartment/Textures/living_wall_art_albedo.png*
+Assets/Apartment/Textures/desk_computer_albedo.png*
