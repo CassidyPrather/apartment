@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <!-- Parody headset brand "squintscreen": lowercase wordmark on a badge. -->
+  <circle cx="128" cy="128" r="124" fill="#141416"/>
+  <circle cx="128" cy="128" r="118" fill="none" stroke="#2a2a2e" stroke-width="4"/>
+  <text x="128" y="138" text-anchor="middle" fill="#d8d8d8" font-family="Segoe UI, Arial, sans-serif" font-size="30" font-weight="400" letter-spacing="1">squintscreen</text>
+  <path d="M92 158 Q128 176 164 158" fill="none" stroke="#d8d8d8" stroke-width="4"/>
+</svg>

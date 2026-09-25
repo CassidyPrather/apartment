@@ -74,3 +74,6 @@ __pycache__/
 
 # Personal reference photos of the apartment; kept local, never published.
 /Reference/
+
+# ClientSim play-mode persistence (local test data).
+/ClientSimStorage/

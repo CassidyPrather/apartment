@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="440" height="100" viewBox="0 0 440 100">
+  <!-- Parody router brand "tadpole link": a tadpole glyph and lowercase wordmark. -->
+  <g fill="#ffffff">
+    <circle cx="38" cy="44" r="22"/>
+    <path d="M52 58 C 70 78, 58 88, 76 96 C 62 96, 48 84, 44 64 Z"/>
+    <circle cx="31" cy="38" r="5" fill="#000000"/>
+    <text x="96" y="66" font-family="Segoe UI, Arial, sans-serif" font-size="54" font-weight="600">tadpole link</text>
+  </g>
+</svg>

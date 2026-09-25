@@ -19,6 +19,9 @@ right without having looked at it.
 ## Repo Map
 
 - `Assets/` — the world: scenes, models, materials, audio. Blender exports land here.
+- `Assets/Apartment/` — our content: `Models/` (FBX exports), `Textures/` (GIMP atlases),
+  `Materials/`, `Prefabs/`, `Scripts/` (UdonSharp), `Editor/` (the `Apartment/...` setup
+  menu items that rebuild materials, prefabs and test scenes from the exports), `Scenes/`.
 - `blender/lib/` — Python build scripts (run headless with `blender -b -P` or through the Blender MCP).
 - `blender/assets/` — committed `.blend` sources (LFS).
 - `blender/out/` — generated renders, contact sheets, QA JSON; gitignored and always regenerable.
@@ -91,11 +94,19 @@ Real products get parody brands. No real brand ever appears in the world.
 
 ## Modeling From Scratch
 
-- Model and texture everything in this repository from scratch. Don't download models or textures,
-  don't use AI-generated models (Hyper3D, Hunyuan, etc.), and don't use asset
-  store content. The Blender MCP's asset-library and generation tools are off limits.
-- Textures are made from scratch too: procedural, hand-painted, or built in GIMP 3
-  (via the GIMP MCP), Inkscape, or G'MIC.
+- Model and texture from scratch by default. Don't use AI-generated models
+  (Hyper3D, Hunyuan, etc.) or asset store content; the Blender MCP's generation tools are off limits.
+- A downloaded model is allowed when its license is compatible with this repository
+  (CC0 or CC-BY; never personal-use, editorial, or unlicensed), it gets a
+  `CREDITS.md` line at intake, and every real brand shape, logo, and text on it is
+  replaced per Branding. If nothing with a usable license exists, model it. Textures
+  are still made here (see below), never downloaded.
+- Textures are made from scratch too, and the pixel work happens in GIMP 3 through
+  the GIMP MCP (logos are drawn as SVG in Inkscape and composited in GIMP; G'MIC is
+  fine for filters). Keep the GIMP code in `blender/lib/textures/` so atlases can be
+  regenerated.
+- Model in the live Blender through the Blender MCP, executing the build scripts
+  in `blender/lib/`, so Cassidy can watch the work in Blender.
 - The apartment photos can go into textures. Crop, perspective-correct,
   make tileable, and color-match regions of them (carpet, countertop,
   wood grain) in GIMP. The finished texture must still pass the Privacy and
@@ -114,6 +125,21 @@ Where the real thing carries PII or a brand, change only that detail (see
 Privacy and Branding) and keep the rest faithful. Where the Quest budget
 forces a simplification, keep the silhouette and color and spend the detail
 where a visitor looks.
+
+### Separate Pieces
+
+Each object is its own mesh, FBX, and prefab: the router on the cabinet is not part
+of the cabinet. Items that rest on furniture are placed with `place_<item>` marker
+empties exported from the furniture's FBX, and a set prefab puts them together.
+
+### Interactive Furniture
+
+If it moves in the real apartment, it moves in the world: drawers pull out,
+cabinet and closet doors swing, and so on. Default to grab-and-pull (a VRC Pickup
+on an invisible handle driving the part along its travel, synced) rather than
+click-to-toggle. Drawers use `Assets/Apartment/Scripts/SlidingDrawer.cs`; the grab
+handle's position comes from a `<part>_grab` marker empty exported with the model.
+Moving parts are not static and get colliders that move with them.
 
 ### Source of Truth, Case by Case
 
@@ -150,6 +176,9 @@ The world targets both PC and Quest (Android). Every change must work on both.
   and crunch/ASTC compression.
 - Keep draw calls and materials low: share materials, merge static geometry, and
   mark static objects static.
+- Yardstick: the filing cabinet set (cabinet, router, modem, headset, cable stubs)
+  is about 11k triangles, 6 materials, and 8 MB of ASTC texture memory on Android.
+  Masks and emission maps are capped at 512 px.
 - The video player has to use a backend that works on Quest.
 
 ## Visual Verification

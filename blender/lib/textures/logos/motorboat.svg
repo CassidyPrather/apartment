@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
+  <!-- Parody modem brand "Motorboat": a speedboat with a wake inside a ring. -->
+  <g fill="none" stroke="#ffffff" stroke-width="8">
+    <circle cx="60" cy="60" r="52"/>
+  </g>
+  <g fill="#ffffff">
+    <path d="M24 66 L96 66 L84 80 L32 80 Z"/>
+    <path d="M44 66 L56 48 L72 48 L76 66 Z"/>
+    <path d="M18 88 C 34 82, 46 94, 62 88 C 78 82, 90 94, 102 88 L102 94 C 90 100, 78 88, 62 94 C 46 100, 34 88, 18 94 Z"/>
+  </g>
+</svg>
