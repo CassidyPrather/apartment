@@ -132,6 +132,7 @@ PLACES = {
     "office_chair": (185.5, 49.5, 0.0),         # faces the desk (south)
     "dresser": (264.75, 18.0, -90.0),
     "dresser_items": (264.75, 18.0, -90.0),
+    "plushies": (264.75, 18.0, -90.0),          # dresser-local, like dresser_items
     "floor_lamp": (265.0, 42.0, -90.0),
     "plastic_drawers": (265.0, 75.0, -90.0),
     "floor_boxes": (266.5, 53.5, -90.0),

@@ -28,16 +28,20 @@ OUT = os.path.join(ROOT, "blender", "out")
 # --- scene -------------------------------------------------------------------------
 
 def reset_scene():
-    for ob in list(bpy.data.objects):
-        bpy.data.objects.remove(ob, do_unlink=True)
+    """Clear the current scene only. Other scenes in the live file (hand-modelled work in
+    progress, e.g. the headset) keep their objects and data."""
+    scn = bpy.context.scene
+    for ob in list(scn.collection.all_objects):
+        if not any(ob.name in s.collection.all_objects for s in bpy.data.scenes if s != scn):
+            bpy.data.objects.remove(ob, do_unlink=True)
+    for c in list(scn.collection.children_recursive):
+        if not any(c in s.collection.children_recursive for s in bpy.data.scenes if s != scn):
+            bpy.data.collections.remove(c)
     for coll in (bpy.data.meshes, bpy.data.curves, bpy.data.materials, bpy.data.cameras,
                  bpy.data.lights, bpy.data.images):
         for block in list(coll):
-            if block.users == 0:
+            if block.users == 0 and not block.use_fake_user:
                 coll.remove(block)
-    for c in list(bpy.data.collections):
-        bpy.data.collections.remove(c)
-    scn = bpy.context.scene
     scn.unit_settings.system = "METRIC"
     scn.unit_settings.scale_length = 1.0
 

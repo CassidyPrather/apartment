@@ -1,7 +1,6 @@
-"""Dresser-top clutter: a pile of plush toys (all generic animals: a big green dragon, a
-dark octopus riding on it, a panda, a grey mouse, a purple bunny, a pink pig, a yellow
-chick, a black cat and a cream bear), a small desk globe on a stand, a three-drawer
-clear plastic organiser at the back and a small blue box.
+"""Dresser-top clutter: a small desk globe on a stand, a three-drawer clear plastic
+organiser at the back and a small blue box. The plush toys are their own package,
+`plushies`, modelled as real meshes in Blender.
 
 Built in the dresser's local frame (origin on the floor at the dresser's footprint
 centre, front -Y), so it shares the dresser placement: plan (264.75, 18), rotation -90.
@@ -146,35 +145,8 @@ def build(coll):
     b = common.Builder(REGIONS)
     ztop = organiser(b)
     globe(b)
-    # big green dragon, front-left, with a dark octopus riding on its head
-    hz = critter(b, -10.5, -3.5, TOP, 1.5, "green", ears="green_light",
-                 ear_r=(1.2, 0.4, 1.4), snout="green_light", eyes="red")
-    ell(b, "green_light", (-10.5, -3.5 - 2.6, TOP + 5.0), (2.2, 0.8, 2.6))      # belly patch
-    for k in (-1, 1):                                                            # wing stubs
-        ell(b, "green_light", (-10.5 + k * 3.6, -1.5, TOP + 7.5), (0.6, 1.8, 2.2), seg=8, rings=4)
-    ell(b, "dark", (-10.5, -3.5, hz + 1.4), (2.6, 2.4, 1.8))                     # octopus dome
-    for i in range(6):
-        t = 2 * math.pi * i / 6
-        ell(b, "dark", (-10.5 + 2.6 * math.cos(t), -3.5 + 2.4 * math.sin(t), hz + 0.3),
-            (1.3, 1.3, 0.5), seg=8, rings=4)
-    for k in (-1, 1):
-        ell(b, "white", (-10.5 + k * 0.9, -3.5 - 2.3, hz + 1.5), (0.35, 0.2, 0.3), seg=6, rings=4)
-    # panda (front-middle-left)
-    critter(b, -4.5, -5.5, TOP, 0.95, "black", head="white", ears="black", snout="white")
-    # grey mouse (back-left) with big pink ears
-    critter(b, -6.0, 3.5, TOP, 1.2, "grey", ears="pink", ear_r=(1.5, 0.35, 1.5), snout="pink")
-    # purple bunny (middle)
-    critter(b, -0.5, -2.0, TOP, 1.0, "purple", ears="purple", ear_r=(0.5, 0.3, 1.9), snout="white")
-    # pink pig (front-middle)
-    critter(b, 3.0, -6.5, TOP, 0.9, "pink", ears="pink", snout="red")
-    # yellow chick (front, next to the pig)
-    critter(b, 6.8, -6.0, TOP, 0.75, "yellow", snout="orange")
     # small blue box at the front edge
     bx(b, "blue", (8.8, -9.2, TOP), (12.0, -6.8, TOP + 1.6), 0.05)
-    # on top of the organiser: a black cat and a cream bear
-    critter(b, 1.8, 3.5, ztop, 0.85, "black", ears="black", ear_r=(0.6, 0.3, 0.8), snout="white",
-            eyes="white")
-    critter(b, 8.3, 4.0, ztop, 0.8, "cream", ears="cream", snout="cream")
     return [b.to_object(NAME, coll)]
 
 

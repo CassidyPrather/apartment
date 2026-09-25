@@ -1,0 +1,25 @@
+{
+  "name": "plushies",
+  "fbx": "Assets/Apartment/Models/plushies.fbx",
+  "materials": {
+    "plushies": {
+      "atlas": "plushies",
+      "mode": "opaque"
+    }
+  },
+  "collider": "none",
+  "static": true,
+  "triangles": 8967,
+  "bounds_m": {
+    "min": [
+      -0.3661,
+      -0.2224,
+      1.4811
+    ],
+    "max": [
+      0.295,
+      0.1632,
+      2.0382
+    ]
+  }
+}
