@@ -56,6 +56,7 @@ OPENINGS = [
     ("ext_south",    "x", (171.25, 205.45), (WINDOW_SILL, WINDOW_HEAD), "window", "M"),
     ("ext_south",    "x", (212.5, 249.0), (0.0, DOOR_H), "door_patio", "S"),       # hinged, half glass (head 82 in the capture)
     ("center",       "y", (119.5, 153.5), (0.0, DOOR_H), "door", "S"),
+    ("center",       "y", (164.0, 194.0), (0.0, DOOR_H), "door", "P"),         # dining closet, hinged north (Cassidy's photo)
     ("center",       "y", (206.0, 253.0), (0.0, DOOR_H), "door_closet_double", "S"),   # kitchen closet A
     ("bath_south",   "x", (214.0, 244.5), (0.0, DOOR_H), "door", "S"),           # hinged west
     ("hall_west",    "y", (164.0, 196.5), (0.0, DOOR_H), "door", "S"),           # a pair meeting in the middle
@@ -104,6 +105,7 @@ PLACES = {
     "vanity": (182.65, 227.55, 90.0),           # back on the west wall face; the mirror hangs on it
     # Built in the building's own coordinates.
     "door_kitchen_closet": (134.0, 229.5, -90.0),   # S
+    "door_laundry__dining_closet": (136.375, 194.0, 90.0),   # same 30 in 4-panel door; hinged north, swings into the closet
     # Living room and dining (living capture, S).
     "couch": (22.5, 69.0, 90.0),            # SCAN: 87 in long, back at x 3
     "couch_blankets": (22.5, 69.0, 90.0),
@@ -137,7 +139,7 @@ PLACES = {
     "floor_lamp": (265.0, 42.0, -90.0),
     "plastic_drawers": (265.0, 75.0, -90.0),
     "floor_boxes": (266.5, 53.5, -90.0),
-    "light_stand__center": (143.5, 104.5, 60.0),   # origin at the pole; box faces east-north-east, feet clear of the wall
+    "light_stand__center": (147.0, 104.5, 30.0),   # origin at the pole; legs at 0/120/240 so the west feet clear the wall (x 138.75 + baseboard)
     "light_stand__patio": (235.0, 12.0, 180.0),    # box faces north
     "bedroom_fixtures": (0.0, 0.0, 0.0),
     "hanging_bags": (0.0, 0.0, 0.0),             # built in plan coordinates

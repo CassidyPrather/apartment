@@ -5,9 +5,9 @@ void ApplyLighting(inout InputData id, LightingData ld){
     id.diffuse.rgb *= ld.lightCol;
     id.diffuse.rgb += ld.ltcgiDiffuse;
     id.diffuse.rgb += ld.areaLitDiffuse;
-    id.diffuse.rgb += ld.reflectionCol;
+    id.diffuse.rgb += ApartmentNightDim(ld.reflectionCol);   // apartment: baked probes dim at night
     id.diffuse.rgb += ld.specHighlightCol;
-    id.diffuse.rgb += ld.lmSpec;
+    id.diffuse.rgb += ApartmentNightDim(ld.lmSpec);
     id.diffuse.rgb += ld.lightVolumeSpecularity;
     id.diffuse.rgb += ld.subsurfaceCol;
     id.diffuse.rgb += id.emission.rgb;
@@ -257,6 +257,8 @@ void GetIndirectLighting(v2f i, InputData id, float3 viewDir, inout float3 indir
                 }
             #endif
             
+            indirectCol = ApartmentNightDim(indirectCol);   // apartment: night dims the baked light only
+
             [branch]
             if (_UdonLightVolumeEnabled == 1 && _AdditiveLightVolumesToggle == 1 && _LightVolumesToggle == 1){
                 LightVolumeAdditiveSHSpecular(i.worldPos, lightVolumeL0, lightVolumeL1r, lightVolumeL1g, lightVolumeL1b, lvSpec, id.baseColor, 1-id.roughness, id.metallic, id.normal, viewDir, i.normal*_LightVolumeBias, 1);

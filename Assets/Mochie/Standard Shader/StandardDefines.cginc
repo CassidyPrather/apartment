@@ -7,7 +7,8 @@
 #include "../Common/Utilities.cginc"
 #include "../Common/Color.cginc"
 #include "../Common/Sampling.cginc"
-#include "../Common/LightVolumes.cginc"
+#include "Packages/red.sim.lightvolumes/Shaders/LightVolumes.cginc"   // apartment: the installed package (dev.20), not the bundled older copy
+#include "../Common/ApartmentNight.cginc"
 
 #define LTCGI_ENABLED defined(LTCGI)
 #define AREALIT_ENABLED defined(_AREALIT_ON)

@@ -194,7 +194,7 @@ Material:
     m_Floats:
     - _ACES: 0
     - _AdditiveLightVolumeStrength: 1
-    - _AdditiveLightVolumesToggle: 1
+    - _AdditiveLightVolumesToggle: 0
     - _AlphaMaskChannel: 0
     - _AlphaMaskOpacity: 1
     - _AlphaSource: 0

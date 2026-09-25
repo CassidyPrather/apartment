@@ -32,6 +32,7 @@ Dimensions (inches, plan):
     homography anchored on the roller-skate poster (y 37.15..45.75, z 59.85..71.0); the cards
     agree with the capture within 0.2; the kraft card is 2.0 x 3.5 (y 43.15..45.15,
     z 55.7..59.2) and the sword print 8 x 10 (y 27.25..35.25, z 56.4..66.4)       PHOTO
+    then the whole cluster raised 4 in (Cassidy: the sword print went behind the dresser) ADJ
   keychains (y 13..24, z 64..77): traced from IMG_1520 at 185 px/in, fitted to the capture's
     charm positions (residual < 0.5); outlines/rings/pins in charms.py; acrylic 3 mm (0.12),
     split rings 1.0..1.1 dia, wire 1.8 mm, plush ball 3.3 dia squashed to 2.6 deep   PHOTO / EST
@@ -93,12 +94,14 @@ ART = [
     ("art_flowers", "back", 173.6, 192.6, 57.5, 70.5, "paper"),
     ("art_moon", "east", 91.75, 117.0, 52.0, 67.1, "paper"),
     ("art_tree", "east", 70.8, 87.4, 51.3, 71.5, "frame_thin"),
-    ("mid_poster", "east", 37.15, 45.75, 59.85, 71.0, "paper"),
-    ("card_a", "east", 45.9, 50.1, 52.25, 58.6, "paper"),
-    ("card_b", "east", 45.6, 50.25, 45.0, 51.15, "paper"),
-    ("card_c", "east", 43.15, 45.15, 55.7, 59.2, "paper"),          # kraft card, 2 x 3.5 (IMG_1517)
-    ("card_d", "east", 39.5, 43.6, 48.5, 54.65, "paper"),
-    ("drawing_bw", "east", 27.25, 35.25, 56.4, 66.4, "paper"),      # 8 x 10 print (IMG_1517/1519)
+    # the cluster by the plushes sits 4 in above the photo homography, which put the sword
+    # print's bottom behind the dresser top (z 58.5) and the poster behind the lamp shade
+    ("mid_poster", "east", 37.15, 45.75, 63.85, 75, "paper"),
+    ("card_a", "east", 45.9, 50.1, 56.25, 62.6, "paper"),
+    ("card_b", "east", 45.6, 50.25, 49, 55.15, "paper"),
+    ("card_c", "east", 43.15, 45.15, 59.7, 63.2, "paper"),          # kraft card, 2 x 3.5 (IMG_1517)
+    ("card_d", "east", 39.5, 43.6, 52.5, 58.65, "paper"),
+    ("drawing_bw", "east", 27.25, 35.25, 60.4, 70.4, "paper"),      # 8 x 10 print (IMG_1517/1519)
     ("corner_poster", "east", 6.0, 12.75, 67.5, 77.75, "paper"),
     ("art_space", "closet_s", 248.4, 266.5, 65.5, 89.75, "paper"),   # above the bag hooks (z 61.5)
     ("art_purple", "closet_fw", 137.3, 153.8, 85.8, 98.1, "paper"),

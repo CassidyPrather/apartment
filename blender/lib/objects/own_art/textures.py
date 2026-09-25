@@ -44,7 +44,7 @@ def build():
     photo(a, "cat", 0.3)            # acrylic on canvas
     photo(a, "abstract", 0.3)
     photo(a, "rabbit", 0.1)         # paper and mat
-    photo(a, "waterfall", 0.12)
+    photo(a, "cape", 0.12)
     photo(a, "isopod", 0.1)
     photo(a, "abstract_side", 0.3)
     for region, (rgb, smooth) in SOLIDS.items():

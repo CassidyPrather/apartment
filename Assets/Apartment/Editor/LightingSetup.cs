@@ -30,6 +30,19 @@ public static class LightingSetup
         ("closet", 252.45f, 274.6f, 135.1f, 197.75f, 263.5f, 166f, 0.25f),
     };
     const float CeilingIn = 108f;
+
+    // Window openings (shell_layout.py): on the west or south wall, the span along it, sill
+    // to head, and the plan depth the skylight sits at (in the wall, outside the blinds;
+    // the patio door's is inside, clear of its shadow slab, over the glass upper half).
+    static readonly (bool west, float a0, float a1, float z0, float z1, float depth)[] Windows =
+    {
+        (true, 42.5f, 77.25f, 26.5f, 85f, -3f),
+        (true, 101.75f, 136.5f, 26.5f, 85f, -3f),
+        (false, 38.5f, 108.5f, 26.5f, 85f, -3f),
+        (false, 171.25f, 205.45f, 26.5f, 85f, -3f),
+        (false, 212.5f, 249f, 42f, 78f, 0.5f),
+    };
+    const float SkylightIntensity = 3f;
     // Volumes stop short of the walls: padding pulled in-wall voxels (black) into them.
     // Anything inside a wall's thickness (closed door leaves, jambs) blends from the light
     // probe grid instead, which sits inside the rooms only.
@@ -59,12 +72,16 @@ public static class LightingSetup
         // Warm white as the eye sees it: Mathf.CorrelatedColorTemperatureToRGB gives a linear
         // value that reads deep orange once baked and bounced around off-white walls.
         var warm = new Color(1f, 0.89f, 0.77f);
+        // PC bakes daylight only: the lamps are switchable Point Light Volumes (NightSetup).
+        // Quest has no night mode, so its own bake keeps the lamps baked in.
+        bool quest = EditorUserBuildSettings.activeBuildTarget == BuildTarget.Android;
         foreach (var r in Rooms)
         {
             var go = new GameObject("light_" + r.name);
             go.transform.SetParent(root.transform);
             go.transform.position = U(r.lx, r.ly, CeilingIn - 6f);
             var l = go.AddComponent<Light>();
+            go.SetActive(quest);
             l.type = LightType.Point;
             l.lightmapBakeType = LightmapBakeType.Baked;
             l.color = warm;
@@ -138,6 +155,26 @@ public static class LightingSetup
         sun.shadows = LightShadows.Soft;
         sun.transform.rotation = Quaternion.Euler(40f, 150f, 0f);
 
+        // Skylight: the sky seen through each window, as a soft baked rectangle light in the
+        // opening shining in through the blinds. Without the lamps baked in, the sun's patch
+        // and the ambient alone left the rooms dim by day.
+        var sky = new Color(0.86f, 0.92f, 1f);
+        foreach (var w in Windows)
+        {
+            var go = new GameObject("skylight");
+            go.transform.SetParent(root.transform);
+            float a = (w.a0 + w.a1) / 2, h = (w.z0 + w.z1) / 2;
+            go.transform.position = w.west ? U(w.depth, a, h) : U(a, w.depth, h);
+            go.transform.rotation = Quaternion.LookRotation(w.west ? Vector3.left : Vector3.back, Vector3.up);
+            var l = go.AddComponent<Light>();
+            l.type = LightType.Rectangle;
+            l.lightmapBakeType = LightmapBakeType.Baked;
+            l.areaSize = new Vector2((w.a1 - w.a0) * IN, (w.z1 - w.z0) * IN);
+            l.color = sky;
+            l.intensity = SkylightIntensity;
+            l.range = 8f;
+        }
+
         // The sky backdrop and the big ground plane stay out of the lightmap (they'd waste
         // most of it); probes light them instead.
         foreach (var r in Object.FindObjectsOfType<MeshRenderer>())
@@ -186,6 +223,10 @@ public static class LightingSetup
         foreach (var r in Object.FindObjectsOfType<MeshRenderer>())
             if (r.name.StartsWith("ceiling_light_bar") || r.name.StartsWith("ceiling_dome_light") || r.name.StartsWith("floor_lamp"))
                 r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+        // Clear glass lets the sun and skylights through.
+        foreach (var r in Object.FindObjectsOfType<MeshRenderer>())
+            if (r.name == "window_units_glass")
+                r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
 
         RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Trilight;
         RenderSettings.ambientSkyColor = new Color(0.6f, 0.62f, 0.66f);     // near-neutral: a bluer sky tinted everything by the windows
@@ -216,6 +257,14 @@ public static class LightingSetup
         AssetDatabase.DeleteAsset(lsPath);
         AssetDatabase.CreateAsset(ls, lsPath);
         Lightmapping.lightingSettings = ls;
+
+        // The day/night switch dims the room volumes, which were just rebuilt: point it at
+        // the new ones (NightSetup runs first and linked the old ones).
+        foreach (var dn in Object.FindObjectsOfType<DayNight>(true))
+        {
+            dn.roomVolumes = Object.FindObjectsOfType<VRCLightVolumes.LightVolumeInstance>().Where(v => v.name.StartsWith("volume_")).ToArray();
+            UdonSharpEditor.UdonSharpEditorUtility.CopyProxyToUdon(dn);
+        }
 
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);

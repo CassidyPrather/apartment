@@ -3,7 +3,7 @@
 Every picture region is 72 px per inch of the real piece, so all five read equally sharp.
 Photo quads are (TL, TR, BR, BL) of the piece HUNG UPRIGHT, in full-resolution pixels of the
 named photo; the order encodes the rotation (the cat and the isopod lay sideways on the bed,
-the waterfall upside down in the overhead shot). Corners were snapped to the strongest edges
+the Cape Disappointment gouache sideways in its close-up). Corners were snapped to the strongest edges
 (Reference/own_art_work/refine.py) or read on 1:1 corner zooms (zoom.py), then checked on PIL
 previews of the same homography (preview.py).
 """
@@ -17,7 +17,7 @@ ATLAS = {
         "cat": (0, 0, 1008, 1008),              # 14 x 14 canvas face
         "abstract": (1012, 0, 792, 1008),       # 11 x 14 canvas face
         "rabbit": (0, 1012, 694, 838),          # 9.64 x 11.64 frame inner (mat + print)
-        "waterfall": (698, 1012, 569, 828),     # 7.9 x 11.5 frame inner (grey mat + paper)
+        "cape": (698, 1346, 828, 569),          # 11.5 x 7.9 frame inner (grey mat + paper), landscape
         "isopod": (1271, 1012, 439, 270),       # 6.1 x 3.75 frame window (paper)
         "abstract_side": (1271, 1286, 600, 56),  # painted canvas edge, photographed
         "frame_black": (1808, 0, 64, 64),
@@ -31,7 +31,7 @@ REF_P1 = "PXL_20260925_173348922.jpg"   # all five on the bed, hand for scale
 REF_P2 = "PXL_20260925_173356899.jpg"   # overhead, all five (sizes; cat face)
 REF_RABBIT = "PXL_20260925_173425104.jpg"
 REF_ABSTRACT = "PXL_20260925_173428611.jpg"
-REF_WATERFALL = "PXL_20260925_173432229.jpg"
+REF_CAPE = "PXL_20260925_173432229.jpg"
 REF_ISOPOD = "PXL_20260925_173435004.jpg"
 
 # region: (photo, upright quad)
@@ -39,7 +39,7 @@ PHOTOS = {
     "cat": (REF_P2, [(2832, 1263), (2850, 2363), (1831, 2422), (1791, 1259)]),       # ears were east
     "abstract": (REF_ABSTRACT, [(220, 234), (2635, 260), (2649, 3446), (52, 3526)]),
     "rabbit": (REF_RABBIT, [(500, 434), (2713, 434), (2809, 3283), (275, 3174)]),
-    "waterfall": (REF_WATERFALL, [(52, 188), (2236, 48), (2242, 3354), (28, 3220)]),
+    "cape": (REF_CAPE, [(28, 3220), (52, 188), (2236, 48), (2242, 3354)]),   # photo left = sky = top
     "isopod": (REF_ISOPOD, [(435, 3155), (510, 795), (2087, 805), (1950, 3282)]),    # lay rotated
     # the teal-painted front edge of the abstract canvas as it lay on the bed (photo 1)
     "abstract_side": (REF_P1, [(2300, 1618), (3450, 1606), (3450, 1648), (2300, 1658)]),
@@ -54,7 +54,7 @@ GAINS = {
     REF_RABBIT: (1.125, 1.197, 1.233),
     REF_P2: (1.180, 1.297, 1.355),        # mean of its own mat and its blanket (they agree)
     REF_ABSTRACT: (1.043, 1.094, 1.135),
-    REF_WATERFALL: (1.091, 1.124, 1.112),
+    REF_CAPE: (1.091, 1.124, 1.112),
     REF_ISOPOD: (1.315, 1.381, 1.424),
     REF_P1: (1.145, 1.199, 1.217),
 }

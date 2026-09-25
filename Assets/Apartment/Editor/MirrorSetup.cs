@@ -34,6 +34,7 @@ public static class MirrorSetup
         mat.SetInt("_PrimaryWorkflow", 0);
         mat.SetFloat("_Metallic", 1f);
         mat.SetFloat("_Glossiness", 0.97f);
+        mat.SetInt("_AdditiveLightVolumesToggle", 0);   // the vanity lamp's volume light blew the glass out white
         FilingCabinetSetup.MochieKeywords(mat);
         var mats = glass.sharedMaterials;
         for (int i = 0; i < mats.Length; i++) mats[i] = mat;

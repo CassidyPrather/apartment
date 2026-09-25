@@ -94,6 +94,9 @@ public static class ApartmentSetup
         MirrorSetup.Setup();
         EditorSceneManager.SaveScene(scene, Root + "/Scenes/apartment.unity");
         AtlasSetup.Run();                                          // draw calls: shared atlases
+        NightSetup.Setup();                                        // after the atlas step (it reads material slots)
+        AudioSetup.Setup();
+        EditorSceneManager.SaveScene(EditorSceneManager.GetActiveScene());
         LightingSetup.Setup();
         AssetDatabase.SaveAssets();
         Debug.Log("[ApartmentSetup] done");

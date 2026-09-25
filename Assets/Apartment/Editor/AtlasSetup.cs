@@ -29,6 +29,8 @@ public static class AtlasSetup
     {
         "own_art", "living_wall_art", "bedroom_fixtures", "desk_computer",
         "media_hutch_art", "cassette_player_art", "vanity_mirror_glass", "mirror_button",
+        // switched at runtime (night mode): the fixtures' glowing glass and the backdrop
+        "ceiling_light_bar_lens", "ceiling_dome_light_diffuser", "floor_lamp_glow", "bath_fixtures_glow", "exterior_view",
         "VideoScreen", "wall_tv_screen",
     };
 

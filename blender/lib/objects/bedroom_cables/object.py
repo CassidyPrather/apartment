@@ -17,9 +17,10 @@ Reference/IMG_1516.jpg (looking down into that corner).
                                       loops on the carpet -> PC tower back (DisplayPort),
                                       the headset is wired straight to the PC
       PC power cord                   tower PSU -> strip
-      light stand (center)            base station on top of the stand -> down the pole
-                                      -> along the baseboard behind the cabinet -> in-line
-                                      adapter -> strip
+      light stand (center)            base station on top of the stand -> down the back
+                                      of the pole -> sags across to the cabinet -> over the
+                                      top along its back edge -> down the south side by the
+                                      wall -> in-line adapter -> strip
       wall base station (SW)          continues bedroom_fixtures' wall run (ends z 30
                                       behind the desk) -> strip
 No brands: plain plates, plain black plastic.
@@ -34,7 +35,7 @@ Dimensions (inches, plan):
   filing cabinet (152.6, 73.75) rot 90: south side y 66.25, back x 139.35   shell_layout + dimensions
   desk top x 139.4..210.8, y 0.4..27.3, z 29.5; pedestal x 140..159        desk package (SCAN)
   PC tower x 146.5..155.5, y 8..26, z 29.5..48.5, back faces south (y 8)   desk_computer (SCAN)
-  light stand pole (143.5, 104.5), base station centre z 80, back x 142     light_stand package
+  light stand pole (147, 104.5) rot 30, base station centre z 80           light_stand package
   SW wall base-station cable: x 138.875, y 26.0, bottom z 30               bedroom_fixtures
   cable plate centre y 45.0, z 12.75                                       PHOTO (IMG_1516) +-2
   duplex outlet centre y 62.5, z 12.75                                     PHOTO (IMG_1516) +-2
@@ -78,7 +79,7 @@ INLINE = (150.4, 40.0, 25.0)           # PHOTO (x, y, heading deg); 2.0 x 2.8 x 
 BRICK = (146.5, 52.5, 20.0)            # PHOTO (x, y, heading deg); 2.5 x 2.5 x 1.0 EST
 TOWER_BACK_Y = 8.0                     # desk_computer: tower y 8..26
 DESK_TOP = 29.5                        # desk package
-STAND = (143.5, 104.5)                 # shell_layout light_stand__center
+STAND = (147.0, 104.5, 30.0)           # shell_layout light_stand__center (x, y, rot)
 SW_BS_CABLE = (138.875, 26.025, 30.0)  # bedroom_fixtures base station cable bottom
 # cable radii (inches)
 R_PWR = 0.0022 / IN                    # matches cable_stubs' power stubs
@@ -394,15 +395,23 @@ def build(coll):
                              (p_pc[0] - 1.6, p_pc[1] - 1.8, fl), (p_pc[0] - 0.4, p_pc[1] - 0.5, 0.8), p_pc],
           0.13, layer=1)
 
-    # --- center light stand: base station back -> down the pole -> carpet -> baseboard ->
-    # behind the cabinet -> in-line adapter -> strip
-    sx, sy = STAND
+    # --- center light stand: base station back -> down the back of the pole -> sags across
+    # to the cabinet's north-west corner -> over the top along its back edge (behind the
+    # modem) -> down the south side by the wall -> carpet -> in-line adapter -> strip
+    sx, sy, srot = STAND
+    bk = math.radians(srot + 90.0)                     # the base station faces -Y: its back is +Y
+    kx, ky = math.cos(bk), math.sin(bk)
     zl = 0.0
-    stand = [(sx - 1.55, sy, 79.2), (sx - 1.9, sy, 78.2), (sx - 0.62, sy, 76.0), (sx - 0.42, sy, 70.0),
-             (sx - 0.5, sy, 60.5), (sx - 0.52, sy, 48.0), (sx - 0.66, sy, 36.8), (sx - 0.7, sy + 0.1, 30.0),
-             (sx - 0.95, sy + 0.1, 23.0), (sx - 1.1, sy - 0.6, 12.0), (sx - 1.8, sy - 1.6, zl),
-             (bx + 0.6, sy - 3.5, zl), (bx + 0.35, 96.0, zl), (bx + 0.3, 82.0, zl), (bx + 0.3, 69.0, zl),
-             (bx + 1.2, 64.5, zl), (142.0, 60.0, zl), (148.5, 57.5, zl), (153.5, 52.5, zl), (154.0, 45.5, zl),
+    zt = top + R_PWR                                   # lying on the cabinet top
+    tx = 139.35 + 0.45                                 # along the top's back edge, by the wall
+    stand = [(sx + 1.55 * kx, sy + 1.55 * ky, 79.2), (sx + 1.9 * kx, sy + 1.9 * ky, 78.2),
+             (sx + 0.62 * kx, sy + 0.62 * ky, 76.0), (sx + 0.42 * kx, sy + 0.42 * ky, 70.0),
+             (sx + 0.5 * kx, sy + 0.5 * ky, 60.5), (sx + 0.55 * kx, sy + 0.55 * ky, 48.0),
+             (sx + 0.7 * kx, sy + 0.7 * ky, 40.0), (sx - 1.0, sy - 3.0, 34.5),
+             (sx - 3.5, sy - 9.0, 31.0), (143.0, 87.0, zt + 1.2), (141.0, 81.6, zt + 0.25),
+             (tx, 80.2, zt), (tx, 74.0, zt), (tx, 68.0, zt), (tx + 0.1, 66.6, zt - 0.1),
+             (tx + 0.2, 65.9, top - 1.5), (tx + 0.25, 65.8, 16.0), (bx + 0.5, 65.2, 3.0),
+             (bx + 1.2, 63.5, zl), (142.0, 60.0, zl), (148.5, 57.5, zl), (153.5, 52.5, zl), (154.0, 45.5, zl),
              (ix + 1.9, iy + 1.8, zl), (ix + 0.45, iy + 1.2, 0.5)]
     cable(b, "cable_black", stand, R_PWR, layer=5)
     cable(b, "cable_black", [(ix - 0.45, iy - 1.2, 0.5), (ix - 1.4, iy - 2.4, zl), (ix - 4.0, iy - 3.8, zl),
