@@ -149,10 +149,8 @@ public static class AudioSetup
         if (shape != null) cgo.AddComponent(shape);
 
         Label(cgo.transform, font, "UTILITIES", 30, FontStyle.Bold, new Vector2(0f, 130f), new Vector2(260f, 44f));
-        Label(cgo.transform, font, "Source on GitHub (click, then copy):", 15, FontStyle.Normal, new Vector2(0f, 72f), new Vector2(260f, 26f));
         LinkField(cgo.transform, font, new Vector2(0f, 36f), new Vector2(264f, 40f));
         Label(cgo.transform, font, "Ambient sound", 18, FontStyle.Bold, new Vector2(0f, -40f), new Vector2(260f, 30f));
-        Label(cgo.transform, font, "flip the breaker below (just for you)", 13, FontStyle.Italic, new Vector2(0f, -64f), new Vector2(260f, 24f));
     }
 
     static Text Label(Transform parent, Font font, string text, int size, FontStyle style, Vector2 pos, Vector2 box)
