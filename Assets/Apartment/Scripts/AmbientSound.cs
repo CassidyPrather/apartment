@@ -1,5 +1,6 @@
 // A looping ambient sound (local, unsynced). Starts at its own offset so copies of the
 // same loop don't play in step, and can cycle on and off with a fade (the portable AC).
+// An ApplianceSwitch turns it off by deactivating it; it picks up again when re-enabled.
 
 using UdonSharp;
 using UnityEngine;
@@ -15,7 +16,7 @@ public class AmbientSound : UdonSharpBehaviour
     public float fadeSeconds = 2f;
 
     float volume, timer, level;
-    bool running;
+    bool running, started;
 
     void Start()
     {
@@ -24,6 +25,17 @@ public class AmbientSound : UdonSharpBehaviour
         running = true;
         level = 1f;
         timer = cycle ? Random.Range(0f, onSeconds) : 0f;      // not everyone's AC in step
+        source.Play();
+        started = true;
+    }
+
+    void OnEnable()
+    {
+        if (!started) return;                    // Start does the first play
+        running = true;
+        level = 1f;
+        timer = 0f;
+        source.volume = volume;
         source.Play();
     }
 

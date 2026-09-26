@@ -37,7 +37,7 @@ public static class AudioSetup
     [MenuItem("Apartment/Setup Audio")]
     public static void Setup()
     {
-        if (NightSetup.EnsureProgram("AmbientSound") | NightSetup.EnsureProgram("AudioToggle"))
+        if (NightSetup.EnsureProgram("AmbientSound") | NightSetup.EnsureProgram("AudioToggle") | NightSetup.EnsureProgram("ApplianceSwitch"))
         {
             Debug.LogWarning("[AudioSetup] created Udon program assets; run again once UdonSharp finishes compiling");
             return;
@@ -87,6 +87,7 @@ public static class AudioSetup
         }
 
         BreakerPanel(root.transform, sources.ToArray());
+        ApplianceSwitches(root.transform);
         ImportSettings();
         EditorSceneManager.MarkSceneDirty(root.scene);
         Debug.Log($"[AudioSetup] {sources.Count} ambient sounds and the breaker panel set up");
@@ -151,6 +152,52 @@ public static class AudioSetup
         Label(cgo.transform, font, "UTILITIES", 30, FontStyle.Bold, new Vector2(0f, 130f), new Vector2(260f, 44f));
         LinkField(cgo.transform, font, new Vector2(0f, 36f), new Vector2(264f, 40f));
         Label(cgo.transform, font, "Ambient sound", 18, FontStyle.Bold, new Vector2(0f, -40f), new Vector2(260f, 30f));
+    }
+
+    // Power switches for the appliances that hum: each turns its sound off for whoever flips it.
+    static void ApplianceSwitches(Transform root)
+    {
+        var plate = FilingCabinetSetup.PlainMat("switch_plate", new Color(0.92f, 0.91f, 0.88f));
+        var grey = FilingCabinetSetup.PlainMat("power_button", new Color(0.62f, 0.63f, 0.66f));   // stands out on the black cases
+        GameObject Sound(string clip) => root.Find("sound_" + clip)?.gameObject;
+
+        // Bathroom fan: a second rocker beside the bathroom light switch (NightSetup).
+        var fan = NightSetup.WallSwitch("bath_fan_switch", root, U(252.5f, 202.6f, 48f), new Vector2(0, 1), plate);
+        Wire(fan, fan.transform.Find("rocker"), "Bathroom fan", Sound("bath_fan"), new Vector3(-12f, 0f, 0f), new Vector3(12f, 0f, 0f));
+
+        // Portable AC: a button near the front of its top (body top z 34, centre plan (25, 125);
+        // portable_ac object.py). Its renderer's bounds take in the hose, so they won't do.
+        var acButton = Button("ac_power", root, U(29f, 125f, 34.05f), Vector3.up, 1.1f, grey);
+        Wire(acButton, acButton.transform, "AC power", Sound("portable_ac"), Vector3.zero, Vector3.zero);
+
+        // PC: a power button high on the tower's front (the side toward the room, plan +Y).
+        var pc = Button("pc_power", root, U(151f, 26.1f, 45.5f), new Vector3(0f, 0f, -1f), 0.7f, grey);
+        Wire(pc, pc.transform, "PC power", Sound("pc_fan"), Vector3.zero, Vector3.zero);
+    }
+
+    static GameObject Button(string name, Transform parent, Vector3 pos, Vector3 normal, float sizeIn, Material mat)
+    {
+        var go = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+        go.name = name;
+        go.transform.SetParent(parent, false);
+        go.transform.SetPositionAndRotation(pos, Quaternion.FromToRotation(Vector3.up, normal));
+        go.transform.localScale = new Vector3(sizeIn * IN, 0.003f, sizeIn * IN);
+        go.GetComponent<MeshRenderer>().sharedMaterial = mat;
+        Object.DestroyImmediate(go.GetComponent<Collider>());
+        var box = go.AddComponent<BoxCollider>();                  // easier to point at than the thin disc
+        box.size = new Vector3(1.6f, 6f, 1.6f);
+        return go;
+    }
+
+    static void Wire(GameObject host, Transform toggle, string label, GameObject sound, Vector3 onEuler, Vector3 offEuler)
+    {
+        var sw = UdonSharpUndo.AddComponent<ApplianceSwitch>(host);
+        sw.running = sound != null ? new[] { sound } : new GameObject[0];
+        sw.toggle = toggle == host.transform ? null : toggle;
+        sw.onEuler = onEuler;
+        sw.offEuler = offEuler;
+        sw.InteractionText = label;
+        UdonSharpEditorUtility.CopyProxyToUdon(sw);
     }
 
     static Text Label(Transform parent, Font font, string text, int size, FontStyle style, Vector2 pos, Vector2 box)

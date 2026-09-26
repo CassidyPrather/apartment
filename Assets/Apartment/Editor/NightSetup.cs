@@ -34,7 +34,7 @@ public static class NightSetup
             new[] { new Vector3(229f, 183.5f, 101.5f) }, 5f, 11f, new Vector3(247.6f, 135.5f, 48f), new Vector2(-1, 0), "Hall light"),
         ("bath_light", "bath_fixtures", "bath_fixtures_glow",
             new[] { new Vector3(179.5f, 227.1f, 80f), new Vector3(223.8f, 249.2f, 102f) }, 5f, 9f,
-            new Vector3(247.5f, 202.6f, 48f), new Vector2(0, 1), "Bathroom light"),
+            new Vector3(249.5f, 202.6f, 48f), new Vector2(0, 1), "Bathroom light"),
         ("bedroom_lamp", "floor_lamp", "floor_lamp_glow",
             new[] { new Vector3(262f, 42f, 72f) }, 7f, 5f, new Vector3(0, 0, 0), Vector2.zero, "Lamp"),
     };
