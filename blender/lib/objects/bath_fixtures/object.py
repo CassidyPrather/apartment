@@ -60,10 +60,11 @@ STATIC = True
 VIEWS = [("vanity_wall", 270, 10, 0.45), ("niche", 90, 15, 0.5), ("ceiling_up", 0, -60, 0.6)]
 
 # --- dimensions (inches, model plan coordinates) --------------------------------------
-WALL_W, WALL_E = 177.75, 282.75        # SCAN bath west / east wall faces
+WALL_W = 177.75                         # SCAN bath west wall face (placed 6.45 west, onto the shell's 171.3)
+WALL_E = WALL_W + 103.3                 # the shell's bath width (east wall moved in to 274.6)
 WALL_S, WALL_N = 202.5, 286.0          # model south / north wall faces
 CEILING = 108.0
-NICHE_X = (269.1, 282.75)              # SCAN shelves 13.65 deep off the east wall
+NICHE_X = (WALL_E - 13.65, WALL_E)     # SCAN shelves 13.65 deep off the east wall
 NICHE_Y = (SY(206.4), SY(226.45))      # SCAN 20.05 between the south wall and the stub
 SHELF_TOPS = (22.5, 40.1, 58.0, 75.9)  # SCAN
 SHELF_T, CLEAT_T, CLEAT_H = 0.75, 0.75, 1.5   # EST

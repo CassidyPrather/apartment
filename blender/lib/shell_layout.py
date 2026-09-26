@@ -150,7 +150,7 @@ PLACES = {
     "ceiling_light_bar": (68.0, 235.0, 0.0, 108.0),        # S
     "ceiling_dome_light__dining": (67.0, 152.0, 0.0, 108.0),   # A: near the entry, per the survey
     "ceiling_dome_light__hall": (229.0, 183.5, 0.0, 108.0),    # S
-    "bath_fixtures": (-6.45, 0.0, 0.0),         # built for the old walls; anchored to the west wall (mirror light). TODO rebuild: niche shelves sit 1.7 in off the east wall
+    "bath_fixtures": (-6.45, 0.0, 0.0),         # built on the scan's west wall (177.75); shifted onto the shell's (171.3)
     "window_units": (0.0, 0.0, 0.0),
     "exterior_view": (0.0, 0.0, 0.0),
 }
