@@ -144,6 +144,7 @@ PLACES = {
     "bedroom_fixtures": (0.0, 0.0, 0.0),
     "hanging_bags": (0.0, 0.0, 0.0),             # built in plan coordinates
     "shoes": (238.8, 135.2, 0.0),
+    "futon": (0.0, 0.0, 0.0),                   # built in plan coordinates (laid out and folded)
     "bedroom_cables": (0.0, 0.0, 0.0),           # built in plan coordinates
     "own_art": (0.0, 0.0, 0.0),                  # Cassidy's own paintings and prints, plan coordinates
     # Light fixtures hang from their origin at the ceiling (z 108).

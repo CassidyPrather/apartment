@@ -16,6 +16,8 @@ public static class ApartmentSetup
     const string Root = "Assets/Apartment";
     // The whole apartment is built 1.2x real size so avatars fit through the doorways.
     // Lighting, video and the view captures scale their inch coordinates by the same factor.
+    // "Familiar September" on VRChat (PC, Android and iOS builds all upload to it).
+    public const string WorldId = "wrld_6d4d49e1-07ca-4cd1-9f99-a53dc61ab384";
     public const float WorldScale = 1.2f;
 
     [MenuItem("Apartment/Build Apartment Scene")]
@@ -90,6 +92,9 @@ public static class ApartmentSetup
                 AssetDatabase.LoadAssetAtPath<GameObject>(AssetDatabase.GUIDToAssetPath(world[0])));
             // Living room, just inside the entry, facing into the room.
             vw.transform.SetPositionAndRotation(new Vector3(-1.2f, 0f, -3.9f) * WorldScale, Quaternion.Euler(0, 200f, 0));
+            // Keep uploading to the same world: a fresh descriptor would otherwise make a new one.
+            var pm = vw.GetComponentInChildren<VRC.Core.PipelineManager>();
+            if (pm != null) pm.blueprintId = WorldId;
         }
         // The hall's laundry opening is 32.5 in; the stock door kit is 30, which left a gap
         // against the bedroom wall. Stretch it across from its north jamb (its origin).
@@ -102,6 +107,8 @@ public static class ApartmentSetup
         AtlasSetup.Run();                                          // draw calls: shared atlases
         NightSetup.Setup();                                        // after the atlas step (it reads material slots)
         AudioSetup.Setup();
+        FutonSetup.Setup();
+        DoorSetup.Setup();
         EditorSceneManager.SaveScene(EditorSceneManager.GetActiveScene());
         LightingSetup.Setup();
         AssetDatabase.SaveAssets();

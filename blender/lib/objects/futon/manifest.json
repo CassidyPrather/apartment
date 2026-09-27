@@ -1,0 +1,25 @@
+{
+  "name": "futon",
+  "fbx": "Assets/Apartment/Models/futon.fbx",
+  "materials": {
+    "futon": {
+      "atlas": "futon",
+      "mode": "opaque"
+    }
+  },
+  "collider": "none",
+  "static": false,
+  "triangles": 12000,
+  "bounds_m": {
+    "min": [
+      0.8167,
+      0.0092,
+      -0.0
+    ],
+    "max": [
+      3.081,
+      2.8651,
+      0.7971
+    ]
+  }
+}
