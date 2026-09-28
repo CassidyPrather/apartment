@@ -56,7 +56,7 @@ public static class NightSetup
     {
         foreach (var old in Object.FindObjectsOfType<Transform>(true).Where(t => t.name == "lights_and_night").ToArray())
             Object.DestroyImmediate(old.gameObject);
-        if (EditorUserBuildSettings.activeBuildTarget == BuildTarget.Android)
+        if (QuestSetup.IsMobileScene())
         {
             Debug.Log("[NightSetup] Quest target: lights-on bake, no night mode");
             return;

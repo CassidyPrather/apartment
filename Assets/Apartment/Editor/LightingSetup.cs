@@ -74,7 +74,7 @@ public static class LightingSetup
         var warm = new Color(1f, 0.89f, 0.77f);
         // PC bakes daylight only: the lamps are switchable Point Light Volumes (NightSetup).
         // Quest has no night mode, so its own bake keeps the lamps baked in.
-        bool quest = EditorUserBuildSettings.activeBuildTarget == BuildTarget.Android;
+        bool quest = QuestSetup.IsMobileScene();
         foreach (var r in Rooms)
         {
             var go = new GameObject("light_" + r.name);
