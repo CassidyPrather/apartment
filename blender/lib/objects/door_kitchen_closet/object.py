@@ -1,6 +1,9 @@
 """Kitchen closet doors: a pair of white molded bifold doors (four leaves, each with a tall
 upper and a shorter lower raised panel), closed, hung from a head track, with a small
-nickel knob on each lead leaf. The shell draws the casings.
+nickel knob on each lead leaf. The shell draws the casings. Objects: door_kitchen_closet
+(jamb, track) and door_kitchen_closet_leaf_0..3 (left to right), each leaf's origin on
+the pin it turns about (jamb side for 0 and 3, the fold for 1 and 2) so the pairs fold
+in Unity (BifoldDoor).
 
 Source of truth: scripted, shared parts in ../door_bedroom/doorkit.py (imported, not edited).
 Local frame: origin on the floor at the opening's centre, ON THE WALL'S FRONT FACE (not
@@ -47,27 +50,40 @@ VIEWS = [("photo_match", 340, 5, 0.75), ("close", 20, 10, 0.5)]
 
 
 def build(coll):
+    """The frame (jamb, track) plus the four leaves as separate objects, each with its
+    origin on the pin it turns about: the outer leaves (0, 3) on the jamb pivots, the inner
+    ones (1, 2) on the fold with their outer leaf, so Unity can fold each pair."""
     W, T = WIDTH, WALL_T
     x0, x1 = -W / 2, W / 2
+    shift = (0, K.m(T / 2), 0)                # origin on the wall's front face
     b = K.builder()
     K.jamb(b, W, HEIGHT, T, hand=1, x_start=x0, stops=False)
     top = HEIGHT - K.JAMB_T
     y0 = -T / 2 + FACE_BACK                  # leaf front face (doorkit centreline frame)
     K.box(b, "aluminum", (x0 + K.JAMB_T, y0 - 0.2, top - TRACK_H), (x1 - K.JAMB_T, y0 + LEAF_T + 0.2, top))
+    bmesh.ops.translate(b.bm, vec=shift, verts=b.bm.verts)
+    out = [b.to_object(NAME, coll)]
+
     xa, xb = x0 + K.JAMB_T + LEAF_GAP, x1 - K.JAMB_T - LEAF_GAP
     lw = (xb - xa - 3 * LEAF_GAP) / 4
     lz0, lz1 = K.FLOOR_GAP, top - TRACK_H - 0.25
     lh = lz1 - lz0
     rails = [(0.0, 5.0), (33.5, 38.5), (lh - 3.5, lh)]   # knobs sit on the mid rail
+    yc = y0 + LEAF_T / 2                     # the pins run through the leaf's middle
     for i in range(4):
         la = xa + i * (lw + LEAF_GAP)
-        K.panel_leaf(b, la, la + lw, lz0, lz1, y0, y0 + LEAF_T, rails, [1, 1], stile=STILE)
-    # knobs on the two lead leaves (the inner pair), near the fold with the outer leaf
-    for kx in (xa + lw + LEAF_GAP + 1.75, xb - lw - LEAF_GAP - 1.75):
-        K.knob(b, "nickel", kx, K.KNOB_Z, y0, -1)
-    # move the frame so the origin sits on the wall's front face
-    bmesh.ops.translate(b.bm, vec=(0, K.m(T / 2), 0), verts=b.bm.verts)
-    return [b.to_object(NAME, coll)]
+        lb = la + lw
+        lb_ = K.builder()
+        K.panel_leaf(lb_, la, lb, lz0, lz1, y0, y0 + LEAF_T, rails, [1, 1], stile=STILE)
+        if i == 1:                           # knobs on the lead leaves, near the fold
+            K.knob(lb_, "nickel", la + 1.75, K.KNOB_Z, y0, -1)
+        if i == 2:
+            K.knob(lb_, "nickel", lb - 1.75, K.KNOB_Z, y0, -1)
+        bmesh.ops.translate(lb_.bm, vec=shift, verts=lb_.bm.verts)
+        # pins: the jamb edge of the outer leaves, the fold edge of the inner ones
+        px = {0: la, 1: la, 2: lb, 3: lb}[i]
+        out.append(lb_.to_object(f"{NAME}_leaf_{i}", coll, origin=(K.m(px), K.m(yc + T / 2), 0.0)))
+    return out
 
 
 def texture(objs):

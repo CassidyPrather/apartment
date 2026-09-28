@@ -1,5 +1,7 @@
-// Swinging doors: every hinged door leaf gets a synced DoorSwing (click to open or shut,
-// with a creak and a latch), a trigger collider to click, and a spatial AudioSource.
+// Doors that open: every hinged door leaf gets a synced DoorSwing (click to open or shut,
+// with a creak and a latch), the kitchen closet's bifolds a BifoldDoor per pair, and the
+// bedroom closet's bypass doors a SlidingDoor per leaf; each with a trigger collider to
+// click and a spatial AudioSource.
 // Leaves stay in the bake as light blockers in their default position (so closets stay
 // dark), but are lit by the Light Volumes and probes, so they look right at any angle.
 // Apartment > Setup Doors; Build Apartment Scene runs it.
@@ -29,7 +31,7 @@ public static class DoorSetup
     [MenuItem("Apartment/Setup Doors")]
     public static void Setup()
     {
-        if (NightSetup.EnsureProgram("DoorSwing"))
+        if (NightSetup.EnsureProgram("DoorSwing") | NightSetup.EnsureProgram("BifoldDoor") | NightSetup.EnsureProgram("SlidingDoor"))
         {
             Debug.LogWarning("[DoorSetup] created the Udon program asset; run again once UdonSharp finishes compiling");
             return;
@@ -50,9 +52,6 @@ public static class DoorSetup
                 Debug.LogWarning($"[DoorSetup] no {d.package} leaf near plan {d.near}");
                 continue;
             }
-            foreach (var c in leaf.GetComponents<Component>().Where(c => c is AudioSource || c is Collider || c is DoorSwing || c is VRC.Udon.UdonBehaviour).ToArray())
-                Object.DestroyImmediate(c);
-
             // closed = the turn that lays the leaf in the opening; open = 90 degrees from it,
             // toward the room it swings into
             // the frame: every renderer of the door but the leaf (Unity's missing components
@@ -83,26 +82,7 @@ public static class DoorSetup
             bool startsOpen = Quaternion.Angle(start, closed) > 45f;
             leaf.localRotation = start;
 
-            // lit live (it moves) but still blocks light in the bake where it stands by default
-            var r = leaf.GetComponent<MeshRenderer>();
-            if (r != null)
-            {
-                GameObjectUtility.SetStaticEditorFlags(leaf.gameObject, StaticEditorFlags.ContributeGI);
-                r.receiveGI = ReceiveGI.LightProbes;
-            }
-            var box = leaf.gameObject.AddComponent<BoxCollider>();
-            box.isTrigger = true;
-            var mf = leaf.GetComponent<MeshFilter>();
-            if (mf != null && mf.sharedMesh != null) { box.center = mf.sharedMesh.bounds.center; box.size = mf.sharedMesh.bounds.size; }
-
-            var a = leaf.gameObject.AddComponent<AudioSource>();
-            a.playOnAwake = false;
-            a.spatialBlend = 1f;
-            a.volume = 0.6f;
-            a.rolloffMode = AudioRolloffMode.Logarithmic;
-            a.minDistance = 1f;
-            a.maxDistance = 12f;
-            a.dopplerLevel = 0f;
+            var a = Prepare(leaf, 0.6f);
 
             var s = UdonSharpUndo.AddComponent<DoorSwing>(leaf.gameObject);
             s.closedRotation = closed;
@@ -115,8 +95,115 @@ public static class DoorSetup
             UdonSharpEditorUtility.CopyProxyToUdon(s);
             n++;
         }
+        int folds = Bifolds(packages, opens, closes);
+        int slides = Sliders(packages, opens, closes);
         EditorSceneManager.MarkSceneDirty(UnityEngine.SceneManagement.SceneManager.GetActiveScene());
-        Debug.Log($"[DoorSetup] {n} swinging doors set up");
+        Debug.Log($"[DoorSetup] {n} swinging doors, {folds} bifold pairs and {slides} sliding leaves set up");
+    }
+
+    // The kitchen closet's bifolds: two pairs (leaves 0+1 and 3+2, outer+lead), each folding
+    // out into the kitchen (plan -X) when its lead leaf is clicked.
+    static int Bifolds(Transform[] packages, AudioClip[] opens, AudioClip[] closes)
+    {
+        var door = packages.FirstOrDefault(t => t.name == "door_kitchen_closet");
+        if (door == null) return 0;
+        var leaves = Enumerable.Range(0, 4).Select(i => door.GetComponentsInChildren<Transform>(true)
+            .FirstOrDefault(t => t.name == $"door_kitchen_closet_leaf_{i}")).ToArray();
+        if (leaves.Any(l => l == null))
+        {
+            Debug.LogWarning("[DoorSetup] door_kitchen_closet has no separate leaves (re-import it)");
+            return 0;
+        }
+        var kitchen = new Vector3(1f, 0f, 0f);                // plan -X in Unity
+        int n = 0;
+        foreach (var (outer, inner) in new[] { (leaves[0], leaves[1]), (leaves[3], leaves[2]) })
+        {
+            var a = Prepare(inner, 0.45f);
+            Prepare(outer, 0f);
+            // the sign of the turn that swings the fold out into the kitchen
+            var pin = outer.localPosition;
+            var fold = inner.localPosition;
+            float sign = 1f;
+            var turned = pin + Quaternion.AngleAxis(60f, Vector3.up) * (fold - pin);
+            var parent = outer.parent;
+            if (Vector3.Dot(parent.TransformVector(turned - fold), kitchen) < 0f) sign = -1f;
+            var s = UdonSharpUndo.AddComponent<BifoldDoor>(inner.gameObject);
+            s.outer = outer;
+            s.inner = inner;
+            s.outerPin = pin;
+            s.innerPin = fold;
+            s.outerClosed = outer.localRotation;
+            s.innerClosed = inner.localRotation;
+            s.openDegrees = 80f * sign;
+            s.sound = a;
+            s.openClips = opens;
+            s.closeClips = closes;
+            s.InteractionText = "Open";
+            UdonSharpEditorUtility.CopyProxyToUdon(s);
+            n++;
+        }
+        return n;
+    }
+
+    // The bedroom closet's bypass doors: each leaf slides across to the other half of the
+    // opening, on its own track.
+    static int Sliders(Transform[] packages, AudioClip[] opens, AudioClip[] closes)
+    {
+        var door = packages.FirstOrDefault(t => t.name == "door_closet_sliding");
+        if (door == null) return 0;
+        var leaves = new[] { "door_closet_sliding_left", "door_closet_sliding_right" }
+            .Select(nm => door.GetComponentsInChildren<Transform>(true).FirstOrDefault(t => t.name == nm)).ToArray();
+        if (leaves.Any(l => l == null)) return 0;
+        // the track runs between the two leaf centres; each leaf moves to the other's spot
+        // along it, staying on its own track (depth kept)
+        var axis = (leaves[1].localPosition - leaves[0].localPosition);
+        axis.y = 0f;
+        var along = axis.normalized;
+        float span = Vector3.Dot(axis, along);
+        int n = 0;
+        foreach (var (leaf, dir) in new[] { (leaves[0], 1f), (leaves[1], -1f) })
+        {
+            var a = Prepare(leaf, 0.35f);
+            var s = UdonSharpUndo.AddComponent<SlidingDoor>(leaf.gameObject);
+            s.closedPosition = leaf.localPosition;
+            s.openPosition = leaf.localPosition + along * (span * dir);
+            s.sound = a;
+            s.openClips = opens;
+            s.closeClips = closes;
+            s.InteractionText = "Open";
+            UdonSharpEditorUtility.CopyProxyToUdon(s);
+            n++;
+        }
+        return n;
+    }
+
+    // A moving leaf: it still blocks light in the bake where it stands by default, but is lit
+    // live (it moves); a trigger collider to click (volume > 0) and a spatial AudioSource.
+    static AudioSource Prepare(Transform leaf, float volume)
+    {
+        foreach (var c in leaf.GetComponents<Component>().Where(c => c is AudioSource || c is Collider || c is VRC.Udon.UdonBehaviour
+                     || c is UdonSharp.UdonSharpBehaviour).ToArray())
+            Object.DestroyImmediate(c);
+        var r = leaf.GetComponent<MeshRenderer>();
+        if (r != null)
+        {
+            GameObjectUtility.SetStaticEditorFlags(leaf.gameObject, StaticEditorFlags.ContributeGI);
+            r.receiveGI = ReceiveGI.LightProbes;
+        }
+        if (volume <= 0f) return null;
+        var box = leaf.gameObject.AddComponent<BoxCollider>();
+        box.isTrigger = true;
+        var mf = leaf.GetComponent<MeshFilter>();
+        if (mf != null && mf.sharedMesh != null) { box.center = mf.sharedMesh.bounds.center; box.size = mf.sharedMesh.bounds.size; }
+        var a = leaf.gameObject.AddComponent<AudioSource>();
+        a.playOnAwake = false;
+        a.spatialBlend = 1f;
+        a.volume = volume;
+        a.rolloffMode = AudioRolloffMode.Logarithmic;
+        a.minDistance = 1f;
+        a.maxDistance = 12f;
+        a.dopplerLevel = 0f;
+        return a;
     }
 
     static Vector2 Plan(float x, float y) => new Vector2(-x * IN, -y * IN);

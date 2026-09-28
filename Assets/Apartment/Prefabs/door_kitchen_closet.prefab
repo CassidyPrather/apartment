@@ -11,7 +11,7 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: 6ffc87b55f1d9844186968b87a5a3405,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: -0
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 6ffc87b55f1d9844186968b87a5a3405,
         type: 3}
@@ -36,12 +36,12 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: 6ffc87b55f1d9844186968b87a5a3405,
         type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 6ffc87b55f1d9844186968b87a5a3405,
         type: 3}
       propertyPath: m_LocalRotation.z
-      value: -0
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 6ffc87b55f1d9844186968b87a5a3405,
         type: 3}
@@ -58,12 +58,32 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: -551693592084076035, guid: 6ffc87b55f1d9844186968b87a5a3405,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 87
+      objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 6ffc87b55f1d9844186968b87a5a3405,
         type: 3}
       propertyPath: m_Name
       value: door_kitchen_closet
       objectReference: {fileID: 0}
-    - target: {fileID: 919132149155446097, guid: 6ffc87b55f1d9844186968b87a5a3405,
+    - target: {fileID: 1920003976352186885, guid: 6ffc87b55f1d9844186968b87a5a3405,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 87
+      objectReference: {fileID: 0}
+    - target: {fileID: 3514693323667737525, guid: 6ffc87b55f1d9844186968b87a5a3405,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 87
+      objectReference: {fileID: 0}
+    - target: {fileID: 5298958581751765193, guid: 6ffc87b55f1d9844186968b87a5a3405,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 87
+      objectReference: {fileID: 0}
+    - target: {fileID: 7774090466825948831, guid: 6ffc87b55f1d9844186968b87a5a3405,
         type: 3}
       propertyPath: m_StaticEditorFlags
       value: 87
