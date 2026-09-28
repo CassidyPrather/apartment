@@ -221,7 +221,8 @@ public static class LightingSetup
         // Light fixtures sit right at their baked light, so their own meshes threw big
         // unrealistic shadows (the kitchen light bar); they don't cast in the bake.
         foreach (var r in Object.FindObjectsOfType<MeshRenderer>())
-            if (r.name.StartsWith("ceiling_light_bar") || r.name.StartsWith("ceiling_dome_light") || r.name.StartsWith("floor_lamp"))
+            if (r.name.StartsWith("ceiling_light_bar") || r.name.StartsWith("ceiling_dome_light") || r.name.StartsWith("floor_lamp")
+                || r.name == "bath_fixtures")        // the vanity bar and ceiling light (its towel and grab bars threw odd dark marks)
                 r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
         // Clear glass lets the sun and skylights through.
         foreach (var r in Object.FindObjectsOfType<MeshRenderer>())

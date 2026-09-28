@@ -150,7 +150,10 @@ public static class NightSetup
         // A source the size of the shade: a tiny point just under the ceiling blew out a
         // bright disc on it (inverse-square hotspot).
         so.FindProperty("LightSourceSize").floatValue = sourceSize;
-        so.FindProperty("Shadows").boolValue = true;
+        // The bathroom's lights sit a few inches from its walls with 1.2 m soft sources: their
+        // shadow maps turned the vanity bar into black blobs on the wall, and in a room that
+        // small the shadows add nothing.
+        so.FindProperty("Shadows").boolValue = !name.StartsWith("bath_light");
         so.FindProperty("LightType").intValue = point ? 0 : 1;                  // point or spot
         so.FindProperty("Angle").floatValue = (up ? 95f : 150f) * Mathf.Deg2Rad;                // a torchiere bowl throws a narrower cone up
         var falloff = so.FindProperty("Falloff");
