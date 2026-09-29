@@ -28,6 +28,7 @@ ATLAS = {
         "nickel": (896, 256, 128, 128),     # brushed nickel (pulls, faucet, holder)
         "porcelain": (768, 384, 128, 128),  # vitreous china, bright white
         "acrylic": (896, 384, 128, 128),    # one-piece tub/shower unit
+        "liner": (896, 384, 128, 128),      # clear shower liner: the acrylic white, drawn see-through
         "curtain": (0, 512, 512, 384),      # floral print, one seamless tile (photo)
         "mirror": (512, 512, 256, 256),
         "wall_paint": (768, 512, 256, 256),  # matches shell_wall's sampled colour

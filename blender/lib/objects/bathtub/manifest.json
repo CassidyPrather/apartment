@@ -6,11 +6,16 @@
       "atlas": "bathroom",
       "mode": "opaque",
       "tiled": false
+    },
+    "bathroom_clear": {
+      "atlas": "bathroom",
+      "mode": "transparent",
+      "alpha": 0.3
     }
   },
   "collider": "box",
   "static": true,
-  "triangles": 3428,
+  "triangles": 3812,
   "bounds_m": {
     "min": [
       -0.7437,

@@ -9,6 +9,11 @@ ModelImporter:
       assembly: UnityEngine.CoreModule
       name: bathroom
     second: {fileID: 2100000, guid: 79d0041829209b34eb610f3bbc44b864, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: bathroom_clear
+    second: {fileID: 2100000, guid: 5c7dbc8bcff686b439c1aa567a704df0, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

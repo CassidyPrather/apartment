@@ -261,28 +261,101 @@ def _counter(k):
     k.box("counter", RANGE_X[1], N_X1, NW - SPLASH_T, NW, z1, z1 + SPLASH_H)
 
 
+def _rrect_polar(cx, cy, hx, hy, r, n=40):
+    """Rounded rectangle sampled on n evenly spaced rays from its centre (counter-clockwise
+    seen from above), so rings of different sizes share spokes and a circle can join them."""
+    def inside(x, y):
+        qx, qy = abs(x) - (hx - r), abs(y) - (hy - r)
+        return math.hypot(max(qx, 0.0), max(qy, 0.0)) + min(max(qx, qy), 0.0) - r <= 0.0
+    pts = []
+    for i in range(n):
+        t = 2 * math.pi * (i + 0.5) / n
+        dx, dy = math.cos(t), math.sin(t)
+        lo, hi = 0.0, hx + hy
+        for _ in range(30):
+            mid = (lo + hi) / 2
+            lo, hi = (mid, hi) if inside(mid * dx, mid * dy) else (lo, mid)
+        pts.append((cx + lo * dx, cy + lo * dy))
+    return pts
+
+
+def _face(b, region, verts, want):
+    """New face, flipped if its normal disagrees with the direction `want`."""
+    f = b.bm.faces.new(verts)
+    f.normal_update()
+    if f.normal.dot(want) < 0:
+        f.normal_flip()
+    f.material_index = b.idx(region)
+    return f
+
+
 def _sink(k):
+    """Double-bowl drop-in stainless sink (capture frames 003858/003853): rounded bowl
+    corners, floors sloping to round strainer drains with a chrome flange."""
+    b = k.b
     top = TOP_Z1
     rx0, rx1, ry0, ry1 = SINK_RIM
     bx0, bx1 = SINK_BX
-    (b0y0, b0y1), (b1y0, b1y1) = SINK_BOWLS
     rim = 0.12
-    # rim deck around and between the bowls
-    k.box("steel", rx0, bx0, ry0, ry1, top, top + rim)
-    k.box("steel", bx1, rx1, ry0, ry1, top, top + rim)
-    k.box("steel", bx0, bx1, ry0, b0y0, top, top + rim)
-    k.box("steel", bx0, bx1, b1y1, ry1, top, top + rim)
-    k.box("steel", bx0, bx1, b0y1, b1y0, top, top + rim)
-    t = 0.08
+    R = 2.5                                   # PHOTO bowl corner radius at the rim
+    zt = top + rim
+    # rim deck: the rim rectangle with the two rounded bowl openings cut out, built as one
+    # ring per opening joined to the outer edge by the deck strips between/around them
+    k.box("steel", rx0, bx0, ry0, ry1, top, zt)
+    k.box("steel", bx1, rx1, ry0, ry1, top, zt)
+    k.box("steel", bx0, bx1, ry0, SINK_BOWLS[0][0], top, zt)
+    k.box("steel", bx0, bx1, SINK_BOWLS[1][1], ry1, top, zt)
+    k.box("steel", bx0, bx1, SINK_BOWLS[0][1], SINK_BOWLS[1][0], top, zt)
+    up = Vector((0, 0, 1))
     zb = top - SINK_DEPTH
     for y0, y1 in SINK_BOWLS:
-        k.box("steel", bx0, bx0 + t, y0, y1, zb, top)
-        k.box("steel", bx1 - t, bx1, y0, y1, zb, top)
-        k.box("steel", bx0, bx1, y0, y0 + t, zb, top)
-        k.box("steel", bx0, bx1, y1 - t, y1, zb, top)
-        k.box("steel", bx0, bx1, y0, y1, zb - t, zb)
-        cy, cx = (y0 + y1) / 2, (bx0 + bx1) / 2
-        k.box("drain", cx - 1.6, cx + 1.6, cy - 1.6, cy + 1.6, zb, zb + 0.05)
+        cx, cy = (bx0 + bx1) / 2, (y0 + y1) / 2
+        hx, hy = (bx1 - bx0) / 2, (y1 - y0) / 2
+        axis = Vector(_p(cx, cy, 0))
+        # deck around the opening: the square hole's edge to the rounded rim ring (one fan
+        # per spoke to the nearest point on the square)
+        ring = _rrect_polar(cx, cy, hx, hy, R)
+        for (x0_, y0_), (x1_, y1_) in zip(ring, ring[1:] + ring[:1]):
+            def onsq(x, y):
+                dx, dy = x - cx, y - cy
+                k_ = min(hx / abs(dx) if dx else 1e9, hy / abs(dy) if dy else 1e9)
+                return cx + dx * k_, cy + dy * k_
+            sa, sb = onsq(x0_, y0_), onsq(x1_, y1_)
+            q = [b.bm.verts.new(_p(x0_, y0_, zt)), b.bm.verts.new(_p(x1_, y1_, zt)),
+                 b.bm.verts.new(_p(sb[0], sb[1], zt)), b.bm.verts.new(_p(sa[0], sa[1], zt))]
+            _face(b, "steel", q, up)
+        # bowl walls: rim, just under the rim, near the floor (slightly drawn in), floor edge
+        prof = [(zt, 0.0, R), (top - 0.6, 0.0, R), (zb + 1.2, 0.5, R + 0.3), (zb + 0.35, 0.9, R + 0.5)]
+        rings = []
+        for z, ins, rr in prof:
+            rings.append([b.bm.verts.new(_p(x, y, z)) for x, y in _rrect_polar(cx, cy, hx - ins, hy - ins, rr)])
+        m_ = len(rings[0])
+        for r0, r1 in zip(rings, rings[1:]):
+            for j in range(m_):
+                q = [r0[j], r0[(j + 1) % m_], r1[(j + 1) % m_], r1[j]]
+                mid = sum((v.co for v in q), Vector()) / 4
+                _face(b, "steel", q, Vector((axis.x - mid.x, axis.y - mid.y, 0)).normalized())
+        # floor sloping down to the drain; the drain: chrome flange ring, dark strainer basket
+        dr, fl = 1.75, 0.45                    # EST 3.5 in strainer, chrome flange (photo)
+        edge = rings[-1]
+        angs = [math.atan2(v.co.y - axis.y, v.co.x - axis.x) for v in edge]   # same spokes as the bowl
+
+        def circ(rad, z):
+            return [b.bm.verts.new(_p(cx + rad * math.cos(t), cy + rad * math.sin(t), z)) for t in angs]
+        flange_out = circ(dr + fl, zb + 0.04)
+        flange_in = circ(dr, zb + 0.1)
+        basket = circ(1.1, zb - 0.3)
+        hole = circ(0.9, zb - 0.32)
+        centre = b.bm.verts.new(_p(cx, cy, zb - 0.45))
+        for j in range(m_):
+            j2 = (j + 1) % m_
+            _face(b, "steel", [edge[j], edge[j2], flange_out[j2], flange_out[j]], up)
+            _face(b, "nickel", [flange_out[j], flange_out[j2], flange_in[j2], flange_in[j]], up)
+            _face(b, "nickel", [flange_in[j], flange_in[j2], basket[j2], basket[j]], up)
+            _face(b, "drain", [basket[j], basket[j2], hole[j2], hole[j]], up)
+            _face(b, "drain", [hole[j], hole[j2], centre], up)
+
+
     # faucet: base, gooseneck arching out over the bowls, side lever
     fx, fy = FAUCET
     k.b.cylinder("nickel", _p(fx, fy, top + rim + 0.5), m(1.1), m(1.0), segments=10)
@@ -357,7 +430,33 @@ def build(coll):
     _counter(k)
     _sink(k)
     _uppers(k)
-    return [b.to_object(NAME, coll)]
+    ob = b.to_object(NAME, coll)
+    _face_bowls_up(ob)
+    return [ob]
+
+
+def _face_bowls_up(ob):
+    """to_object() orients normals as if every piece were closed, which turns the open sink
+    bowls inside out (Unity then culls them): face everything inside a bowl toward an eye
+    above that bowl."""
+    import bmesh
+    bm = bmesh.new()
+    bm.from_mesh(ob.data)
+    bm.normal_update()
+    (bx0, bx1), zt = SINK_BX, TOP_Z1 + 0.12
+    flip = []
+    for f in bm.faces:
+        c = f.calc_center_median()
+        for y0, y1 in SINK_BOWLS:
+            if m(bx0) - 1e-4 <= c.x <= m(bx1) + 1e-4 and m(y0) - 1e-4 <= c.y <= m(y1) + 1e-4 and m(TOP_Z1 - SINK_DEPTH - 0.6) <= c.z <= m(zt) + 1e-4:
+                eye = Vector(_p((bx0 + bx1) / 2, (y0 + y1) / 2, TOP_Z1 + 10.0))
+                if f.normal.dot(eye - c) < 0:
+                    flip.append(f)
+                break
+    bmesh.ops.reverse_faces(bm, faces=flip)
+    bm.to_mesh(ob.data)
+    bm.free()
+    print("sink faces turned up:", len(flip))
 
 
 def _island_uvs(ob, atlas, regions):

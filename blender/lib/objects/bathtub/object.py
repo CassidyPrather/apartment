@@ -2,8 +2,8 @@
 moulded unit walls on three sides up to 77 in, a flat ledge along the back wall at rim
 height, polished-chrome spout/valve/overflow/drain/shower head on the north (faucet) end,
 a curved satin-nickel shower rod with red rings and the pink-and-white floral curtain
-gathered at the faucet end, plus the 33 in stub wall at the tub's foot. The clear liner
-inside the curtain is not modelled (it would need a transparent material).
+gathered at the faucet end, the frosted clear liner hanging inside it into the tub, plus
+the 33 in stub wall at the tub's foot.
 
 Source of truth: scripted, from the bathroom LiDAR survey (Reference/bathroom_survey/,
 fixtures.py and the chk_tub_* check images) and the capture's frames (curtain 010059,
@@ -44,7 +44,8 @@ m = S.m
 
 NAME = "bathtub"
 ATLAS = S.ATLAS
-MATERIALS = S.MATERIALS
+MATERIALS = dict(S.MATERIALS)
+MATERIALS["bathroom_clear"] = {"atlas": "bathroom", "mode": "transparent", "alpha": 0.3}   # the liner
 COLLIDER = "box"
 STATIC = True
 VIEWS = [("plan_top", 0, 89.9, 1.0), ("in_tub", 0, 35, 0.7), ("from_west_low", 20, 8, 0.8),
@@ -81,7 +82,7 @@ HW_Y = 0.25           # SCAN hardware centreline (plan x 268)
 ESCUTCHEON_R = 3.5    # EST 7 in round trim plate (photo 010259)
 SPOUT_LEN = 5.8       # EST (photo 010303)
 
-REGIONS = ["acrylic", "basin", "unit_wall", "chrome", "nickel", "dark", "curtain", "ring_red"]
+REGIONS = ["acrylic", "basin", "unit_wall", "chrome", "nickel", "dark", "curtain", "ring_red", "liner"]
 
 _CURTAIN = {}         # filled by build_tub(): path points and tiling, read by texture()
 
@@ -237,6 +238,25 @@ def build_tub(coll):
     spt = min((4, 6, 8, 12, 16, 24, 48), key=lambda d: abs(cum[-1] * d / k - m(CURTAIN_TILE_IN)))
     _CURTAIN.clear()
     _CURTAIN.update(pts=cpts, cum=cum, spt=spt, z0=m(bot_z), z1=m(top_z))
+    # The clear liner on the same rings, just inside the curtain, dropping over the apron
+    # rim into the basin (frames 010059, 010117). Two-sided: Unity culls back faces.
+    y_in = -m(TUB_W / 2) + m(RIM_FRONT) + m(0.6)
+    rows = [(top_z - 0.5, 0.0), (TUB_H + 4.0, 0.0), (TUB_H - 7.0, 0.4)]   # (z, extra inward)
+    grid = []
+    for x, y in cpts:
+        yl = y + m(0.5)
+        col = []
+        for k_, (z, extra) in enumerate(rows):
+            yy = yl if k_ == 0 else max(yl, y_in) + m(extra)
+            col.append((x, yy, m(z)))
+        grid.append(col)
+    for side in (1, -1):
+        vs = [[b.bm.verts.new(c) for c in col] for col in grid]
+        for i in range(len(vs) - 1):
+            for k_ in range(len(rows) - 1):
+                q = [vs[i][k_], vs[i + 1][k_], vs[i + 1][k_ + 1], vs[i][k_ + 1]]
+                f = b.bm.faces.new(q if side > 0 else list(reversed(q)))
+                f.material_index = b.idx("liner")
     # Red plastic rings looped over the rod, one every 4 path points.
     for i in range(0, k + 1, 4):
         u = ua + (ub - ua) * i / k
@@ -308,6 +328,11 @@ def _set_region_uvs(ob, region, fn):
 
 def texture(objs):
     mat = common.atlas_material("bathroom", ATLAS)
+    clear = common.atlas_material("bathroom_clear", ATLAS)
+    bsdf = next(n for n in clear.node_tree.nodes if n.type == "BSDF_PRINCIPLED")   # preview only
+    bsdf.inputs["Alpha"].default_value = MATERIALS["bathroom_clear"]["alpha"]
+    if hasattr(clear, "surface_render_method"):
+        clear.surface_render_method = "BLENDED"
     (x0, x1, y0, y1), _ = S.tub_basin()
     for ob in objs:
         common.atlas_uvs(ob, ATLAS, planar={
@@ -348,4 +373,4 @@ def texture(objs):
 
             _set_region_uvs(ob, "curtain", curtain_uv)
         regions = [s.name.split(".")[0] for s in ob.data.materials]
-        common.collapse_materials(ob, {r: mat for r in regions})
+        common.collapse_materials(ob, {r: (clear if r == "liner" else mat) for r in regions})

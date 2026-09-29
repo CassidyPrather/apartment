@@ -66,7 +66,7 @@ def build():
     # the tiles spill past the oak region; the fills below cover the spill
     a.material("oak", 0.0, 0.32)
     a.fill("counter", (232, 230, 222), 0.0, 0.4, noise=0.08, blur=0.7)   # survey crops: white laminate
-    a.fill("steel", (196, 198, 200), 0.75, 0.4, noise=0.05, blur=0.5)   # brushed: fully metallic mirrored the brown room
+    a.fill("steel", (168, 166, 160), 0.6, 0.42, noise=0.07, blur=0.5)   # worn stainless (frames 003853/003858); fully metallic mirrored the brown room
     a.fill("nickel", (182, 180, 174), 1.0, 0.6, noise=0.04, blur=0.5)
     a.fill("toe", (168, 164, 154), 0.0, 0.25, noise=0.04, blur=1.0)   # light vinyl base in the crops
     a.fill("oak_dark", (128, 78, 36), 0.0, 0.3, noise=0.06, blur=1.0)   # shadowed oak frame in the reveals

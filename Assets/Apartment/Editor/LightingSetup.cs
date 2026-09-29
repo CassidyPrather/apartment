@@ -47,6 +47,10 @@ public static class LightingSetup
     // Anything inside a wall's thickness (closed door leaves, jambs) blends from the light
     // probe grid instead, which sits inside the rooms only.
     const float VolumePadIn = -4f;        // inset: voxels on a wall face bake half-occluded (dark)
+    // Open-plan edges with no wall (living | dining | kitchen): no inset there, so the
+    // volumes meet. A gap between them lit things straddling it (the dining closet's door)
+    // half by volume and half by probes, with a hard edge between.
+    static readonly HashSet<string> OpenEdges = new HashSet<string> { "living.y1", "dining.y0", "dining.y1", "kitchen.y0" };
     const float ProbeSpacing = 0.9f, ProbeInset = 0.15f;
     static readonly float[] ProbeHeights = { 0.3f * ApartmentSetup.WorldScale, 1.3f * ApartmentSetup.WorldScale, 2.3f * ApartmentSetup.WorldScale };
 
@@ -112,9 +116,11 @@ public static class LightingSetup
             var vol = Selection.activeGameObject;
             vol.name = "volume_" + r.name;
             vol.transform.SetParent(root.transform, false);
-            vol.transform.position = U((r.x0 + r.x1) / 2, (r.y0 + r.y1) / 2, CeilingIn / 2);
+            float Pad(string edge) => OpenEdges.Contains(r.name + "." + edge) ? 0f : VolumePadIn;
+            float vx0 = r.x0 - Pad("x0"), vx1 = r.x1 + Pad("x1"), vy0 = r.y0 - Pad("y0"), vy1 = r.y1 + Pad("y1");
+            vol.transform.position = U((vx0 + vx1) / 2, (vy0 + vy1) / 2, CeilingIn / 2);
             vol.transform.rotation = Quaternion.identity;
-            vol.transform.localScale = size + new Vector3(2 * VolumePadIn * IN, 0f, 2 * VolumePadIn * IN);
+            vol.transform.localScale = new Vector3((vx1 - vx0) * IN, CeilingIn * IN, (vy1 - vy0) * IN);
             foreach (var c in vol.GetComponents<Component>())
             {
                 var so = new SerializedObject(c);
