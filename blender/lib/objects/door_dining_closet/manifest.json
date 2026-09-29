@@ -1,0 +1,26 @@
+{
+  "name": "door_dining_closet",
+  "fbx": "Assets/Apartment/Models/door_dining_closet.fbx",
+  "materials": {
+    "doors": {
+      "atlas": "doors",
+      "mode": "opaque",
+      "tiled": false
+    }
+  },
+  "collider": "box",
+  "static": false,
+  "triangles": 1316,
+  "bounds_m": {
+    "min": [
+      -0.762,
+      -0.1165,
+      0.0
+    ],
+    "max": [
+      0.0,
+      0.0603,
+      2.032
+    ]
+  }
+}

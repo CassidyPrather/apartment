@@ -105,7 +105,7 @@ PLACES = {
     "vanity": (182.65, 227.55, 90.0),           # back on the west wall face; the mirror hangs on it
     # Built in the building's own coordinates.
     "door_kitchen_closet": (134.0, 229.5, -90.0),   # S
-    "door_laundry__dining_closet": (136.375, 194.0, 90.0),   # same 30 in 4-panel door; hinged north, swings into the closet
+    "door_dining_closet": (136.375, 194.0, 90.0),   # 30 in 4-panel door, nickel lever (IMG_1523); hinged north, swings into the closet
     # Living room and dining (living capture, S).
     "couch": (22.5, 69.0, 90.0),            # SCAN: 87 in long, back at x 3
     "couch_blankets": (22.5, 69.0, 90.0),

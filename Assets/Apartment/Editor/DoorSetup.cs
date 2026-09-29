@@ -23,7 +23,7 @@ public static class DoorSetup
         ("door_bedroom", new Vector2(136.4f, 153.5f), new Vector2(1, 0), "bedroom"),        // into the bedroom
         ("door_laundry", new Vector2(208.8f, 196.5f), new Vector2(1, 0), "laundry"),        // into the hall
         ("door_laundry", new Vector2(214.0f, 200.1f), new Vector2(0, 1), "bathroom"),       // into the bath
-        ("door_laundry", new Vector2(136.4f, 194.0f), new Vector2(1, 0), "dining closet"),  // into the closet
+        ("door_dining_closet", new Vector2(136.4f, 194.0f), new Vector2(1, 0), "dining closet"),  // into the closet
         ("door_entry", new Vector2(-3.0f, 180.5f), new Vector2(1, 0), "front"),             // into the apartment
         ("door_entry", new Vector2(212.5f, -3.0f), new Vector2(0, 1), "patio"),             // into the bedroom
     };
