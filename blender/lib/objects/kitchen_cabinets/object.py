@@ -71,7 +71,7 @@ UP_Z = (53.0, 97.5)     # SCAN
 SINK_UP_Z0 = 70.0       # SCAN short cabinets over the sink
 MW_UP_Z0 = 76.0         # SCAN short cabinets over the microwave (microwave top)
 W_UP = [                 # (y0, y1, z0, doors, pull side "lo"/"hi"/"pair")  PHOTO
-    (189.0, 214.0, UP_Z[0], 1, "hi"),
+    (189.0, 214.0, UP_Z[0], 2, "pair"),        # a pair: the towel hangs on the south pull (capture 004026/004057)
     (214.0, 246.0, SINK_UP_Z0, 2, "pair"),
     (246.0, 264.0, UP_Z[0], 1, "lo"),
 ]
@@ -81,7 +81,7 @@ N_UP = [                 # (x0, x1, z0, doors, pull side)  PHOTO
     (49.5, 79.5, MW_UP_Z0, 2, "pair"),
     (79.5, 98.0, UP_Z[0], 1, "lo"),
 ]
-FRIDGE_UP = (99.0, 134.0, 255.0, 84.0, 97.5)   # SCAN x0, x1, front y, z0, z1 (to the wall)
+FRIDGE_UP = (99.0, 134.0, 268.0, 84.0, 97.5)   # SCAN x0, x1, front y (splat/photos 004358, 004011: ~267-270), z0, z1 (to the wall)
 PULL_L, PULL_W, PULL_T, PULL_OFF = 6.3, 0.45, 0.28, 1.15   # PHOTO brushed-nickel bow pulls: a flat bar
                                                 # arching off the door on two feet (EST 128 mm centres)
 KNOB_R, KNOB_L = 0.62, 1.0                      # PHOTO mushroom drawer knobs (EST 1.25 in)
@@ -341,7 +341,7 @@ def _uppers(k):
     pu, pz = L - g - 1.6, z0 + 3.5 + (PULL_L - 5.0) / 2
     out = (mx.to_3x3() @ Vector((0, -1, 0))).normalized()
     k.pull(None, None, pu, pz, matrix=mx, out=out)
-    # cabinet over the fridge: deep box to the wall, a pair of short doors
+    # cabinet over the fridge: a box to the wall, a pair of short doors
     x0, x1, fy, z0, z1f = FRIDGE_UP
     k.box("oak_dark", x0, x1, fy + DOOR_T, NW, z0, z1f)
     mid = (x0 + x1) / 2
