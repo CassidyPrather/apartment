@@ -39,9 +39,8 @@ PLACES = {
     # 76 in across between the couch front (x 44, blankets) and the toolboxes under the TV
     # (x 122), 80 in along the room clear of the bean bag (y 30) and the AC (y 109)
     "futon_flat": (83.0, 72.5, 90.0),
-    # stored standing on end (Cassidy: "in a corner"); every living-room corner near the TV is
-    # taken, so it stands against the south wall in the gap between the two plants (x 31..56)
-    # until Cassidy says which corner
+    # stored standing on end by the big living-room window (confirmed 2026-09-29): against
+    # the south wall under the window's west end, in the gap between the two plants (x 31..56)
     "futon_rolled": (43.5, 11.3, 0.0),
 }
 
