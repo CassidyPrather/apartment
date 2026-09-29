@@ -1,0 +1,26 @@
+{
+  "name": "dining_clutter",
+  "fbx": "Assets/Apartment/Models/dining_clutter.fbx",
+  "materials": {
+    "dining_clutter": {
+      "atlas": "dining_clutter",
+      "mode": "opaque",
+      "tiled": false
+    }
+  },
+  "collider": "none",
+  "static": true,
+  "triangles": 14796,
+  "bounds_m": {
+    "min": [
+      1.6982,
+      4.102,
+      0.09
+    ],
+    "max": [
+      2.7141,
+      5.8941,
+      1.0173
+    ]
+  }
+}

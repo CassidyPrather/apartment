@@ -45,7 +45,7 @@ def build():
     a = Atlas(ATLAS)
     a.fill("enamel", ENAMEL, 0.0, 0.62, noise=0.012, blur=1.5)
     a.fill("knob", (226, 226, 222), 0.0, 0.45, noise=0.01)
-    a.fill("knob_ring", (158, 159, 160), 0.0, 0.45, noise=0.01)
+    a.fill("knob_ring", (122, 123, 125), 0.0, 0.45, noise=0.01)   # grey skirts / selector bodies (photo)
     a.fill("kick", (58, 58, 60), 0.0, 0.2, noise=0.02)
     a.fill("hinge", (205, 205, 202), 0.2, 0.5)
 

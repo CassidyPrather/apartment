@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="140" viewBox="0 0 300 140">
+  <!-- Parody degreaser brand "Gunk-B-Gone": a navy blob crossed out by a red slash beside a stacked bold wordmark. Drawn from scratch. -->
+  <path d="M20 70 q0 -40 36 -38 q34 -10 40 26 q12 34 -26 44 q-50 10 -50 -32 z" fill="#1d2f6f"/>
+  <line x1="12" y1="112" x2="104" y2="24" stroke="#d62a2a" stroke-width="12" stroke-linecap="round"/>
+  <text x="118" y="64" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="44" fill="#1d2f6f">GUNK</text>
+  <text x="118" y="116" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="36" fill="#1d2f6f">B-GONE</text>
+</svg>

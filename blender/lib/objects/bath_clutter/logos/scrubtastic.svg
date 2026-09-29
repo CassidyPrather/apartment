@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="140" viewBox="0 0 300 140">
+  <!-- Parody shower-spray brand "Scrubtastic": a yellow starburst behind a navy slanted wordmark. Drawn from scratch. -->
+  <polygon points="40,10 52,40 84,34 62,58 80,86 48,76 36,106 28,74 0,78 20,54 4,26 32,36" fill="#ffd21f"/>
+  <text x="70" y="78" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-style="italic" font-size="44" fill="#16307a">Scrub</text>
+  <text x="70" y="122" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-style="italic" font-size="40" fill="#16307a">tastic</text>
+</svg>

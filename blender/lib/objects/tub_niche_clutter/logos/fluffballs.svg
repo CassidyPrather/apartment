@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="110" viewBox="0 0 320 110">
+  <!-- Parody cotton balls "Fluffballs": three soft teal-outlined puffs and a lowercase rounded wordmark. Drawn from scratch. -->
+  <g fill="#ffffff" stroke="#2ab0b8" stroke-width="4">
+    <circle cx="36" cy="58" r="20"/><circle cx="62" cy="44" r="18"/><circle cx="66" cy="72" r="16"/>
+  </g>
+  <text x="98" y="72" font-family="Arial Rounded MT Bold, Arial, sans-serif" font-size="46" font-weight="700" fill="#2a3a4a">fluffballs</text>
+</svg>

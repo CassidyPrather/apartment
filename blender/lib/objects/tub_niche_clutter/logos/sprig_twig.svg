@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="220" height="200" viewBox="0 0 220 200">
+  <!-- Parody herbal hair-care brand "Sprig & Twig": a thin line-drawn sprig with five leaves above a lowercase script-like wordmark. Drawn from scratch. -->
+  <g fill="none" stroke="#5f6f4a" stroke-width="4" stroke-linecap="round">
+    <path d="M110 120 C108 90 112 60 110 20"/>
+    <path d="M110 100 C92 92 86 80 88 70 C100 76 108 86 110 100"/>
+    <path d="M110 84 C128 76 134 64 132 54 C120 60 112 70 110 84"/>
+    <path d="M110 64 C96 58 92 46 94 38 C104 44 110 52 110 64"/>
+    <path d="M110 48 C122 42 126 32 124 24 C116 28 110 38 110 48"/>
+  </g>
+  <text x="110" y="170" text-anchor="middle" font-family="Georgia, serif" font-style="italic" font-size="34" fill="#4a5638">sprig &amp; twig</text>
+</svg>

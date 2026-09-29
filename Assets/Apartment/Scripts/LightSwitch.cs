@@ -14,6 +14,8 @@ public class LightSwitch : UdonSharpBehaviour
     public int[] glowSlots;                // material slot of the glowing glass on each
     public Color glowColor = Color.white;
     public Transform toggle;               // the switch lever/knob, flipped when on
+    public Quaternion onRotation = Quaternion.Euler(-12f, 0f, 0f);    // the lever's local pose when on
+    public Quaternion offRotation = Quaternion.Euler(12f, 0f, 0f);    // ...and when off
     public float fadeSeconds = 0.25f;
 
     [UdonSynced] public bool isOn;
@@ -50,7 +52,7 @@ public class LightSwitch : UdonSharpBehaviour
             glows[i].SetPropertyBlock(block, glowSlots[i]);
         }
         if (toggle != null)
-            toggle.localRotation = Quaternion.Euler(isOn ? -12f : 12f, 0f, 0f);
+            toggle.localRotation = isOn ? onRotation : offRotation;
     }
 
     void Update()

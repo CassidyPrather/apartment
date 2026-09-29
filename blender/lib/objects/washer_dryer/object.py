@@ -14,6 +14,8 @@ Object origin: on the floor at the footprint centre. Local frame: width along X,
 front faces -Y, Z up. Parody brand on the control strip: tumblewump.
 """
 
+import math
+
 import bmesh
 from mathutils import Matrix
 
@@ -49,8 +51,9 @@ LID_FRONT_IN = 1.9         # EST  lid inset from the washer front
 LID_BACK_GAP_IN = 0.8      # EST  gap between lid and riser
 LID_T_IN = 0.35            # EST  lid thickness above the washer top
 # knobs: (x fraction of width, diameter in, kind) read off the photo's control strip
-KNOBS = [(0.18, 3.3, "dial"), (0.39, 1.6, "small"), (0.47, 1.6, "small"),
-         (0.70, 1.3, "button"), (0.87, 3.3, "dial")]
+# and the grip fin's tilt in degrees (clockwise as seen from the front)
+KNOBS = [(0.18, 3.3, "dial", 35), (0.39, 1.6, "small", -30), (0.47, 1.6, "small", 25),
+         (0.70, 1.3, "button", 0), (0.87, 3.3, "dial", 70)]
 
 W, D, H = m(W_IN), m(D_IN), m(H_IN)
 Y_FRONT = -D / 2
@@ -83,6 +86,22 @@ STATIC = True
 VIEWS = [("photo", -26, 14, 1.0), ("photo_upper", -26, 10, 0.6)]
 
 
+def frustum(b, region, center, r_base, r_tip, depth, segments):
+    """Front-facing cone frustum: radius r_base against the panel (+Y), r_tip toward -Y."""
+    r = bmesh.ops.create_cone(b.bm, cap_ends=True, cap_tris=False, segments=segments,
+                              radius1=r_tip, radius2=r_base, depth=depth)
+    bmesh.ops.transform(b.bm, matrix=Matrix.Translation(center) @ Matrix.Rotation(-math.pi / 2, 4, "X"),
+                        verts=r["verts"])
+    b._tag(list({f for v in r["verts"] for f in v.link_faces}), region)
+
+
+def fin(b, region, center, width, depth, height, tilt_deg):
+    """Grip fin standing off a knob face, tilted about the knob's axis."""
+    rot = Matrix.Translation(center) @ Matrix.Rotation(math.radians(tilt_deg), 4, "Y")
+    b.box(region, (-width / 2, -depth / 2, -height / 2), (width / 2, depth / 2, height / 2),
+          bevel=min(width, depth) * 0.3, segments=1, matrix=rot)
+
+
 def build(coll):
     b = common.Builder(REGIONS)
     # washer cabinet and toe kick
@@ -109,20 +128,25 @@ def build(coll):
     for zc in (z0 + m(2.5), z1 - m(2.5)):
         b.box("hinge", (x0 - m(0.35), Y_DOOR + m(0.1), zc - m(0.9)), (x0 + m(0.1), Y_UPPER + 0.001, zc + m(0.9)))
     # knobs
+    # Photo detail: the timers are a white knob with a grip fin standing in a sloped grey
+    # skirt; the two selectors are grey with a white fin; the push knob sits in a bezel.
     zc = (Z_RISER + Z_PANEL) / 2
-    for fx, dia, kind in KNOBS:
+    for fx, dia, kind, ang in KNOBS:
         x = -W / 2 + fx * W
         r = m(dia) / 2
         if kind == "dial":
-            b.cylinder("knob_ring", (x, Y_PANEL - m(0.2), zc), r, m(0.4), axis="Y", segments=24)
-            b.cylinder("knob", (x, Y_PANEL - m(0.5), zc), r * 0.72, m(0.4), axis="Y", segments=20)
-            b.box("knob", (x - r * 0.18, Y_PANEL - m(1.2), zc - r * 0.62), (x + r * 0.18, Y_PANEL - m(0.6), zc + r * 0.62),
-                  bevel=m(0.08), segments=1)
+            frustum(b, "knob_ring", (x, Y_PANEL - m(0.18), zc), r, r * 0.84, m(0.36), 24)
+            frustum(b, "knob", (x, Y_PANEL - m(0.6), zc), r * 0.72, r * 0.66, m(0.5), 20)
+            fin(b, "knob", (x, Y_PANEL - m(1.0), zc), r * 0.34, m(0.5), r * 1.3, ang)
         elif kind == "small":
-            b.cylinder("knob", (x, Y_PANEL - m(0.3), zc), r, m(0.6), axis="Y", segments=16)
-            b.box("knob", (x - r * 0.22, Y_PANEL - m(0.9), zc - r * 0.8), (x + r * 0.22, Y_PANEL - m(0.5), zc + r * 0.8))
+            frustum(b, "knob_ring", (x, Y_PANEL - m(0.3), zc), r, r * 0.9, m(0.6), 16)
+            fin(b, "knob", (x, Y_PANEL - m(0.75), zc), r * 0.4, m(0.4), r * 1.75, ang)
         else:
-            b.cylinder("knob", (x, Y_PANEL - m(0.25), zc), r, m(0.5), axis="Y", segments=16)
+            frustum(b, "knob_ring", (x, Y_PANEL - m(0.07), zc), r * 1.3, r * 1.18, m(0.14), 16)
+            frustum(b, "knob", (x, Y_PANEL - m(0.3), zc), r, r * 0.93, m(0.45), 16)
+    # The control strip's raised right-hand end cap.
+    b.box("enamel", (W / 2 - m(0.45), Y_PANEL - m(0.2), Z_RISER - m(0.05)),
+          (W / 2, Y_UPPER + 0.001, Z_PANEL + m(0.1)), bevel=m(0.08), segments=1)
     ob = b.to_object(NAME, coll)
     return [ob]
 

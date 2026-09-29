@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="100" viewBox="0 0 400 100">
+  <!-- Parody appliance maker "grumbleworks": a small dark badge with a lumpy cloud glyph and a lowercase wordmark. Drawn from scratch. -->
+  <rect x="2" y="2" width="396" height="96" rx="14" fill="#2b2f36"/>
+  <g fill="#e8e8e4">
+    <circle cx="44" cy="56" r="16"/>
+    <circle cx="62" cy="44" r="18"/>
+    <circle cx="80" cy="56" r="14"/>
+    <rect x="30" y="56" width="62" height="14" rx="7"/>
+    <text x="108" y="68" font-family="Segoe UI, Arial, sans-serif" font-size="46" font-weight="700">grumbleworks</text>
+  </g>
+</svg>

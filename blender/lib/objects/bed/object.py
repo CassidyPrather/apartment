@@ -1,6 +1,7 @@
 """Twin bed: an espresso metal-and-wood frame on black casters, a box spring in a dark
-grey skirt, a mattress in a white sheet, a light aqua fleece blanket that drapes over
-the sides and the foot almost to the floor with soft folds on top, and a grey pillow
+grey skirt, a mattress in a white sheet, a light aqua fleece blanket (a cloth simulation,
+see sim_blanket) that drapes over the sides and the foot almost to the floor with soft
+folds on top, and a grey pillow
 propped against the headboard with a crumple of sheet beside it.
 
 Source of truth: scripted from the bedroom LiDAR survey (registered.npz, plan inches)
@@ -12,10 +13,12 @@ y 88 and 127 (LiDAR and splat agree within 0.5 in).
 """
 
 import math
+import os
 import random
 
 import atlas_layout
 import bmesh
+import bpy
 import common
 
 IN = 0.0254
@@ -227,6 +230,55 @@ def pillow(b, uvl, cx, cy, cz, w, d, th, tilt, yaw=0.0, lump=0.0, region="pillow
     return faces, top, bot
 
 
+# The blanket is a cloth simulation made in the live Blender (Blender MCP): a fleece grid
+# dropped onto the mattress/box spring with its head edge pinned by the headboard, rumpled
+# afterwards with fleece wrinkles on top, sides smoothed. Saved in blender/assets/
+# bed_blanket.blend as `bed_blanket_final`, already in this package's frame. The scripted
+# blanket() below is kept as the fallback when the blend is missing.
+BLANKET_BLEND = os.path.join(os.path.dirname(__file__), "..", "..", "..", "assets", "bed_blanket.blend")
+BLANKET_TRIS = 10000
+BLANKET_T = 0.3     # EST fleece thickness
+
+
+def sim_blanket(b, uvl):
+    """Add the simulated blanket to the builder: thickened, trimmed to budget, its own UVs
+    mapped into the blanket region (written to the sheet_uv layer like the scripted one)."""
+    with bpy.data.libraries.load(os.path.abspath(BLANKET_BLEND), link=False) as (src, dst):
+        dst.objects = [n for n in src.objects if n == "bed_blanket_final"]
+    ob = dst.objects[0]
+    bpy.context.scene.collection.objects.link(ob)
+    ob.modifiers.clear()
+    sol = ob.modifiers.new("thick", "SOLIDIFY")
+    sol.thickness = m(BLANKET_T)
+    sol.offset = -1.0
+    tris = 4 * len(ob.data.polygons)                  # quads, doubled by the solidify
+    dec = ob.modifiers.new("trim", "DECIMATE")
+    dec.ratio = min(1.0, BLANKET_TRIS / max(tris, 1))
+    dg = bpy.context.evaluated_depsgraph_get()
+    me = bpy.data.meshes.new_from_object(ob.evaluated_get(dg))
+    tmp = bmesh.new()
+    tmp.from_mesh(me)
+    src_uv = tmp.loops.layers.uv.get("UVMap")
+    u0, v0, u1, v1 = atlas_layout.uv_rect(ATLAS, "blanket")
+    bi = b.idx("blanket")
+    vmap = {v: b.bm.verts.new(v.co.copy()) for v in tmp.verts}
+    for f in tmp.faces:
+        try:
+            nf = b.bm.faces.new([vmap[v] for v in f.verts])
+        except ValueError:
+            continue
+        nf.material_index = bi
+        nf.smooth = True
+        for l_src, l_dst in zip(f.loops, nf.loops):
+            u, v = l_src[src_uv].uv if src_uv else (0.5, 0.5)
+            l_dst[uvl].uv = (u0 + min(max(u, 0.0), 1.0) * (u1 - u0), v0 + min(max(v, 0.0), 1.0) * (v1 - v0))
+    tmp.free()
+    bpy.data.meshes.remove(me)
+    old = ob.data
+    bpy.data.objects.remove(ob, do_unlink=True)
+    bpy.data.meshes.remove(old)
+
+
 def build(coll):
     b = common.Builder(REGIONS)
     uvl = b.bm.loops.layers.uv.new("sheet_uv")
@@ -251,7 +303,11 @@ def build(coll):
     bx("skirt", (-HW + 0.4, Y_FOOT + 0.4, 1.6), (HW - 0.4, Y_HEAD - 0.4, BOX_Z[0] + 0.1))
     # mattress in a white fitted sheet
     bx("sheet", (-HW, Y_FOOT, MAT_Z[0]), (HW, Y_HEAD - 0.3, MAT_Z[1]), 1.5)
-    blanket(b, uvl)
+    use_sim = os.path.exists(BLANKET_BLEND)
+    if use_sim:
+        sim_blanket(b, uvl)
+    else:
+        blanket(b, uvl)
     # pillow propped against the headboard, a smaller squashed one beside it, and a
     # crumple of sheet at the north end (local -X)
     pw, pd, pt = PILLOW
@@ -266,6 +322,8 @@ def build(coll):
         v.co = Vector((y * 0.9 + m(-HW + 2.5), -x * 0.9 + m(Y_HEAD - 9.5), z + m(TOP + 2.2)))
     ob = b.to_object(NAME, coll)
 
+    if use_sim:                 # the simulated blanket is a closed solid shell: normals are right
+        return [ob]
     # an open sheet's normals can come out of recalc pointing inward: face them outward
     bm = bmesh.new()
     bm.from_mesh(ob.data)

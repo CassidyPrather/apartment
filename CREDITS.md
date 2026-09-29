@@ -55,3 +55,30 @@ names before inventing new ones. Real brands are never recorded here.
 | Iconoclutter (Castle Splash, Bathtubgrounds, Level Snax, Lunch Break) | `media_hutch` | Dark purple/navy boxes; red slash behind an italic logo; one cartoon hero each. |
 | Book spines (Sherapy, Slightly Dampened, Awakened Cods, Prune, House of Leeks, Teach Yourself SQUEAL...) | `media_hutch` | Plain coloured spines with invented titles, no author names. |
 | Humdinger / Mini Mumbler | `cassette_player` | Orange ring holding a curly "H" whose uprights are two tape reels; orange bold italic model name. |
+| Lathertron | `tub_niche_clutter` (pump bottles) | Gold droplet with bubbles; brown serif lowercase wordmark. |
+| Snowstopper | `tub_niche_clutter` (dark blue bottle) | Teal disc with a white six-armed flake struck by a bar; navy condensed caps. |
+| Sprig & Twig | `tub_niche_clutter` (sage bottles) | Line-drawn five-leaf sprig; italic serif. |
+| Plumbubble | `tub_niche_clutter` (purple body wash) | Three violet bubbles; white rounded lowercase. |
+| Smudgebuster | `tub_niche_clutter` (wipes box) | Navy lowercase with a wipe swoosh. |
+| Fluffballs | `tub_niche_clutter` (cotton bag) | Three teal-outlined puffs; rounded lowercase. |
+| Gnatnap | `tub_niche_clutter` (insect-trap box) | Sleeping cartoon gnat with "z z"; purple lowercase. |
+| Picnic Panic | `tub_niche_clutter` (ant-bait box) | Red gingham square with an ant; blue italic caps. |
+| Rolly Polly | `tub_niche_clutter` (toilet-paper wrappers) | Smiling white roll; white rounded wordmark. |
+| Kumquat | `dining_clutter` (sky-blue laptop lid) | A thin ring holding a small sideways oval citrus with two leaves; grey-blue, no letters. |
+| Limeyish | `dining_clutter` (lime seltzer cans) | A half lime slice beside a white lowercase wordmark on a green panel, over speckled white. |
+| Glacier Burp | `dining_clutter` (red seltzer can) | A lopsided white ice-cube outline with rising bubbles; tall white condensed wordmark on red. |
+| Pinchy | `dining_clutter` (seasoning shaker) | Blue rounded badge with a white wordmark and a little crab claw, red italic "sprinkle!", yellow label. |
+| Sardeen Machine | `dining_clutter` (fish tin) | A white fish with a red eye and a red rounded wordmark on a yellow band. |
+| Mister Sippy | `kitchen_clutter` (drip coffee maker badge) | A white cup with a bent straw and a steam curl, then a spaced white bold wordmark on black. |
+| Soakington | `kitchen_clutter` (12-roll paper-towel pack) | A navy water drop wearing a small gold crown; big navy italic serif wordmark; "PREMIUM-ISH TOWELS". |
+| Napsody | `kitchen_clutter` (napkin packs) | Three coloured note-heads on a white staff line; white italic wordmark on a blue rounded panel. |
+| grumbleworks | `range` (backguard badge), `dishwasher` (panel badge) | A small dark rounded badge with a lumpy white cloud glyph and a bold lowercase wordmark. |
+| zapwhistle | `microwave` (top band) | A grey zigzag bolt beside a lowercase grey wordmark. |
+| Slatherby | `bath_clutter` (lotion pump bottle) | Navy oval, white droplet, italic serif wordmark. |
+| Swishco | `bath_clutter` (mouthwash) | Teal wave under a rounded lowercase wordmark. |
+| Scrubtastic | `bath_clutter` (blue shower spray) | Yellow starburst; navy slanted two-line wordmark. |
+| Germinator | `bath_clutter` (disinfectant spray) | White oval with a green germ wearing sunglasses; blue script wordmark. |
+| Gunk-B-Gone | `bath_clutter` (degreaser) | Navy blob crossed by a red slash; stacked bold wordmark. |
+| Smudgebuster | `bath_clutter` (makeup-wipes pack) | Navy bar, pale-blue sparkle, white lowercase wordmark (same name as the niche's wipes box). |
+| Wallaboo | `bath_clutter` (purple hair spray) | Cream circle, purple swoosh, serif wordmark. |
+| Mist Opportunity | `bath_clutter` (black setting spray) | Three white mist dots over a thin stacked wordmark. |

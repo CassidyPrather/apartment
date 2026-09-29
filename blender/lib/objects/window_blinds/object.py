@@ -1,6 +1,11 @@
 """Window blinds: inside-mount vertical blinds in the three living-room windows (two on
-the west wall, one wide one on the south wall), vanes hanging from a headrail at the top
-of each recess to just above the sill, tilted as photographed.
+the west wall, one wide one on the south wall) and the bedroom window (south wall), vanes
+hanging from a headrail at the top of each recess to just above the sill, tilted as
+photographed. Each vane hangs from a small white carrier stem that shows against the dark
+carrier slot under the headrail (living frame 60); a clear tilt wand hangs at one end.
+Wear: the vanes are not quite in line (small per-vane twist, one or two bent further),
+their tint varies a little vane to vane and they are faintly dingy along the bottoms where
+they get pushed aside (textures.py).
 
 Source of truth: scripted, openings from shell_layout.OPENINGS (read-only import).
 Frame: PLAN coordinates, like window_units. Origin = plan (0, 0, 0) (the apartment's
@@ -19,11 +24,15 @@ Dimensions (inches):
   vane bottom 0.75 above the sill     EST (photos: vanes stop just above the stool)
   wand 0.35 thick, 30 long            EST
   tilt: west-south 15, west-north 45, south 12 degrees from closed  EST, read from photos
+  bedroom window: vanes nearly closed, tilt 8; carrier line d=-1.5
+                                      EST (bedroom frames 96-132, 276-708, scan3 1748)
+  carrier stems 0.3 wide, 0.4 tall    EST, frame 60
 """
 
 import importlib
 import math
 import os
+import random
 import sys
 
 from mathutils import Matrix, Vector
@@ -52,7 +61,10 @@ BLINDS = [
     ("ext_west", 42.5, 77.25, -1.25, 15.0),
     ("ext_west", 101.75, 136.5, -1.25, 45.0),
     ("ext_south", 38.5, 108.5, -1.75, 12.0),
+    ("ext_south", 171.25, 205.45, -1.5, 8.0),       # bedroom
 ]
+JITTER = 3.0                  # EST per-vane twist (deg), a few vanes bent further
+BENT = {5: 11.0, 17: -9.0, 29: 14.0, 41: -8.0}    # vane index (all blinds) -> extra twist
 # The portable AC's hose goes out through window 2: its vanes part around it, the ones in
 # the way pushed aside and bunched up either side (hose centre along the wall, half-gap).
 HOSE_PARTS = {("ext_west", 101.75): (113.5, 4.5)}
@@ -100,7 +112,18 @@ def wall_box(b, region, wall, u, d, z, tilt=0.0):
     b.box(region, tuple(m(v) for v in lo), tuple(m(v) for v in hi), matrix=mat)
 
 
-def blind(b, wall, a0, a1, dc, tilt):
+def stem(b, wall, cu, dc, zt):
+    """A carrier stem: a small flat tab (tetrahedron, 4 triangles) at the vane's top."""
+    bm = b.bm
+    pts = [(cu - 0.15, dc - 0.02, zt), (cu + 0.15, dc - 0.02, zt), (cu, dc - 0.02, zt - 0.45),
+           (cu, dc + 0.08, zt - 0.1)]
+    vs = [bm.verts.new(to_plan(wall, *p)) for p in pts]
+    faces = [bm.faces.new((vs[0], vs[1], vs[2])), bm.faces.new((vs[0], vs[3], vs[1])),
+             bm.faces.new((vs[1], vs[3], vs[2])), bm.faces.new((vs[2], vs[3], vs[0]))]
+    b._tag(faces, "rail")
+
+
+def blind(b, wall, a0, a1, dc, tilt, rnd, first):
     u0, u1 = a0 + END_GAP, a1 - END_GAP
     zt = Z1
     wall_box(b, "rail", wall, (u0, u1), (dc - RAIL_D / 2, dc + RAIL_D / 2), (zt - RAIL_H, zt))
@@ -121,17 +144,22 @@ def blind(b, wall, a0, a1, dc, tilt):
                 cu = g + side * (half + VANE_W / 2 + 0.5 + (half - k) * 0.4)
         # alternate a hair in depth so closed, overlapping vanes never z-fight
         dd = dc + (0.04 if i % 2 else -0.04)
+        tw = tilt + rnd.uniform(-JITTER, JITTER) + BENT.get(first + i, 0.0)
         wall_box(b, "vane", wall, (cu - VANE_W / 2, cu + VANE_W / 2), (dd - VANE_T / 2, dd + VANE_T / 2),
-                 (zb, zv), tilt=tilt)
+                 (zb, zv), tilt=tw)
+        stem(b, wall, cu, dc + 0.33, zv + 0.15)       # in front of the carrier slot
     # tilt wand at the low-u end, room side of the vanes
     dw = dc + VANE_W / 2 * math.sin(math.radians(tilt)) + 0.6
     wall_box(b, "wand", wall, (u0 + 0.6, u0 + 0.6 + WAND_T), (dw, dw + WAND_T), (zv - WAND_L, zv))
+    return n
 
 
 def build(coll):
     b = common.Builder(REGIONS)
+    rnd = random.Random(11)
+    first = 0
     for wall, a0, a1, dc, tilt in BLINDS:
-        blind(b, wall, a0, a1, dc, tilt)
+        first += blind(b, wall, a0, a1, dc, tilt, rnd, first)
     return [b.to_object(NAME, coll)]
 
 

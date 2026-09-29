@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="120" viewBox="0 0 240 120">
+  <!-- Parody body wash "Plumbubble": three overlapping violet bubbles with white glints and a rounded lowercase wordmark. Drawn from scratch. -->
+  <circle cx="120" cy="36" r="22" fill="#8a5cc8"/><circle cx="96" cy="46" r="14" fill="#b690e6"/><circle cx="146" cy="50" r="11" fill="#6b3aa8"/>
+  <circle cx="113" cy="28" r="5" fill="#ffffff"/><circle cx="92" cy="41" r="3" fill="#ffffff"/>
+  <text x="120" y="104" text-anchor="middle" font-family="Arial Rounded MT Bold, Arial, sans-serif" font-size="38" font-weight="700" fill="#ffffff">plumbubble</text>
+</svg>

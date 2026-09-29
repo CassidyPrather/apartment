@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="330" height="110" viewBox="0 0 330 110">
+  <!-- Parody hair-care brand "Lathertron": a gold droplet with three bubbles and a lowercase serif wordmark. Drawn from scratch. -->
+  <path d="M40 12 C52 34 66 50 66 68 A26 26 0 0 1 14 68 C14 50 28 34 40 12 Z" fill="#c9a04a"/>
+  <circle cx="33" cy="66" r="7" fill="#ffffff"/><circle cx="47" cy="78" r="5" fill="#ffffff"/><circle cx="45" cy="58" r="3.5" fill="#ffffff"/>
+  <text x="80" y="72" font-family="Georgia, Times New Roman, serif" font-size="38" font-weight="700" fill="#5a4220">lathertron</text>
+</svg>

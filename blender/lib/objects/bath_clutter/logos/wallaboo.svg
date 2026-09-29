@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="220" height="220" viewBox="0 0 220 220">
+  <!-- Parody hair-spray brand "Wallaboo": a cream circle holding a hopping-tail swoosh and a curvy wordmark. Drawn from scratch. -->
+  <circle cx="110" cy="110" r="104" fill="#f4e3a4"/>
+  <path d="M40 140 q60 -90 140 -40" fill="none" stroke="#5a2a91" stroke-width="10" stroke-linecap="round"/>
+  <text x="30" y="128" font-family="Georgia, serif" font-weight="700" font-size="33" fill="#5a2a91">wallaboo</text>
+</svg>

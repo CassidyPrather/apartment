@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="120" viewBox="0 0 300 120">
+  <!-- Parody scalp shampoo "Snowstopper": a teal disc holding a white six-armed flake crossed by a bar, over a bold condensed wordmark. Drawn from scratch. -->
+  <circle cx="150" cy="38" r="32" fill="#1fa6a6"/>
+  <g stroke="#ffffff" stroke-width="5" stroke-linecap="round">
+    <line x1="150" y1="14" x2="150" y2="62"/><line x1="129" y1="26" x2="171" y2="50"/><line x1="129" y1="50" x2="171" y2="26"/>
+  </g>
+  <line x1="124" y1="64" x2="176" y2="12" stroke="#e8f4f4" stroke-width="7" stroke-linecap="round"/>
+  <text x="150" y="108" text-anchor="middle" font-family="Arial Narrow, Arial, sans-serif" font-size="34" font-weight="700" fill="#0f2458">SNOWSTOPPER</text>
+</svg>

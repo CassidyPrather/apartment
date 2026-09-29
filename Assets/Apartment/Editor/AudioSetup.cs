@@ -29,10 +29,12 @@ public static class AudioSetup
         ("outside", new Vector3(215f, -14f, 55f), 0.25f, 1.5f, 12f, 27f, false),   // the bedroom window and patio door
     };
 
-    // Breaker panel, 15.25 wide (survey) on the bedroom's back wall y 158.4, facing south into
-    // the bedroom. The surveyed spot is behind the open bedroom door and under the flower
-    // print, so it sits in the clear stretch east of the print instead.
-    const float PanelX0 = 194.8f, PanelX1 = 210.05f, PanelY = 158.4f, PanelZ0 = 48f, PanelZ1 = 68f, PanelD = 0.8f;
+    // The real breaker panel (wall_plates package, positions.json): a flush cover painted the
+    // wall colour on the bedroom's back wall under the flower print, with an 8 x 20.5 in inner
+    // door at x 170.5..178.5, z 30..50.5, its face 0.22 in off the wall (y 158.18). The
+    // utility UI is the panel's directory card on that door, the ambient breaker below it.
+    const float PanelX0 = 170.5f, PanelX1 = 178.5f, PanelY = 158.18f, PanelZ0 = 30f, PanelZ1 = 50.5f;
+    const float CardW = 6.4f, CardH = 9.6f, CardZ = 44.6f;       // card centre height (in)
 
     [MenuItem("Apartment/Setup Audio")]
     public static void Setup()
@@ -100,24 +102,24 @@ public static class AudioSetup
         var panel = new GameObject("breaker_panel");
         panel.transform.SetParent(parent, false);
         panel.transform.SetPositionAndRotation(U(cx, PanelY, cz), Quaternion.LookRotation(n, Vector3.up));
-
-        var metal = FilingCabinetSetup.PlainMat("breaker_panel", new Color(0.78f, 0.78f, 0.76f));
         var dark = FilingCabinetSetup.PlainMat("breaker_handle", new Color(0.08f, 0.08f, 0.08f));
-        var door = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        door.name = "door";
-        Object.DestroyImmediate(door.GetComponent<Collider>());
-        door.transform.SetParent(panel.transform, false);
-        door.transform.localScale = new Vector3((PanelX1 - PanelX0) * IN, (PanelZ1 - PanelZ0) * IN, PanelD * IN);
-        door.transform.localPosition = new Vector3(0f, 0f, PanelD * IN / 2);
-        door.GetComponent<MeshRenderer>().sharedMaterial = metal;
-        float face = PanelD * IN;
+        var paper = FilingCabinetSetup.PlainMat("panel_card", new Color(0.95f, 0.94f, 0.9f));
 
-        // The ambient sound breaker: a black handle in a dark slot, low on the panel.
+        // The directory card taped to the inner door.
+        var card = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        card.name = "directory_card";
+        Object.DestroyImmediate(card.GetComponent<Collider>());
+        card.transform.SetParent(panel.transform, false);
+        card.transform.localScale = new Vector3(CardW * IN, CardH * IN, 0.0008f);
+        card.transform.localPosition = new Vector3(0f, (CardZ - cz) * IN, 0.0005f);
+        card.GetComponent<MeshRenderer>().sharedMaterial = paper;
+
+        // The ambient sound breaker: a black handle in a dark slot, low on the door.
         var slot = GameObject.CreatePrimitive(PrimitiveType.Cube);
         slot.name = "sound_breaker";
         slot.transform.SetParent(panel.transform, false);
-        slot.transform.localPosition = new Vector3(0f, -7f * IN, face + 0.002f);
-        slot.transform.localScale = new Vector3(1.8f * IN, 3.0f * IN, 0.004f);
+        slot.transform.localPosition = new Vector3(0f, (34.5f - cz) * IN, 0.002f);
+        slot.transform.localScale = new Vector3(1.5f * IN, 2.6f * IN, 0.004f);
         slot.GetComponent<MeshRenderer>().sharedMaterial = dark;
         var handle = GameObject.CreatePrimitive(PrimitiveType.Cube);
         handle.name = "handle";
@@ -133,25 +135,26 @@ public static class AudioSetup
         toggle.InteractionText = "Ambient sound on/off";
         UdonSharpEditorUtility.CopyProxyToUdon(toggle);
 
-        // Labels and the GitHub link on a world-space canvas over the upper panel.
+        // The card's text and the GitHub link on a world-space canvas over it.
         var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
         var cgo = new GameObject("panel_ui", typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
         cgo.transform.SetParent(panel.transform, false);
         var canvas = cgo.GetComponent<Canvas>();
         canvas.renderMode = RenderMode.WorldSpace;
         var ui = cgo.GetComponent<RectTransform>();
-        ui.sizeDelta = new Vector2(280f, 330f);
-        float px = (PanelX1 - PanelX0 - 1f) * IN / 280f;
+        ui.sizeDelta = new Vector2(280f, 420f);
+        float px = CardW * IN / 280f;
         ui.localScale = new Vector3(px, px, px);
-        ui.localPosition = new Vector3(0f, 1.2f * IN, face + 0.003f);
+        ui.localPosition = new Vector3(0f, (CardZ - cz) * IN, 0.0012f);
         ui.localRotation = Quaternion.Euler(0f, 180f, 0f);       // UI faces its -Z; the panel faces +Z
         var shape = System.AppDomain.CurrentDomain.GetAssemblies()
             .Select(a => a.GetType("VRC.SDK3.Components.VRCUiShape")).FirstOrDefault(t => t != null);
         if (shape != null) cgo.AddComponent(shape);
 
-        Label(cgo.transform, font, "UTILITIES", 30, FontStyle.Bold, new Vector2(0f, 130f), new Vector2(260f, 44f));
-        LinkField(cgo.transform, font, new Vector2(0f, 36f), new Vector2(264f, 40f));
-        Label(cgo.transform, font, "Ambient sound", 18, FontStyle.Bold, new Vector2(0f, -40f), new Vector2(260f, 30f));
+        Label(cgo.transform, font, "UTILITIES", 30, FontStyle.Bold, new Vector2(0f, 160f), new Vector2(260f, 44f));
+        LinkField(cgo.transform, font, new Vector2(0f, 60f), new Vector2(264f, 40f));
+        Label(cgo.transform, font, "Ambient sound", 22, FontStyle.Bold, new Vector2(0f, -150f), new Vector2(260f, 34f));
+        Label(cgo.transform, font, "(breaker below)", 14, FontStyle.Italic, new Vector2(0f, -178f), new Vector2(260f, 24f));
     }
 
     // Power switches for the appliances that hum: each turns its sound off for whoever flips it.
@@ -161,9 +164,20 @@ public static class AudioSetup
         var grey = FilingCabinetSetup.PlainMat("power_button", new Color(0.62f, 0.63f, 0.66f));   // stands out on the black cases
         GameObject Sound(string clip) => root.Find("sound_" + clip)?.gameObject;
 
-        // Bathroom fan: a second rocker beside the bathroom light switch (NightSetup).
-        var fan = NightSetup.WallSwitch("bath_fan_switch", root, U(252.5f, 202.6f, 48f), new Vector2(0, 1), plate);
-        Wire(fan, fan.transform.Find("rocker"), "Bathroom fan", Sound("bath_fan"), new Vector3(-12f, 0f, 0f), new Vector3(12f, 0f, 0f));
+        // Bathroom fan: the middle toggle of the bath's real 3-gang plate (wall_plates), else a
+        // rocker of its own beside the bathroom light switch.
+        var fanLever = NightSetup.FindLever("wall_plates_lever_bath_2");
+        if (fanLever != null)
+        {
+            var fanHost = NightSetup.LeverHost("bath_fan_switch", root, fanLever);
+            var e = fanLever.localEulerAngles;
+            Wire(fanHost, fanLever, "Bathroom fan", Sound("bath_fan"), e, (fanLever.localRotation * Quaternion.Euler(40f, 0f, 0f)).eulerAngles);
+        }
+        else
+        {
+            var fan = NightSetup.WallSwitch("bath_fan_switch", root, U(252.5f, 202.6f, 48f), new Vector2(0, 1), plate);
+            Wire(fan, fan.transform.Find("rocker"), "Bathroom fan", Sound("bath_fan"), new Vector3(-12f, 0f, 0f), new Vector3(12f, 0f, 0f));
+        }
 
         // Portable AC: a button near the front of its top (body top z 34, centre plan (25, 125);
         // portable_ac object.py). Its renderer's bounds take in the hose, so they won't do.

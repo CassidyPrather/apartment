@@ -6,14 +6,15 @@ Source of truth: modelled by hand in the live Blender (Blender MCP), saved in
 blender/assets/futon.blend as two objects:
   futon_flat    76 x 80 x 4 in quilted mattress, rounded bulging edges, tufts on a
                 5 x 6 grid (12.65 x 13.3 in), puffed panels between them
-  futon_rolled  folded in thirds and rolled, standing in its drawstring sack: ~22 in
-                across, 27 in to the cinched neck (31 with the gathered top), soft
-                vertical wrinkles, a drawstring with a toggle
+  futon_rolled  rolled lengthwise (not folded) and standing on end in its drawstring
+                sack: 76 in tall (the futon's width) and ~20 in across (80 x 4 in of
+                mattress rolled up), a soft ridge where the mattress edge ends, the
+                sack gathered above it (84 in overall), a drawstring with a toggle
 Each has its origin on the floor at its footprint centre (the flat one's length along +Y). One material
 slot, "coffee" (the atlas region).
 
 Product (Cassidy): MAXYOYO Japanese floor mattress, 4 in thick, king, in coffee. The
-listing gives the size and thickness; the tuft layout and the rolled size are EST from typical
+listing gives the size and thickness; the tuft layout and the roll's diameter are EST (Cassidy: rolled into a cylinder, "far longer") from typical
 floor futons of this kind.
 
 Built in PLAN coordinates (like bedroom_cables): the package goes on a marker at the plan
@@ -38,8 +39,10 @@ PLACES = {
     # 76 in across between the couch front (x 44, blankets) and the toolboxes under the TV
     # (x 122), 80 in along the room clear of the bean bag (y 30) and the AC (y 109)
     "futon_flat": (83.0, 72.5, 90.0),
-    # against the south wall under the window, in the gap between the two plants (x 31..56)
-    "futon_rolled": (43.5, 12.0, 0.0),
+    # stored standing on end (Cassidy: "in a corner"); every living-room corner near the TV is
+    # taken, so it stands against the south wall in the gap between the two plants (x 31..56)
+    # until Cassidy says which corner
+    "futon_rolled": (43.5, 11.3, 0.0),
 }
 
 ATLAS = {

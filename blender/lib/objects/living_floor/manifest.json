@@ -1,0 +1,25 @@
+{
+  "name": "living_floor",
+  "fbx": "Assets/Apartment/Models/living_floor.fbx",
+  "materials": {
+    "living_floor": {
+      "atlas": "living_floor",
+      "mode": "opaque"
+    }
+  },
+  "collider": "none",
+  "static": true,
+  "triangles": 1532,
+  "bounds_m": {
+    "min": [
+      0.0381,
+      2.951,
+      0.0
+    ],
+    "max": [
+      1.1626,
+      3.4989,
+      0.1808
+    ]
+  }
+}

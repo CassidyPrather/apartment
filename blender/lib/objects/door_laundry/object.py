@@ -14,6 +14,8 @@ Dimensions (inches):
   2-panel: bottom rail 9.5, lock rail 39-43, top rail 4.75, stiles 4.5
                            EST; IMG_1502 shows the knob just below the lower panel's top
   knob centre 36 up        EST
+Hardware (see doorkit): brushed nickel ball knob on a stepped rose (IMG_1502), three
+nickel butt hinges, latch and strike. Wear: faint smudges around the knob.
 """
 
 import importlib

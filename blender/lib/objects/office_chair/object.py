@@ -1,6 +1,8 @@
-"""Office chair: black five-star base on twin-wheel casters, gas lift and tilt mechanism,
-navy fabric seat and reclined backrest on a black spine, black T-arms with pads, and a
-tan cloth draped over the backrest (hangs short in front, long down the back). Plus the
+"""Office chair: black nylon five-star base (tapered legs, round sockets at the tips) on
+twin-wheel casters, gas lift and tilt mechanism with a tension knob and a height paddle,
+a navy woven fabric seat with a brown microsuede seat cushion (black piping) laid on its
+rear two-thirds, a black mesh backrest on a black spine, black T-arms with dusty pads,
+and a tan jacket draped over the backrest (hangs short in front, long down the back). Plus the
 clear plastic chair mat it rolls on, as a second mesh with its own transparent material.
 
 Source of truth: scripted from the bedroom survey (LiDAR slices: seat x 172..198,
@@ -15,6 +17,7 @@ it can stay put if the chair becomes a pickup).
 
 import math
 
+import bmesh
 from mathutils import Matrix, Vector
 
 import common
@@ -36,6 +39,7 @@ BACK_Z0, BACK_Y0 = 22.0, 9.5       # EST bottom edge of the backrest
 RECLINE = 12.0                     # EST degrees
 ARM_X = 11.0                       # EST arm post centre; W with pads ~25.4
 ARM_Z = 27.0                       # EST pad top (photo: ~7 in above the seat)
+CUSHION = (-8.3, 8.3, -8.8, 6.0, 1.2)  # EST capture close-ups: brown pad x0 x1 y0 y1 thickness
 MAT_T = 0.12                       # EST
 MAT_ALPHA = 0.3
 
@@ -50,16 +54,20 @@ ATLAS = {
         "metal": (128, 256, 128, 128),
         "pad": (0, 384, 128, 128),
         "mat": (256, 256, 128, 128),
+        "mesh": (384, 256, 128, 128),
+        "cushion": (128, 384, 256, 128),
     },
 }
 REGIONS = list(ATLAS["regions"])
+CHAIR_REGIONS = [r for r in REGIONS if r != "mat"]
 MATERIALS = {
     "office_chair": {"atlas": "office_chair", "mode": "opaque", "tiled": False},
     "office_chair_mat": {"atlas": "office_chair", "mode": "transparent", "alpha": MAT_ALPHA},
 }
 COLLIDER = "box"
 STATIC = False
-VIEWS = [("photo_back_left", 215, 40, 0.8), ("photo_north", 180, 10, 0.8)]
+VIEWS = [("photo_back_left", 215, 40, 0.8), ("photo_north", 180, 10, 0.8), ("photo_seat", 300, 60, 0.55),
+         ("photo_base", 20, 35, 0.5)]
 
 
 def _back_frame():
@@ -121,34 +129,72 @@ def _cloth(b, region):
     b._tag(faces, region)
 
 
+def b_cyl(b, region, R, c, radius, depth, axis, seg):
+    """Cylinder at c (inches, in a leg's frame) on local axis, then rotated by R."""
+    faces = b.cylinder(region, (m(c[0]), m(c[1]), m(c[2])), m(radius), m(depth), axis=axis, segments=seg)
+    verts = list({v for f in faces for v in f.verts})
+    bmesh.ops.transform(b.bm, matrix=R, verts=verts)
+
+
+def _tapered_leg(b, region, R, r0, r1, root, tip):
+    """Leg along local +X from r0 to r1: root/tip = (width, height, z-centre); the top
+    rises a little toward the hub like the real nylon base."""
+    bm = b.bm
+    vs = []
+    for r, (w, h, zc) in ((r0, root), (r1, tip)):
+        for sy, sz in ((-1, -1), (1, -1), (1, 1), (-1, 1)):
+            vs.append(bm.verts.new(R @ Vector((m(r), m(sy * w / 2), m(zc + sz * h / 2)))))
+    a, c = vs[:4], vs[4:]
+    nf = bm.faces.new
+    faces = [nf((a[i], a[(i + 1) % 4], c[(i + 1) % 4], c[i])) for i in range(4)]
+    faces += [nf(list(reversed(a))), nf(c)]
+    b._tag(faces, region)
+
+
 def m_v(v):
     return Vector((m(v.x), m(v.y), m(v.z)))
 
 
 def build(coll):
-    b = common.Builder(REGIONS[:-1])
+    b = common.Builder(CHAIR_REGIONS)
 
     def bx(r, a, c, bev=0.0, mat=None, seg=1):
         return b.box(r, tuple(map(m, a)), tuple(map(m, c)), bevel=m(bev), segments=seg, matrix=mat)
 
-    # five-star base + casters
+    # five-star base: tapered nylon legs with a round socket at each tip, twin-wheel casters
     for k in range(5):
         ang = math.radians(90 + 72 * k)
         R = Matrix.Rotation(ang, 4, "Z")
-        bx("plastic", (1.2, -LEG_W / 2, 3.0), (BASE_R - 0.6, LEG_W / 2, 4.3), 0.3, R)
-        c = R @ Vector((m(BASE_R - 0.9), 0, 0))
-        Rc = Matrix.Translation((c.x, c.y, 0)) @ Matrix.Rotation(ang, 4, "Z")
-        bx("plastic", (-1.1, -0.9, 0.05), (1.1, 0.9, 2.1), 0.8, Rc, 2)       # twin-wheel body
-        bx("metal", (-0.25, -0.25, 2.1), (0.25, 0.25, 3.0), 0.0, Rc)         # stem
+        tip = BASE_R - 0.9
+        _tapered_leg(b, "plastic", R, 1.4, tip, (2.1, 1.9, 3.6), (1.25, 1.1, 3.1))
+        b_cyl(b, "plastic", R, (tip, 0, 3.2), 0.75, 1.4, "Z", 10)            # socket boss
+        b_cyl(b, "metal", R, (tip, 0, 2.2), 0.22, 0.9, "Z", 6)               # stem
+        cx = tip - 0.35                                                      # wheels trail a little
+        bx("plastic", (cx - 0.95, -0.32, 0.55), (cx + 0.95, 0.32, 2.15), 0.3, R)   # hood between the wheels
+        for sy in (-1, 1):
+            b_cyl(b, "plastic", R, (cx, sy * 0.62, 0.98), 0.95, 0.55, "Y", 12)       # wheel
+            b_cyl(b, "metal", R, (cx, sy * 0.92, 0.98), 0.35, 0.06, "Y", 8)          # hub cap
     b.cylinder("plastic", (0, 0, m(3.7)), m(1.9), m(1.6), segments=12)       # hub
     b.cylinder("metal", (0, 0, m(9.5)), m(0.9), m(11.0), segments=12)        # gas lift
     b.cylinder("plastic", (0, 0, m(7.5)), m(1.3), m(6.0), segments=12)       # lower shroud
     bx("plastic", (-4.5, -5.0, 14.8), (4.5, 4.0, 16.6), 0.3)                # mechanism
-    bx("plastic", (-0.5, -5.5, 15.2), (0.5, -4.0, 15.9), 0.1)                # tension knob stub
+    I = Matrix.Identity(4)
+    b_cyl(b, "plastic", I, (0, -5.4, 15.4), 1.0, 1.1, "Y", 12)               # tension knob
+    # height paddle: arm out to the right under the seat, flat paddle at the end
+    bx("plastic", (4.3, -3.2, 15.3), (8.6, -2.6, 15.7), 0.1)
+    bx("plastic", (8.2, -4.4, 15.1), (9.6, -1.6, 15.6), 0.2)
     # seat
     x0, x1, y0, y1 = SEAT
     bx("plastic", (x0 + 0.5, y0 + 0.5, SEAT_Z[0] - 0.3), (x1 - 0.5, y1 - 0.5, SEAT_Z[0] + 0.6), 0.3)
     bx("fabric", (x0, y0, SEAT_Z[0] + 0.6), (x1, y1, SEAT_Z[1]), 1.3, None, 2)
+    # the brown seat cushion laid on the rear of the seat
+    c0, c1, d0, d1, ct = CUSHION
+    # pillowy slab: rounded-rectangle sides, then a slightly inset crown (piping at the step)
+    cxm, cym, cw, cd = (c0 + c1) / 2, (d0 + d1) / 2, c1 - c0, d1 - d0
+    z0, z1, z2 = SEAT_Z[1] - 0.2, SEAT_Z[1] + ct * 0.7, SEAT_Z[1] + ct
+    b.prism("cushion", [(m(x), m(y)) for x, y in common.rounded_rect(cxm, cym, cw, cd, 2.6, 5)], m(z0), m(z1))
+    b.prism("cushion", [(m(x), m(y)) for x, y in common.rounded_rect(cxm, cym, cw - 0.7, cd - 0.7, 2.3, 5)],
+            m(z1), m(z2))
     # spine up to the backrest
     prof = [(-0.45, -1.3), (0.45, -1.3), (0.45, 1.3), (-0.45, 1.3)]
     pts = [(0, m(2.5), m(15.4)), (0, m(8.5), m(15.9)), (0, m(10.9), m(19.0)),
@@ -157,7 +203,7 @@ def build(coll):
     # backrest (shell + cushion)
     F = _back_frame()
     bx("plastic", (-BACK_W / 2 + 0.4, 0.8, 0.3), (BACK_W / 2 - 0.4, BACK_T / 2 + 0.2, BACK_H - 0.3), 1.0, F)
-    bx("fabric", (-BACK_W / 2, -BACK_T / 2, 0.0), (BACK_W / 2, 0.9, BACK_H), 1.1, F, 2)
+    bx("mesh", (-BACK_W / 2, -BACK_T / 2, 0.0), (BACK_W / 2, 0.9, BACK_H), 1.1, F, 2)
     # T-arms
     for s in (-1, 1):
         ax = s * ARM_X
@@ -188,7 +234,8 @@ def texture(objs):
     except (AttributeError, TypeError):
         clear.blend_method = "BLEND"
     clear.use_backface_culling = False
-    common.atlas_uvs(chair, ATLAS)
-    common.collapse_materials(chair, {r: opaque for r in REGIONS[:-1]})
+    c0, c1, d0, d1, _ = CUSHION
+    common.atlas_uvs(chair, ATLAS, planar={"cushion": ("+Z", (m(c0), m(c1)), (m(d0), m(d1)))})
+    common.collapse_materials(chair, {r: opaque for r in CHAIR_REGIONS})
     common.atlas_uvs(matob, ATLAS)
     common.collapse_materials(matob, {"mat": clear})

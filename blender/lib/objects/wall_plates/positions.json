@@ -1,0 +1,643 @@
+{
+ "frame": "plan inches; z = plate centre above the floor; facing = unit normal out of the wall (plan x, y); plan_x/plan_y = the plate centre, half its 0.25 in thickness off the wall face",
+ "captures": {
+  "living": "Reference/lidarseries-splat/LidarSeries_20260925_003335_763",
+  "bedroom": "Reference/bedroom-lidar-splat/LidarSeries_20260925_011425_918",
+  "bath": "Reference/bathroom-splat/LidarSeries_20260925_005649_127"
+ },
+ "items": [
+  {
+   "id": "entry_switch",
+   "kind": "light_switch",
+   "room": "living (entry)",
+   "plan_x": 0.12,
+   "plan_y": 139.0,
+   "z": 46.0,
+   "wall": "east face of ext_west",
+   "facing": [
+    1.0,
+    0.0
+   ],
+   "gangs": 1,
+   "toggles": [
+    "up"
+   ],
+   "controls": "unknown; the only switch at the entry, most likely the entry/dining ceiling dome (ceiling_dome_light__dining, plan 67,152)",
+   "size_in": [
+    2.75,
+    4.5,
+    0.25
+   ],
+   "notes": "traditional single toggle plate between window 2's recess and the entry door casing (latch side); capture puts it at y 137.2-137.6, snapped to 139.0 to sit centred in the modelled 136.5-141.5 gap",
+   "frames": [
+    "living wide_20260925_003702_768",
+    "living wide_20260925_003336_768",
+    "living wide_20260925_003413_768"
+   ]
+  },
+  {
+   "id": "living_thermostat",
+   "kind": "thermostat",
+   "room": "living",
+   "plan_x": 133.88,
+   "plan_y": 108.2,
+   "z": 46.2,
+   "wall": "west face of center",
+   "facing": [
+    -1.0,
+    0.0
+   ],
+   "gangs": 1,
+   "controls": "the living-room wall heater (wall_heater, plan y 97.5)",
+   "size_in": [
+    3.7,
+    4.8,
+    0.9
+   ],
+   "notes": "white line-voltage thermostat, dark window with a slider on its right half; below the map poster",
+   "frames": [
+    "living wide_20260925_003549_773",
+    "living wide_20260925_004349_769",
+    "living wide_20260925_003553_772"
+   ]
+  },
+  {
+   "id": "living_smoke_alarm",
+   "kind": "smoke_detector",
+   "room": "living",
+   "plan_x": 133.88,
+   "plan_y": 92.1,
+   "z": 81.6,
+   "wall": "west face of center",
+   "facing": [
+    -1.0,
+    0.0
+   ],
+   "gangs": 0,
+   "size_in": [
+    4.25,
+    5.75,
+    1.5
+   ],
+   "notes": "rectangular wall-mount smoke alarm (vented face), high on the wall above the heater",
+   "frames": [
+    "living wide_20260925_003553_772",
+    "living wide_20260925_004209_769",
+    "living wide_20260925_004207_768"
+   ]
+  },
+  {
+   "id": "living_outlet_tv",
+   "kind": "outlet",
+   "room": "living",
+   "plan_x": 133.88,
+   "plan_y": 76.2,
+   "z": 19.2,
+   "wall": "west face of center",
+   "facing": [
+    -1.0,
+    0.0
+   ],
+   "gangs": 1,
+   "size_in": [
+    2.75,
+    4.5,
+    0.25
+   ],
+   "notes": "duplex just below the TV, both receptacles in use (two black plugs, not modelled); the plate reads a little large (3.5 x 4.3) in the capture, built standard",
+   "frames": [
+    "living wide_20260925_003606_772",
+    "living wide_20260925_003547_768",
+    "living wide_20260925_004348_769"
+   ]
+  },
+  {
+   "id": "living_outlet_south",
+   "kind": "outlet",
+   "room": "living",
+   "plan_x": 114.2,
+   "plan_y": 0.12,
+   "z": 17.5,
+   "wall": "north face of ext_south",
+   "facing": [
+    0.0,
+    1.0
+   ],
+   "gangs": 1,
+   "size_in": [
+    2.75,
+    4.5,
+    0.25
+   ],
+   "notes": "duplex just west of the media hutch, a plug in the upper receptacle (not modelled)",
+   "frames": [
+    "living wide_20260925_003448_768",
+    "living wide_20260925_003528_768",
+    "living wide_20260925_003530_768"
+   ]
+  },
+  {
+   "id": "kitchen_switch_gfci",
+   "kind": "switch+gfci",
+   "room": "kitchen",
+   "plan_x": 0.12,
+   "plan_y": 203.8,
+   "z": 42.4,
+   "wall": "east face of ext_west",
+   "facing": [
+    1.0,
+    0.0
+   ],
+   "gangs": 2,
+   "toggles": [
+    "down"
+   ],
+   "controls": "toggle: unknown, probably the garbage disposal (next to the sink) or the kitchen light bar",
+   "size_in": [
+    4.56,
+    4.5,
+    0.25
+   ],
+   "notes": "2-gang plate: toggle (south) + decora GFCI with red TEST / black RESET (north), on the backsplash between the dishwasher and the sink",
+   "frames": [
+    "living wide_20260925_004026_769",
+    "living wide_20260925_004058_769",
+    "living wide_20260925_003856_767"
+   ]
+  },
+  {
+   "id": "kitchen_outlet_west",
+   "kind": "outlet",
+   "room": "kitchen",
+   "plan_x": 0.12,
+   "plan_y": 254.6,
+   "z": 42.4,
+   "wall": "east face of ext_west",
+   "facing": [
+    1.0,
+    0.0
+   ],
+   "gangs": 1,
+   "size_in": [
+    2.75,
+    4.5,
+    0.25
+   ],
+   "notes": "traditional duplex on the backsplash north of the sink",
+   "frames": [
+    "living wide_20260925_003900_768",
+    "living wide_20260925_004028_769",
+    "living wide_20260925_003859_770"
+   ]
+  },
+  {
+   "id": "kitchen_outlet_north",
+   "kind": "outlet",
+   "room": "kitchen",
+   "plan_x": 37.1,
+   "plan_y": 285.88,
+   "z": 42.4,
+   "wall": "south face of ext_north",
+   "facing": [
+    0.0,
+    -1.0
+   ],
+   "gangs": 1,
+   "size_in": [
+    2.75,
+    4.5,
+    0.25
+   ],
+   "notes": "duplex on the north backsplash over the drawer bank; rice cooker plugged into the lower receptacle (not modelled)",
+   "frames": [
+    "living wide_20260925_004033_769",
+    "living wide_20260925_003905_769",
+    "living wide_20260925_004102_768"
+   ]
+  },
+  {
+   "id": "bedroom_thermostat",
+   "kind": "thermostat",
+   "room": "bedroom",
+   "plan_x": 138.88,
+   "plan_y": 110.4,
+   "z": 45.4,
+   "wall": "east face of center",
+   "facing": [
+    1.0,
+    0.0
+   ],
+   "gangs": 1,
+   "controls": "the bedroom wall heater (wall_heater__bedroom, plan y 104)",
+   "size_in": [
+    3.7,
+    4.8,
+    0.9
+   ],
+   "notes": "same line-voltage thermostat as the living room; replaces bedroom_fixtures' thermostat block (y 110-114, z 45.5-50.5), which overlaps the toggle",
+   "frames": [
+    "bedroom wide_20260925_011435_923",
+    "bedroom wide_20260925_011448_922",
+    "IMG_1498.jpg"
+   ]
+  },
+  {
+   "id": "bedroom_door_switch",
+   "kind": "light_switch",
+   "room": "bedroom",
+   "plan_x": 138.88,
+   "plan_y": 113.8,
+   "z": 45.5,
+   "wall": "east face of center",
+   "facing": [
+    1.0,
+    0.0
+   ],
+   "gangs": 1,
+   "toggles": [
+    "up"
+   ],
+   "controls": "unknown: the bedroom has no ceiling fixture, so most likely a switched receptacle (none identified)",
+   "size_in": [
+    2.75,
+    4.5,
+    0.25
+   ],
+   "notes": "traditional single toggle right beside the thermostat, ~1.3 in short of the bedroom door casing",
+   "frames": [
+    "bedroom wide_20260925_011435_923",
+    "bedroom wide_20260925_011449_923",
+    "IMG_1498.jpg"
+   ]
+  },
+  {
+   "id": "bedroom_back_3gang",
+   "kind": "light_switch",
+   "room": "bedroom",
+   "plan_x": 187.9,
+   "plan_y": 158.27,
+   "z": 45.0,
+   "wall": "south face of bedroom_back",
+   "facing": [
+    0.0,
+    -1.0
+   ],
+   "gangs": 3,
+   "toggles": [
+    "down",
+    "down",
+    "down"
+   ],
+   "controls": "unknown per toggle; the nearest fixture is the hall ceiling dome (ceiling_dome_light__hall, 229,183.5), so one toggle is very likely the hall light; the others possibly switched receptacles",
+   "size_in": [
+    6.375,
+    4.5,
+    0.25
+   ],
+   "notes": "3-gang traditional toggle plate, all three down in the capture; just east of the breaker panel, under the six-panel flower print",
+   "frames": [
+    "bedroom wide_20260925_012650_930",
+    "bedroom wide_20260925_012652_930",
+    "bedroom wide_20260925_012710_930",
+    "rn_image_picker_lib_temp_c06cbadc-a28a-409c-a06a-495334ccfb5e.jpg"
+   ]
+  },
+  {
+   "id": "bedroom_back_outlet",
+   "kind": "outlet",
+   "room": "bedroom",
+   "plan_x": 185.9,
+   "plan_y": 158.27,
+   "z": 16.1,
+   "wall": "south face of bedroom_back",
+   "facing": [
+    0.0,
+    -1.0
+   ],
+   "gangs": 1,
+   "size_in": [
+    2.75,
+    4.5,
+    0.25
+   ],
+   "notes": "duplex below the 3-gang switch",
+   "frames": [
+    "bedroom wide_20260925_012658_930",
+    "bedroom wide_20260925_012652_930",
+    "rn_image_picker_lib_temp_c06cbadc-a28a-409c-a06a-495334ccfb5e.jpg"
+   ]
+  },
+  {
+   "id": "breaker_panel",
+   "kind": "breaker_panel",
+   "room": "bedroom",
+   "plan_x": 174.4,
+   "plan_y": 158.27,
+   "z": 40.5,
+   "wall": "south face of bedroom_back",
+   "facing": [
+    0.0,
+    -1.0
+   ],
+   "gangs": 0,
+   "size_in": [
+    15.25,
+    28.0,
+    0.12
+   ],
+   "notes": "flush load-centre cover painted the wall colour, 15.25 x 28 (x 166.8-182.05, z 26.5-54.5) with four corner screws, an 8 x 20.5 inner door and a small square latch on its left (west) side; capture x 166.5-182.5 matches the tape width",
+   "frames": [
+    "bedroom wide_20260925_012653_930",
+    "bedroom wide_20260925_012649_929",
+    "bedroom wide_20260925_012654_930",
+    "bedroom wide_20260925_012710_930"
+   ]
+  },
+  {
+   "id": "bedroom_east_outlet",
+   "kind": "outlet",
+   "room": "bedroom",
+   "plan_x": 274.48,
+   "plan_y": 49.2,
+   "z": 16.6,
+   "wall": "west face of ext_east",
+   "facing": [
+    -1.0,
+    0.0
+   ],
+   "gangs": 1,
+   "size_in": [
+    2.75,
+    4.5,
+    0.25
+   ],
+   "notes": "duplex behind the floor lamp / plastic drawers, a black plug in the lower receptacle (not modelled)",
+   "frames": [
+    "bedroom wide_20260925_011817_924",
+    "bedroom wide_20260925_011942_926",
+    "bedroom wide_20260925_011940_926"
+   ]
+  },
+  {
+   "id": "bath_switches",
+   "kind": "light_switch",
+   "room": "bath",
+   "plan_x": 254.8,
+   "plan_y": 222.43,
+   "z": 45.8,
+   "wall": "south face of bath_stub_wall",
+   "facing": [
+    0.0,
+    -1.0
+   ],
+   "gangs": 3,
+   "toggles": [
+    "up",
+    "down",
+    "up"
+   ],
+   "controls": "three toggles for the vanity light bar and the ceiling fan/light unit (light, fan); which toggle is which is unknown",
+   "size_in": [
+    6.375,
+    4.5,
+    0.25
+   ],
+   "notes": "3-gang toggle plate (six screws) on the stub wall at the tub's foot, facing south inside the linen niche's mouth, between the stub's west end (x 249.55) and the shelves (x 260.95); the capture sees it only obliquely, so x is +-2",
+   "frames": [
+    "bath wide_20260925_005712_134",
+    "bath wide_20260925_005714_134",
+    "Reference/bathroom_survey/v_closet.jpg (tile 24)"
+   ]
+  },
+  {
+   "id": "bath_gfci",
+   "kind": "gfci_outlet",
+   "room": "bath",
+   "plan_x": 171.43,
+   "plan_y": 242.0,
+   "z": 42.0,
+   "wall": "east face of bath_west",
+   "facing": [
+    1.0,
+    0.0
+   ],
+   "gangs": 1,
+   "size_in": [
+    2.75,
+    4.5,
+    0.25
+   ],
+   "notes": "decora GFCI beside the vanity mirror (north of it), both receptacles in use (white + black plugs, not modelled; they hide the TEST/RESET buttons)",
+   "frames": [
+    "bath wide_20260925_005915_135",
+    "bath wide_20260925_005917_136",
+    "bath wide_20260925_005902_136"
+   ]
+  },
+  {
+   "id": "bedroom_coax",
+   "kind": "cable_jack",
+   "room": "bedroom",
+   "plan_x": 138.75,
+   "plan_y": 45.0,
+   "z": 12.75,
+   "wall": "east face of center",
+   "facing": [
+    1.0,
+    0.0
+   ],
+   "gangs": 1,
+   "notes": "coax F-connector plate; the capture reads the centre nearer z 14-15",
+   "frames": [
+    "IMG_1516.jpg",
+    "IMG_1498.jpg",
+    "bedroom wide_20260925_011516_923"
+   ],
+   "existing": "bedroom_cables"
+  },
+  {
+   "id": "bedroom_center_outlet",
+   "kind": "outlet",
+   "room": "bedroom",
+   "plan_x": 138.75,
+   "plan_y": 62.5,
+   "z": 12.75,
+   "wall": "east face of center",
+   "facing": [
+    1.0,
+    0.0
+   ],
+   "gangs": 1,
+   "notes": "duplex with the power strip's plug; the capture reads the centre nearer z 14",
+   "frames": [
+    "IMG_1516.jpg",
+    "IMG_1498.jpg",
+    "bedroom wide_20260925_011516_923"
+   ],
+   "existing": "bedroom_cables"
+  },
+  {
+   "id": "bedroom_smoke_detector",
+   "kind": "smoke_detector",
+   "room": "bedroom",
+   "plan_x": 166.0,
+   "plan_y": 142.0,
+   "z": 108.0,
+   "wall": "ceiling",
+   "facing": [
+    0.0,
+    0.0,
+    -1.0
+   ],
+   "gangs": 0,
+   "notes": "round ceiling smoke detector near the bedroom door",
+   "frames": [
+    "Reference/bedroom_survey/crops/smoke_detector_1.jpg"
+   ],
+   "existing": "bedroom_fixtures"
+  }
+ ],
+ "levers_note": "separate lever objects for the interactive switches: origin at 'pivot' (plan inches, on the plate face at the lever centre); the object's local X is the plate's horizontal axis ('axis_plan', pointing right as seen from the room), local -Y points out of the wall ('facing'); the mesh is in the UP = on pose, and +40 deg about local X tips it DOWN = off",
+ "levers": [
+  {
+   "object": "wall_plates_lever_entry",
+   "plate": "entry_switch",
+   "index_west_to_east": 1,
+   "pivot": [
+    0.25,
+    139.0,
+    46.0
+   ],
+   "facing": [
+    1.0,
+    0.0
+   ],
+   "axis_plan": [
+    -0.0,
+    1.0,
+    0.0
+   ],
+   "observed_state": "up"
+  },
+  {
+   "object": "wall_plates_lever_bedback_1",
+   "plate": "bedroom_back_3gang",
+   "index_west_to_east": 1,
+   "pivot": [
+    186.087,
+    158.15,
+    45.0
+   ],
+   "facing": [
+    0.0,
+    -1.0
+   ],
+   "axis_plan": [
+    1.0,
+    0.0,
+    0.0
+   ],
+   "observed_state": "down"
+  },
+  {
+   "object": "wall_plates_lever_bedback_2",
+   "plate": "bedroom_back_3gang",
+   "index_west_to_east": 2,
+   "pivot": [
+    187.9,
+    158.15,
+    45.0
+   ],
+   "facing": [
+    0.0,
+    -1.0
+   ],
+   "axis_plan": [
+    1.0,
+    0.0,
+    0.0
+   ],
+   "observed_state": "down"
+  },
+  {
+   "object": "wall_plates_lever_bedback_3",
+   "plate": "bedroom_back_3gang",
+   "index_west_to_east": 3,
+   "pivot": [
+    189.712,
+    158.15,
+    45.0
+   ],
+   "facing": [
+    0.0,
+    -1.0
+   ],
+   "axis_plan": [
+    1.0,
+    0.0,
+    0.0
+   ],
+   "observed_state": "down"
+  },
+  {
+   "object": "wall_plates_lever_bath_1",
+   "plate": "bath_switches",
+   "index_west_to_east": 1,
+   "pivot": [
+    252.988,
+    222.3,
+    45.8
+   ],
+   "facing": [
+    0.0,
+    -1.0
+   ],
+   "axis_plan": [
+    1.0,
+    0.0,
+    0.0
+   ],
+   "observed_state": "up"
+  },
+  {
+   "object": "wall_plates_lever_bath_2",
+   "plate": "bath_switches",
+   "index_west_to_east": 2,
+   "pivot": [
+    254.8,
+    222.3,
+    45.8
+   ],
+   "facing": [
+    0.0,
+    -1.0
+   ],
+   "axis_plan": [
+    1.0,
+    0.0,
+    0.0
+   ],
+   "observed_state": "down"
+  },
+  {
+   "object": "wall_plates_lever_bath_3",
+   "plate": "bath_switches",
+   "index_west_to_east": 3,
+   "pivot": [
+    256.612,
+    222.3,
+    45.8
+   ],
+   "facing": [
+    0.0,
+    -1.0
+   ],
+   "axis_plan": [
+    1.0,
+    0.0,
+    0.0
+   ],
+   "observed_state": "up"
+  }
+ ]
+}

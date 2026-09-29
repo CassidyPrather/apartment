@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="90" viewBox="0 0 400 90">
+  <!-- Parody wipes brand "Smudgebuster": a white wordmark with a sparkle, on a navy bar. Drawn from scratch. -->
+  <rect x="0" y="0" width="400" height="90" rx="10" fill="#18264f"/>
+  <polygon points="36,18 42,38 62,45 42,52 36,72 30,52 10,45 30,38" fill="#9fd4ff"/>
+  <text x="76" y="60" font-family="Arial, sans-serif" font-weight="700" font-size="42" fill="#ffffff">smudgebuster</text>
+</svg>

@@ -3,17 +3,24 @@ a chocolate fleece over the seat that hangs down the front, a dark leaf-print th
 top of it toward the north arm, a white bunny-print blanket heaped over the north back
 cushion and arm, and a blue-violet tie-dye blanket over the south back cushion.
 
-Source of truth: scripted. Placement of each blanket from the colours of the survey
-splat's top surface over the couch, colours from the photo crops; the fold shapes are
-EST (soft bumps on a sheet laid over the couch's surface).
+Source of truth: cloth simulations in the live Blender (Blender MCP), saved in
+blender/assets/couch_blankets.blend: each blanket is a grid dropped onto the couch
+(imported from its FBX as the collider) and onto the blankets already placed, in order:
+brown fleece, leaf print, tie-dye, bunny. Where each lies and heaps comes from the
+colours of the survey splat's top surface over the couch (the BLANKETS table below,
+which the scripted version used); colours from the photo crops. This package appends
+the four settled meshes, maps each grid onto its atlas region, gives it thickness and
+merges them. (The old scripted sheets remain below as sheet(), unused.)
 
 Same local frame and origin as `couch` (front -Y, local +X = north at plan rotation 90,
 origin on the floor at the couch footprint centre), so it takes the couch's placement.
 """
 
 import math
+import os
 
 import atlas_layout
+import bpy
 import common
 
 IN = 0.0254
@@ -145,12 +152,87 @@ def sheet(b, uv, region, xr, yr, grid, lift, bumps, wr):
     b._tag(faces, region)
 
 
+BLEND = os.path.join(os.path.dirname(__file__), "..", "..", "..", "assets", "couch_blankets.blend")
+# simulated blanket -> (atlas region, grid columns, grid rows) as generated in the blend
+SIMS = {
+    "brown_fleece_final": ("brown_fleece", 58, 40),
+    "leaf_print_final": ("leaf_print", 27, 20),
+    "blue_tiedye_final": ("blue_tiedye", 34, 20),
+    "white_bunny_final": ("white_bunny", 34, 25),
+}
+TRI_BUDGET = 9000
+
+
+def despike(me, limit=4.0):
+    """Pull back vertices the cloth solver flung out (a stray spike on the bunny blanket):
+    any vertex with an edge much longer than the grid spacing goes to its neighbours' mean."""
+    nbrs = {v.index: [] for v in me.vertices}
+    for e in me.edges:
+        a, b = e.vertices
+        nbrs[a].append(b)
+        nbrs[b].append(a)
+    for _ in range(3):
+        moved = 0
+        for v in me.vertices:
+            ns = nbrs[v.index]
+            if ns and max((me.vertices[n].co - v.co).length for n in ns) > m(limit):
+                mean = sum((me.vertices[n].co for n in ns), v.co * 0) / len(ns)
+                v.co = mean
+                moved += 1
+        if not moved:
+            break
+
+
 def build(coll):
-    b = common.Builder(REGIONS)
-    uv = b.bm.loops.layers.uv.new("UVMap")
-    for spec in BLANKETS:
-        sheet(b, uv, *spec)
-    return [b.to_object(NAME, coll)]
+    with bpy.data.libraries.load(os.path.abspath(BLEND), link=False) as (src, dst):
+        dst.objects = [n for n in src.objects if n in SIMS]
+    parts = []
+    for ob in dst.objects:
+        if ob is None:
+            continue
+        region, nx, ny = SIMS[ob.name]
+        coll.objects.link(ob)
+        ob.modifiers.clear()
+        me = ob.data
+        if len(me.vertices) != (nx + 1) * (ny + 1):
+            raise RuntimeError(f"{ob.name}: {len(me.vertices)} verts, expected a {nx}x{ny} grid")
+        despike(me)
+        # grid UVs into the blanket's own atlas region (vertex i, j of a row-major grid);
+        # drop any UV layer the simulation left behind so this one is the one rendered
+        while me.uv_layers:
+            me.uv_layers.remove(me.uv_layers[0])
+        u0, v0, u1, v1 = atlas_layout.uv_rect(ATLAS, region)
+        uvl = me.uv_layers.new(name="UVMap")
+        for loop in me.loops:
+            vi = loop.vertex_index
+            i, j = vi % (nx + 1), vi // (nx + 1)
+            uvl.data[loop.index].uv = (u0 + (u1 - u0) * i / nx, v0 + (v1 - v0) * j / ny)
+        me.materials.clear()
+        me.materials.append(common.placeholder_material(region))
+        # fleece thickness, grown downward so the top surface stays where it settled
+        sol = ob.modifiers.new("thick", "SOLIDIFY")
+        sol.thickness = m(T)
+        sol.offset = -1.0
+        parts.append(ob)
+    tris = sum(2 * len(p.data.polygons) * 2 for p in parts)
+    ratio = min(1.0, TRI_BUDGET / max(tris, 1))
+    dg = bpy.context.evaluated_depsgraph_get()
+    for ob in parts:
+        if ratio < 1.0:
+            d = ob.modifiers.new("decimate", "DECIMATE")
+            d.ratio = ratio
+        dg = bpy.context.evaluated_depsgraph_get()
+        me = bpy.data.meshes.new_from_object(ob.evaluated_get(dg))
+        ob.modifiers.clear()
+        ob.data = me
+    out = parts[0]
+    with bpy.context.temp_override(active_object=out, selected_editable_objects=parts, object=out):
+        bpy.ops.object.join()
+    out.name = NAME
+    out.data.name = NAME
+    for p in out.data.polygons:
+        p.use_smooth = True
+    return [out]
 
 
 def texture(objs):

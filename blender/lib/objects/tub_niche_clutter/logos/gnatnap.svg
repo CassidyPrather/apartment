@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="140" viewBox="0 0 200 140">
+  <!-- Parody fly trap "Gnatnap": a round cartoon gnat asleep on its back with two wings and a "z z", over a lowercase wordmark. Drawn from scratch. -->
+  <ellipse cx="80" cy="50" rx="26" ry="16" fill="#3a2a4a"/>
+  <ellipse cx="68" cy="30" rx="14" ry="9" fill="#c9c2e8"/><ellipse cx="92" cy="30" rx="14" ry="9" fill="#c9c2e8"/>
+  <path d="M66 52 q5 4 10 0 M84 52 q5 4 10 0" stroke="#ffffff" stroke-width="3" fill="none"/>
+  <text x="120" y="36" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#7a3a9a">z</text>
+  <text x="136" y="22" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#7a3a9a">z</text>
+  <text x="100" y="116" text-anchor="middle" font-family="Arial, sans-serif" font-size="40" font-weight="700" fill="#7a3a9a">gnatnap</text>
+</svg>

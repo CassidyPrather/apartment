@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="220" viewBox="0 0 720 220">
+  <!-- Parody paper-towel brand "Soakington": a fat water drop wearing a tiny crown over a big navy script-style wordmark and a small caps tagline. Drawn from scratch. -->
+  <path d="M60 30 q-34 50 -34 74 a34 34 0 0 0 68 0 q0 -24 -34 -74 z" fill="#1f3f7a"/>
+  <path d="M44 22 l8 -14 l8 10 l8 -10 l8 14 z" fill="#d8b23a"/>
+  <ellipse cx="50" cy="100" rx="7" ry="12" fill="#ffffff" opacity="0.7"/>
+  <text x="112" y="120" font-family="Georgia, 'Times New Roman', serif" font-style="italic" font-weight="700" font-size="96" fill="#1f3f7a">Soakington</text>
+  <text x="118" y="180" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="34" letter-spacing="6" fill="#1f3f7a">PREMIUM-ISH TOWELS</text>
+</svg>

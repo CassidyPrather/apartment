@@ -1,0 +1,32 @@
+{
+  "name": "tub_niche_clutter",
+  "fbx": "Assets/Apartment/Models/tub_niche_clutter.fbx",
+  "materials": {
+    "tub_niche_clutter": {
+      "atlas": "tub_niche_clutter",
+      "mode": "opaque",
+      "tiled": false
+    },
+    "tub_niche_clutter_clear": {
+      "atlas": "tub_niche_clutter",
+      "mode": "transparent",
+      "alpha": 0.35,
+      "tiled": false
+    }
+  },
+  "collider": "none",
+  "static": true,
+  "triangles": 11296,
+  "bounds_m": {
+    "min": [
+      5.304,
+      5.144,
+      0.0
+    ],
+    "max": [
+      6.9736,
+      7.2449,
+      2.3181
+    ]
+  }
+}

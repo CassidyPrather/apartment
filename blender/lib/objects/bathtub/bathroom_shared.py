@@ -28,12 +28,17 @@ ATLAS = {
         "nickel": (896, 256, 128, 128),     # brushed nickel (pulls, faucet, holder)
         "porcelain": (768, 384, 128, 128),  # vitreous china, bright white
         "acrylic": (896, 384, 128, 128),    # one-piece tub/shower unit
-        "curtain": (0, 512, 512, 256),      # plain light fabric
+        "curtain": (0, 512, 512, 384),      # floral print, one seamless tile (photo)
         "mirror": (512, 512, 256, 256),
         "wall_paint": (768, 512, 256, 256),  # matches shell_wall's sampled colour
         "dark": (512, 768, 128, 128),       # drains, toe kick shadow
         "seat": (640, 768, 128, 128),       # toilet seat plastic
         "paper": (768, 768, 128, 128),      # toilet-paper roll
+        "ring_red": (896, 768, 128, 128),   # shower-curtain rings (red plastic)
+        "basin": (0, 896, 256, 128),        # tub basin seen from above (planar +Z), grime
+        "unit_wall": (256, 896, 256, 128),  # tub unit walls unrolled (perimeter x height)
+        "sink_bowl": (512, 896, 128, 128),  # vanity basin from above, drain grime
+        "toilet_deck": (640, 896, 128, 128),  # toilet rim/rear deck from above, stains
     },
 }
 
@@ -125,4 +130,38 @@ def loft(b, region, sections, top_region=None, bottom_region=None):
         faces += bridge(b, region, r0, r1)
     faces += cap(b, bottom_region or region, rings[0])
     faces += cap(b, top_region or region, rings[-1])
+    return faces
+
+
+# --- tub basin geometry, shared by the model (bathtub/object.py) and the grime texture --
+# All in inches, tub-local (x along the tub, + = foot end when FAUCET_END = -1; y + = back).
+TUB_L, TUB_W, TUB_H = 57.9, 30.0, 17.4
+TUB_UNIT_T, TUB_RIM_FRONT, TUB_BASIN_DEPTH = 1.25, 3.0, 14.0
+TUB_FAUCET_END = -1
+TUB_BACK_LEDGE = 3.75   # SPLAT flat deck at rim height along the back wall (x 271-275)
+
+
+def tub_basin():
+    """(top opening x0, x1, y0, y1), (floor centre x, y, width, depth, corner radius)."""
+    x0, x1 = -TUB_L / 2 + TUB_UNIT_T, TUB_L / 2 - TUB_UNIT_T
+    y0, y1 = -TUB_W / 2 + TUB_RIM_FRONT, TUB_W / 2 - TUB_UNIT_T - TUB_BACK_LEDGE
+    cx, cy = (x0 + x1) / 2 + 1.5 * TUB_FAUCET_END, (y0 + y1) / 2
+    return (x0, x1, y0, y1), (cx, cy, (x1 - x0) - 9.0, (y1 - y0) - 6.0, 5.0)
+
+
+# --- mesh helpers needing bpy (imported lazily so the GIMP side can load this file) ----
+
+def frustum(b, region, center, r_base, r_tip, depth, axis="X", segments=16, sign=1):
+    """Cone frustum along an axis: radius r_base at the end toward -axis*sign (the wall
+    or surface it stands on), r_tip at the other end."""
+    import bmesh
+    from mathutils import Matrix
+    r1, r2 = (r_base, r_tip) if sign > 0 else (r_tip, r_base)
+    r = bmesh.ops.create_cone(b.bm, cap_ends=True, cap_tris=False, segments=segments,
+                              radius1=r1, radius2=r2, depth=depth)
+    rot = {"X": Matrix.Rotation(math.pi / 2, 4, "Y"), "Y": Matrix.Rotation(-math.pi / 2, 4, "X"),
+           "Z": Matrix.Identity(4)}[axis]
+    bmesh.ops.transform(b.bm, matrix=Matrix.Translation(center) @ rot, verts=r["verts"])
+    faces = list({f for v in r["verts"] for f in v.link_faces})
+    b._tag(faces, region)
     return faces

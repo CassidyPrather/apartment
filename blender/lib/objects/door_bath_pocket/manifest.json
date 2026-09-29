@@ -10,7 +10,7 @@
   },
   "collider": "box",
   "static": false,
-  "triangles": 212,
+  "triangles": 248,
   "bounds_m": {
     "min": [
       -1.1144,

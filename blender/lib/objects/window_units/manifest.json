@@ -14,11 +14,11 @@
   },
   "collider": "mesh",
   "static": true,
-  "triangles": 1032,
+  "triangles": 1260,
   "bounds_m": {
     "min": [
-      -0.1333,
-      -0.1333,
+      -0.1364,
+      -0.1364,
       0.6731
     ],
     "max": [

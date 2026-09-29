@@ -10,7 +10,7 @@
   },
   "collider": "mesh",
   "static": true,
-  "triangles": 3720,
+  "triangles": 4392,
   "bounds_m": {
     "min": [
       0.0,

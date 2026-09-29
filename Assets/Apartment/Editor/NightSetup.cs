@@ -49,6 +49,32 @@ public static class NightSetup
             ["bath_light_1"] = (1.2f, 0.4f, true),
             ["hall_light_0"] = (1.2f, 0.4f, true),               // the narrow hall's walls sit right by it
         };
+    // Sources whose switch is a real toggle on the surveyed wall plates (wall_plates package,
+    // positions.json): the lever object rocks about its local X, up = on, +40 deg = off.
+    // The table light's switch wasn't found in the captures, so it keeps its own plate.
+    static readonly System.Collections.Generic.Dictionary<string, string> Levers =
+        new System.Collections.Generic.Dictionary<string, string>
+        {
+            ["dining_door_light"] = "wall_plates_lever_entry",       // the one toggle by the entry
+            ["hall_light"] = "wall_plates_lever_bedback_1",          // bedroom back wall 3-gang (which one: EST)
+            ["bath_light"] = "wall_plates_lever_bath_1",             // tub-stub 3-gang, west toggle (EST)
+        };
+
+    // A click target over a real lever: a trigger box, rotated with the plate.
+    internal static GameObject LeverHost(string name, Transform parent, Transform lever)
+    {
+        var host = new GameObject(name);
+        host.transform.SetParent(parent, false);
+        host.transform.SetPositionAndRotation(lever.position, lever.rotation);
+        var box = host.AddComponent<BoxCollider>();
+        box.isTrigger = true;
+        box.size = new Vector3(0.07f, 0.1f, 0.08f);
+        return host;
+    }
+
+    internal static Transform FindLever(string name) =>
+        Object.FindObjectsOfType<Transform>(true).FirstOrDefault(t => t.name == name);
+
     static readonly Vector3 DayNightSwitch = new Vector3(18f, 180.4f, 48f);
 
     [MenuItem("Apartment/Setup Lights And Night")]
@@ -106,6 +132,8 @@ public static class NightSetup
                 host.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
                 host.GetComponent<MeshRenderer>().sharedMaterial = FilingCabinetSetup.PlainMat("lamp_knob", new Color(0.1f, 0.1f, 0.1f));
             }
+            else if (Levers.TryGetValue(s.name, out var leverName) && FindLever(leverName) != null)
+                host = LeverHost(s.name + "_switch", group, FindLever(leverName));
             else
                 host = WallSwitch(s.name + "_switch", group, U(s.sw.x, s.sw.y, s.sw.z), s.normal, plate);
 
@@ -114,7 +142,15 @@ public static class NightSetup
             sw.glows = glow != null ? new Renderer[] { glow } : new Renderer[0];
             sw.glowSlots = new[] { slot };
             sw.glowColor = Color.white;
-            sw.toggle = host.transform.childCount > 0 ? host.transform.GetChild(0) : null;
+            var realLever = Levers.TryGetValue(s.name, out var ln) ? FindLever(ln) : null;
+            if (realLever != null)
+            {
+                sw.toggle = realLever;
+                sw.onRotation = realLever.localRotation;
+                sw.offRotation = realLever.localRotation * Quaternion.Euler(40f, 0f, 0f);
+            }
+            else
+                sw.toggle = host.transform.childCount > 0 ? host.transform.GetChild(0) : null;
             sw.InteractionText = s.label;
             UdonSharpEditorUtility.CopyProxyToUdon(sw);
         }

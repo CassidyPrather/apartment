@@ -1,5 +1,7 @@
 """Window units: white vinyl horizontal sliders set in the four window recesses of the
-shell, plus a raised mini-blind in the bedroom window.
+shell. (The bedroom window has vertical blinds like the living room's, in window_blinds:
+bedroom LiDAR frames 96-132 and 276-708; the 2 in blind in the bedroom captures hangs on
+the patio door, door_entry.)
 
 Source of truth: scripted, from shell_layout.OPENINGS (read-only import) for the
 openings; the frame/sash profile below is EST (standard residential vinyl slider).
@@ -9,7 +11,12 @@ marker at (0, 0, 0) with no rotation. Each unit is built in a local (u, d, z) fr
 u runs along the opening, d is depth measured inward from the wall's exterior face
 (0 = exterior face, 6 = interior face), z is height above the floor.
 
-Two meshes: window_units (frames, sashes, latches, blind) and window_units_glass (the
+Hardware per unit (EST, standard vinyl slider; the photos only show the blinds): a cam
+latch on the sliding sash's meeting stile (body + lever) and its keeper on the fixed
+sash's meeting stile, a finger-pull strip on the sliding sash's meeting stile, and two
+weep-slot covers on the exterior sill.
+
+Two meshes: window_units (frames, sashes, hardware) and window_units_glass (the
 panes, their own translucent material). The shell's placeholder shell_glass panes sit
 at d = 1.5 and should be dropped (or hidden) once these are in.
 """
@@ -40,12 +47,9 @@ OVERLAP = 1.0                       # EST sash overlap at the meeting rail
 FIXED_D = (1.0, 2.0)                # EST fixed sash track (exterior)
 SLIDE_D = (2.35, 3.35)              # EST sliding sash track (interior)
 GLASS_T = 0.2                       # EST
-LATCH = (0.8, 0.6, 2.75)            # EST latch w, proud, h
-BLIND_D = (4.25, 5.35)              # EST blind head rail depth span (inside mount)
-BLIND_HEAD_H = 1.25                 # EST
-BLIND_STACK_H = 5.5                 # EST raised stack of ~1 in slats
-BLIND_BOTTOM_H = 0.75               # EST
-WAND_L = 22.0                       # EST tilt wand length
+LATCH = (0.8, 0.6, 2.75)            # EST latch body w, proud, h
+LATCH_LEVER = (0.35, 0.3, 1.9)      # EST cam lever w, proud, h (points up when locked)
+PULL_H = 8.0                        # EST finger-pull strip length
 
 # Units: (wall, a0, a1, sliding sash side "lo"/"hi" along the wall axis). The wide south
 # opening is two sliders side by side (plan illustration). Which half slides is EST.
@@ -56,10 +60,11 @@ UNITS = [
     ("ext_south", 73.5, 108.5, "hi"),
     ("ext_south", 171.25, 205.45, "lo"),
 ]
-BLIND_UNIT = 4                      # the bedroom window
 Z0, Z1 = L.WINDOW_SILL, L.WINDOW_HEAD
 
 REGIONS = ["vinyl", "vinyl_track", "latch", "blind_slats", "blind_rail", "glass"]
+# blind_slats / blind_rail are no longer used (the bedroom mini-blind moved to the patio
+# door); the atlas keeps them so the texture layout is unchanged.
 
 ATLAS = {
     "name": "window_units",
@@ -124,27 +129,27 @@ def unit(b, g, wall, a0, a1, slide):
     fixed, sliding = (hi_span, lo_span) if slide == "lo" else (lo_span, hi_span)
     sash(b, g, wall, *fixed, FIXED_D, "lo" if slide == "lo" else "hi")
     sash(b, g, wall, *sliding, SLIDE_D, "hi" if slide == "lo" else "lo")
-    # Latch on the sliding sash's meeting stile, interior face, mid height.
+    # Cam latch on the sliding sash's meeting stile, interior face, mid height, with its
+    # lever; the keeper on the fixed sash's meeting stile beside it.
     lw, lp, lh = LATCH
     su = sliding[1] - MEET_W / 2 if slide == "lo" else sliding[0] + MEET_W / 2
     zc = (Z0 + Z1) / 2
     local_box(b, "latch", wall, (su - lw / 2, su + lw / 2), (SLIDE_D[1], SLIDE_D[1] + lp),
               (zc - lh / 2, zc + lh / 2))
-
-
-def blind(b, wall, a0, a1):
-    u = (a0 + 0.25, a1 - 0.25)
-    zt = Z1
-    local_box(b, "blind_rail", wall, u, BLIND_D, (zt - BLIND_HEAD_H, zt))
-    zs = zt - BLIND_HEAD_H
-    local_box(b, "blind_slats", wall, u, (BLIND_D[0] + 0.05, BLIND_D[1] - 0.05), (zs - BLIND_STACK_H, zs))
-    zb = zs - BLIND_STACK_H
-    local_box(b, "blind_rail", wall, u, (BLIND_D[0], BLIND_D[1]), (zb - BLIND_BOTTOM_H, zb))
-    # Tilt wand at the low end, lift cord at the high end (interior side).
-    dw = BLIND_D[1] + 0.1
-    local_box(b, "blind_rail", wall, (u[0] + 1.5, u[0] + 1.8), (dw, dw + 0.3), (zs - WAND_L, zs))
-    local_box(b, "blind_rail", wall, (u[1] - 1.8, u[1] - 1.7), (dw, dw + 0.1), (zb - 14.0, zs))
-    local_box(b, "blind_rail", wall, (u[1] - 2.1, u[1] - 1.4), (dw - 0.2, dw + 0.4), (zb - 16.0, zb - 14.0))
+    vw, vp, vh = LATCH_LEVER
+    local_box(b, "latch", wall, (su - vw / 2, su + vw / 2), (SLIDE_D[1] + lp, SLIDE_D[1] + lp + vp),
+              (zc - 0.2, zc + vh))
+    ku = sliding[1] + 0.2 if slide == "lo" else sliding[0] - 0.2   # just past the sash edge
+    local_box(b, "latch", wall, (ku - 0.18, ku + 0.18), (FIXED_D[1], SLIDE_D[1] + 0.25),
+              (zc - 0.9, zc + 0.9))
+    # finger-pull strip on the same stile, below the latch
+    local_box(b, "vinyl_track", wall, (su - 0.25, su + 0.25), (SLIDE_D[1], SLIDE_D[1] + 0.3),
+              (zc - lh / 2 - 2.0 - PULL_H, zc - lh / 2 - 2.0))
+    # weep-slot covers on the exterior face of the sill
+    for fu in (0.25, 0.75):
+        u = a0 + (a1 - a0) * fu
+        local_box(b, "vinyl_track", wall, (u - 0.75, u + 0.75), (FRAME_D[0] - 0.12, FRAME_D[0]),
+                  (Z0 + 0.3, Z0 + 0.8))
 
 
 def build(coll):
@@ -152,8 +157,6 @@ def build(coll):
     g = common.Builder(["glass"])
     for i, (wall, a0, a1, slide) in enumerate(UNITS):
         unit(b, g, wall, a0, a1, slide)
-        if i == BLIND_UNIT:
-            blind(b, wall, a0, a1)
     return [b.to_object("window_units", coll), g.to_object("window_units_glass", coll)]
 
 
@@ -168,9 +171,6 @@ def texture(objs):
     except (AttributeError, TypeError):
         glass.blend_method = "BLEND"
     glass.use_backface_culling = False
-    bu, bl = UNITS[BLIND_UNIT][1], UNITS[BLIND_UNIT][2]
-    zs = Z1 - BLIND_HEAD_H
-    planar = {"blind_slats": ("+Y", (-m(bl), -m(bu)), (m(zs - BLIND_STACK_H), m(zs)))}
     for ob in objs:
-        common.atlas_uvs(ob, ATLAS, planar=planar)
+        common.atlas_uvs(ob, ATLAS)
         common.collapse_materials(ob, {r: (glass if r == "glass" else vinyl) for r in REGIONS})

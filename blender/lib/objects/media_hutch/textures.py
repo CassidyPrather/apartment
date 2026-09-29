@@ -1066,7 +1066,21 @@ def art_critter(W, H):
     return R(0, 0, W, H, (74, 72, 70)) + "".join(C(rng.uniform(0, W), rng.uniform(0, H), 1.5, (100, 98, 94)) for _ in range(40))
 
 
-PROP_ART = {"chart": art_chart, "paper_news": art_paper_news, "magazines": art_magazines,
+def art_brass(W, H):
+    """Antique cast brass (capture frames 003528-003541): bright worn high points in the
+    middle, olive-brown tarnish toward the edges and in a few mottled patches."""
+    rng = L.seeded("brass")
+    g = gid("br")
+    out = [R(0, 0, W, H, (112, 88, 46)),
+           rgrad(g, [(0, (206, 172, 98), 1.0), (0.55, (168, 132, 70), 0.85), (1, (96, 76, 40), 0.0)]),
+           R(0, 0, W, H, f"url(#{g})")]
+    for _ in range(10):
+        out.append(C(rng.uniform(0, W), rng.uniform(0, H), rng.uniform(1.0, 3.0), (78, 66, 38),
+                     op=rng.uniform(0.2, 0.45)))
+    return "".join(out)
+
+
+PROP_ART = {"chart": art_chart, "brass": art_brass, "paper_news": art_paper_news, "magazines": art_magazines,
             "notebook": art_notebook, "lamp": art_lamp, "straw": art_straw, "pink_weave": art_pink_weave,
             "aluminium": art_aluminium, "mask_face": art_mask_face, "half_mask": art_half_mask,
             "postcard": art_postcard,
@@ -1075,7 +1089,7 @@ PROP_ART = {"chart": art_chart, "paper_news": art_paper_news, "magazines": art_m
             "feather_red": lambda W, H: art_feather(W, H, (140, 36, 50), (90, 20, 30), stripes=True),
             "feather_light": lambda W, H: art_feather(W, H, (150, 190, 226), (100, 140, 196))}
 
-FLAT = {"brass": (176, 140, 72), "chrome": (210, 212, 216), "glass": (170, 184, 188), "black": (20, 20, 22),
+FLAT = {"chrome": (210, 212, 216), "glass": (170, 184, 188), "black": (20, 20, 22),
         "white": (240, 240, 238), "paper_cream": (236, 228, 204), "wire": (190, 192, 196),
         "spider_red": (190, 30, 40), "paper_white": (246, 246, 242), "gold": (200, 160, 70)}
 
@@ -1161,6 +1175,31 @@ def paint_wood(a, region, base, grain_amt=0.32, knots=2, flecks=60, seed=0):
         fill_ellipse(a.img, a.lay, (fx - r, fy - r * 0.7, fx + r, fy + r * 0.7), (30, 16, 10, rng.uniform(0.5, 0.9)))
 
 
+def paint_wear(a, region, n, seed):
+    """Everyday wear seen on the lower section in the living capture: pale rubbed patches
+    and short light scratches where the finish is worn through toward the raw pine, plus a
+    few dark dings. Subtle and sparse; the wood UVs are sampled at random offsets, so the
+    marks land in different places on each board."""
+    rng = random.Random(seed)
+    x, y, w, h = a.rect(region)
+    rub = (150, 96, 56)
+    for _ in range(n // 2):
+        rx, ry = rng.uniform(2, min(5, w / 4)), rng.uniform(14, min(40, h / 4))
+        cx, cy = x + rng.uniform(rx, w - rx), y + rng.uniform(ry, h - ry)
+        fill_ellipse(a.img, a.lay, (cx - rx, cy - ry, cx + rx, cy + ry), rub + (rng.uniform(0.05, 0.1),))
+    for _ in range(n * 2):
+        ln = rng.uniform(6, min(22, w / 3))
+        cx, cy = x + rng.uniform(0, w - ln), y + rng.uniform(0, h - ln)
+        if rng.random() < 0.5:
+            fill_rect(a.img, a.lay, (int(cx), int(cy), max(1, int(ln)), 1), rub + (rng.uniform(0.18, 0.32),))
+        else:
+            fill_rect(a.img, a.lay, (int(cx), int(cy), 1, max(1, int(ln))), rub + (rng.uniform(0.18, 0.32),))
+    for _ in range(n):
+        cx, cy = x + rng.uniform(2, w - 2), y + rng.uniform(2, h - 2)
+        r = rng.uniform(0.8, 1.6)
+        fill_ellipse(a.img, a.lay, (cx - r, cy - r, cx + r, cy + r), (22, 12, 8, rng.uniform(0.4, 0.7)))
+
+
 def paint_interior(a):
     x, y, w, h = a.rect("interior")
     fill_rect(a.img, a.lay, (x, y, w, h), (36, 30, 30))
@@ -1207,7 +1246,7 @@ def rectify_print():
     b.save()
 
 
-SMOOTH = {"brass": (1.0, 0.6), "chrome": (1.0, 0.75), "aluminium": (1.0, 0.55), "glass": (0.0, 0.92),
+SMOOTH = {"brass": (1.0, 0.5), "chrome": (1.0, 0.75), "aluminium": (1.0, 0.55), "glass": (0.0, 0.92),
           "wood": (0.0, 0.42), "wood_dark": (0.0, 0.38), "wood_edge": (0.0, 0.45), "interior": (0.0, 0.2),
           "battery": (0.3, 0.5), "straw": (0.0, 0.1), "pink_weave": (0.0, 0.15), "black": (0.0, 0.45),
           "paper_news": (0.0, 0.08), "notebook": (0.0, 0.08), "chart": (0.0, 0.08), "magazines": (0.0, 0.3),
@@ -1220,6 +1259,9 @@ def build():
     paint_wood(a, "wood", WOOD, knots=3, flecks=140, seed=3)
     paint_wood(a, "wood_dark", WOOD_DARK, knots=1, flecks=50, seed=5)
     paint_wood(a, "wood_edge", WOOD_EDGE, knots=0, flecks=20, seed=7)
+    paint_wear(a, "wood", 26, 11)
+    paint_wear(a, "wood_dark", 10, 13)
+    paint_wear(a, "wood_edge", 8, 17)
     paint_interior(a)
     svg = load(make_svg())
     if svg.get_width() != a.size:

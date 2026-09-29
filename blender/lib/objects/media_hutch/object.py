@@ -270,11 +270,7 @@ def carcass(h):
         z0, z1 = LT + 0.45, RT - 1.65
         h.box("wood", (a0 + 0.1, Y0 - 0.7, z0), (a1 - 0.1, Y0 + 0.05, z1), bevel=0.25, **wx)
         cx, cz = (a0 + a1) / 2, (z0 + z1) / 2 + 0.2
-        h.box("brass", (cx - 1.7, Y0 - 0.85, cz - 0.55), (cx + 1.7, Y0 - 0.7, cz + 0.55), bevel=0.2)
-        bail = [(cx - 1.35, Y0 - 0.95, cz + 0.1), (cx - 1.2, Y0 - 1.25, cz - 0.55),
-                (cx - 0.6, Y0 - 1.35, cz - 0.95), (cx + 0.6, Y0 - 1.35, cz - 0.95),
-                (cx + 1.2, Y0 - 1.25, cz - 0.55), (cx + 1.35, Y0 - 0.95, cz + 0.1)]
-        h.sweep("brass", bail, common.circle_profile(0.12, 6), up=(0, -1, 0))
+        drawer_pull(h, cx, Y0 - 0.7, cz)
     # doors: stile-and-rail frame, raised panel, brass knob
     for sgn in (-1, 1):
         a0, a1 = (IX0, -0.75) if sgn < 0 else (0.75, IX1)
@@ -287,9 +283,14 @@ def carcass(h):
         h.box("wood", (a0, dy0, z0 + f), (a0 + f, dy1, z1 - f), bevel=0.1, **wz)
         h.box("wood", (a1 - f, dy0, z0 + f), (a1, dy1, z1 - f), bevel=0.1, **wz)
         h.box("wood", (a0 + f, dy0 + 0.3, z0 + f), (a1 - f, dy1, z1 - f), bevel=0.45, **wz)
-        kx = a1 - 1.3 if sgn < 0 else a0 + 1.3
-        h.cyl("brass", (kx, dy0 - 0.3, z1 - 3.5), 0.22, 0.6, axis="Y", segments=8)
-        h.cyl("brass", (kx, dy0 - 0.75, z1 - 3.5), 0.5, 0.35, axis="Y", segments=10)
+        # moulded sticking round the panel, its finish rubbed lighter (orange in the photos)
+        s = 0.4
+        h.box("wood_edge", (a0 + f - s, dy0 + 0.02, z0 + f - s), (a1 - f + s, dy0 + 0.3, z0 + f), bevel=0.12, **wx)
+        h.box("wood_edge", (a0 + f - s, dy0 + 0.02, z1 - f), (a1 - f + s, dy0 + 0.3, z1 - f + s), bevel=0.12, **wx)
+        h.box("wood_edge", (a0 + f - s, dy0 + 0.02, z0 + f), (a0 + f, dy0 + 0.3, z1 - f), bevel=0.12, **wz)
+        h.box("wood_edge", (a1 - f, dy0 + 0.02, z0 + f), (a1 - f + s, dy0 + 0.3, z1 - f), bevel=0.12, **wz)
+        kx = a1 - 1.0 if sgn < 0 else a0 + 1.0
+        door_latch(h, kx, dy0, z1 - L.DOOR_LATCH_DOWN)
     # scalloped valance: strips under the arch, continuous grain, and the rounded bead
     pts = L.arch_points()
     zmin = min(z for _x, z in pts)
@@ -318,6 +319,65 @@ def carcass(h):
     h.box("paper_white", (X0 - 0.03, y0, z0), (X0 - 0.005, y1, z1), art={"mX": "chart"})
     y0, y1, z0, z1 = L.PRINT
     h.box("paper_white", (X0 - 0.03, y0, z0), (X0 - 0.005, y1, z1), art={"mX": "print"})
+
+
+# --- brass hardware (frame 003528-003541 of the living capture, lower section) ------------
+# Drawer pull: a cast Chippendale "batwing" backplate with a swan-neck bail hanging from two
+# posts. Door latch: a small upright scrolled escutcheon plate with a knob, near each
+# door's meeting edge. Right halves (x >= 0), inches, centred; PHOTO proportions against the
+# drawer width, EST sizes.
+BATWING_HALF = [(0.0, 0.58), (0.3, 0.72), (0.62, 0.56), (0.98, 0.56), (1.34, 0.66), (1.66, 0.8),
+                (1.92, 0.62), (1.8, 0.28), (1.92, -0.08), (1.7, -0.42), (1.3, -0.36), (0.9, -0.52),
+                (0.45, -0.7), (0.0, -0.6)]
+LATCH_HALF = [(0.0, 1.12), (0.16, 1.02), (0.24, 0.82), (0.38, 0.66), (0.3, 0.38), (0.24, 0.0),
+              (0.3, -0.38), (0.38, -0.66), (0.24, -0.82), (0.16, -1.02), (0.0, -1.12)]
+
+
+def _mirror(half):
+    """Full CCW outline from a right half listed top to bottom."""
+    left = [(-x, y) for x, y in half[1:-1]]
+    return list(reversed(half)) + left
+
+
+def plate(h, region, outline, thick, cx, yf, cz, scale=1.0):
+    """Flat cast plate standing on the front plane y = yf: outline (x, z) inches, star-shaped
+    about its centre, so each face is a centre fan (the concave scallops would otherwise
+    triangulate across themselves)."""
+    bm = h.bm
+    idx = h.b.idx(region)
+    front, back = [], []
+    for x, z in outline:
+        front.append(bm.verts.new((m(cx + x * scale), m(yf - thick), m(cz + z * scale))))
+        back.append(bm.verts.new((m(cx + x * scale), m(yf), m(cz + z * scale))))
+    cf = bm.verts.new((m(cx), m(yf - thick), m(cz)))
+    cb = bm.verts.new((m(cx), m(yf), m(cz)))
+    n = len(outline)
+    for i in range(n):
+        j = (i + 1) % n
+        for f in (bm.faces.new((front[i], cf, front[j])), bm.faces.new((back[j], cb, back[i])),
+                  bm.faces.new((front[i], front[j], back[j], back[i]))):
+            f.material_index = idx
+    return h._claim(region)
+
+
+def drawer_pull(h, cx, yf, cz):
+    """Batwing backplate on the drawer face (front plane y = yf), posts, bail."""
+    plate(h, "brass", _mirror(BATWING_HALF), 0.07, cx, yf, cz)
+    y = yf - 0.07
+    for sx in (-1, 1):
+        h.cyl("brass", (cx + sx * 1.3, y - 0.14, cz + 0.12), 0.13, 0.28, axis="Y", segments=6)
+        h.cyl("brass", (cx + sx * 1.3, y - 0.3, cz + 0.12), 0.2, 0.1, axis="Y", segments=8)
+    half = [(1.3, y - 0.3, cz + 0.12), (1.5, y - 0.4, cz - 0.1), (1.35, y - 0.5, cz - 0.42),
+            (0.95, y - 0.55, cz - 0.5), (0.5, y - 0.56, cz - 0.62)]
+    bail = [(cx + x, yy, zz) for x, yy, zz in half] +         [(cx - x, yy, zz) for x, yy, zz in reversed(half)]
+    h.sweep("brass", common.smooth_path(bail, 2), common.circle_profile(0.09, 5), up=(0, -1, 0))
+
+
+def door_latch(h, cx, yf, cz):
+    """Scrolled escutcheon plate with a small knob."""
+    plate(h, "brass", _mirror(LATCH_HALF), 0.06, cx, yf, cz, scale=1.25)
+    h.cyl("brass", (cx, yf - 0.2, cz + 0.25), 0.1, 0.3, axis="Y", segments=6)
+    h.cyl("brass", (cx, yf - 0.38, cz + 0.25), 0.22, 0.16, axis="Y", segments=8)
 
 
 def boxes(h):

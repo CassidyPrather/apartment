@@ -18,6 +18,9 @@ proportioned from the survey crops, EST = standard size or guess.
 
 import math
 
+import mathutils
+from mathutils import Vector
+
 import common
 
 IN = 0.0254
@@ -79,8 +82,9 @@ N_UP = [                 # (x0, x1, z0, doors, pull side)  PHOTO
     (79.5, 98.0, UP_Z[0], 1, "lo"),
 ]
 FRIDGE_UP = (99.0, 134.0, 255.0, 84.0, 97.5)   # SCAN x0, x1, front y, z0, z1 (to the wall)
-PULL_L, PULL_T, PULL_OFF = 5.0, 0.4, 1.1       # PHOTO arched bar pulls (EST size)
-KNOB_R, KNOB_L = 0.6, 1.0                       # PHOTO round drawer knobs (EST size)
+PULL_L, PULL_W, PULL_T, PULL_OFF = 6.3, 0.45, 0.28, 1.15   # PHOTO brushed-nickel bow pulls: a flat bar
+                                                # arching off the door on two feet (EST 128 mm centres)
+KNOB_R, KNOB_L = 0.62, 1.0                      # PHOTO mushroom drawer knobs (EST 1.25 in)
 
 NAME = "kitchen_cabinets"
 ATLAS = {
@@ -95,15 +99,19 @@ ATLAS = {
         "oak_dark": (768, 768, 128, 128),
         "panel_black": (896, 768, 128, 128),
         "drain": (512, 832, 128, 128),
+        "oak_edge": (640, 832, 128, 192),
+        "oak_worn": (768, 896, 256, 128),
     },
 }
 REGIONS = list(ATLAS["regions"])
+WORN = ("oak_edge", "oak_worn")   # island-mapped: each piece gets the whole painted wear image
 MATERIALS = {"kitchen_cabinets": {"atlas": "kitchen_cabinets", "mode": "opaque", "tiled": False}}
 COLLIDER = "mesh"
 STATIC = True
 # (name, azimuth, elevation, distance scale); az 0 = from the south. Match the survey crops.
 VIEWS = [("from_dining_se", 30, 18, 0.75), ("from_dining_s", 8, 20, 0.7),
-         ("from_dining_e", 65, 18, 0.7), ("uppers", 5, 2, 0.7)]
+         ("from_dining_e", 65, 18, 0.7), ("uppers", 5, 2, 0.7),
+         ("close_base", 45, 25, 0.35)]
 
 
 # --- geometry helpers ---------------------------------------------------------------
@@ -127,35 +135,60 @@ class Kit:
         else:
             self.box(region, a0, a1, face - d0, face - d1, z0, z1, bevel)
 
-    def pull(self, run, face, a, z, vertical):
-        h, t = PULL_L / 2, PULL_T / 2
-        if vertical:
-            self.rbox("nickel", run, face, a - t, a + t, PULL_OFF - PULL_T, PULL_OFF, z - h, z + h)
-            for zz in (z - h + 0.4, z + h - 0.4):
-                self.rbox("nickel", run, face, a - 0.15, a + 0.15, 0, PULL_OFF - PULL_T, zz - 0.15, zz + 0.15)
+    def _out(self, run):
+        return Vector((1, 0, 0)) if run == "W" else Vector((0, -1, 0))
+
+    def _pt(self, run, face, a, d, z):
+        return Vector(_p(face + d, a, z) if run == "W" else _p(a, face - d, z))
+
+    def pull(self, run, face, a, z, vertical=True, matrix=None, out=None):
+        """Bow pull: a flat bar arching off the door face on two feet (vertical)."""
+        h = PULL_L / 2
+        pts = [(a, DOOR_T - 0.05, z - h), (a, DOOR_T + PULL_OFF - PULL_T / 2, z - h + 0.9),
+               (a, DOOR_T + PULL_OFF - PULL_T / 2, z + h - 0.9), (a, DOOR_T - 0.05, z + h)]
+        if matrix is None:
+            path = [self._pt(run, face, *p) for p in pts]
+            out = self._out(run)
         else:
-            self.rbox("nickel", run, face, a - h, a + h, PULL_OFF - PULL_T, PULL_OFF, z - t, z + t)
-            for aa in (a - h + 0.4, a + h - 0.4):
-                self.rbox("nickel", run, face, aa - 0.15, aa + 0.15, 0, PULL_OFF - PULL_T, z - 0.15, z + 0.15)
+            path = [matrix @ Vector((m(u), m(-v), m(zz))) for u, v, zz in pts]
+        path = common.smooth_path(path, samples=2)
+        self.b.sweep("nickel", path, common.rect_profile(m(PULL_W), m(PULL_T)), up=tuple(out))
 
     def knob(self, run, face, a, z):
-        if run == "W":
-            c, ax = _p(face + DOOR_T + KNOB_L / 2, a, z), "X"
-        else:
-            c, ax = _p(a, face - DOOR_T - KNOB_L / 2, z), "Y"
-        self.b.cylinder("nickel", c, m(KNOB_R), m(KNOB_L), axis=ax, segments=8)
+        """Mushroom knob: a short neck flaring to a domed cap (lathe, 10 sides)."""
+        c = self._pt(run, face, a, DOOR_T, z)
+        ax = self._out(run)
+        up = Vector((0, 0, 1))
+        side = up.cross(ax).normalized()
+        rings = [(0.0, 0.3), (0.35, 0.22), (0.55, 0.5), (0.72, KNOB_R), (0.9, 0.56), (KNOB_L, 0.34)]
+        n = 10
+        bm = self.b.bm
+        vs = []
+        for d, r in rings:
+            vs.append([bm.verts.new(c + ax * m(d) + (side * math.cos(2 * math.pi * i / n)
+                                                     + up * math.sin(2 * math.pi * i / n)) * m(r)) for i in range(n)])
+        faces = []
+        for r0, r1 in zip(vs, vs[1:]):
+            for i in range(n):
+                faces.append(bm.faces.new((r0[i], r0[(i + 1) % n], r1[(i + 1) % n], r1[i])))
+        faces.append(bm.faces.new(vs[-1]))
+        self.b._tag(faces, "nickel")
 
-    def door(self, run, face, a0, a1, z0, z1, frame=2.0):
-        """Shaker door: a recessed flat panel inside a raised frame."""
+    def door(self, run, face, a0, a1, z0, z1, frame=2.0, worn=None):
+        """Shaker door: a recessed flat panel inside a raised frame. worn="lo"/"hi" paints
+        the stile carrying the pull with the worn-finish image (base doors, as in the photos)."""
         a0, a1, z0, z1 = a0 + GAP, a1 - GAP, z0 + GAP, z1 - GAP
         self.rbox("oak", run, face, a0, a1, 0, DOOR_T - 0.25, z0, z1)
         for s0, s1, t0, t1 in ((a0, a0 + frame, z0, z1), (a1 - frame, a1, z0, z1),
                                (a0 + frame, a1 - frame, z0, z0 + frame),
                                (a0 + frame, a1 - frame, z1 - frame, z1)):
-            self.rbox("oak", run, face, s0, s1, DOOR_T - 0.25, DOOR_T, t0, t1)
+            region = "oak"
+            if worn and t1 - t0 == z1 - z0 and ((worn == "lo") == (s0 == a0)):
+                region = "oak_edge"
+            self.rbox(region, run, face, s0, s1, DOOR_T - 0.25, DOOR_T, t0, t1)
 
     def drawer(self, run, face, a0, a1, z0, z1):
-        self.rbox("oak", run, face, a0 + GAP, a1 - GAP, 0, DOOR_T, z0 + GAP, z1 - GAP, bevel=0.12)
+        self.rbox("oak_worn", run, face, a0 + GAP, a1 - GAP, 0, DOOR_T, z0 + GAP, z1 - GAP, bevel=0.12)
 
 
 # --- base run -----------------------------------------------------------------------
@@ -185,16 +218,16 @@ def _base(k):
     # sink base: false front over two doors, pulls by the meeting stiles
     mid = (s0 + s1) / 2
     k.drawer("W", wc, s0, s1, dz0, dz1)
-    for a0, a1, pa in ((s0, mid, mid - 1.6), (mid, s1, mid + 1.6)):
-        k.door("W", wc, a0, a1, z0, dz0)
+    for a0, a1, pa, wside in ((s0, mid, mid - 1.6, "hi"), (mid, s1, mid + 1.6, "lo")):
+        k.door("W", wc, a0, a1, z0, dz0, worn=wside)
         k.pull("W", wc, pa, dz0 - 4.0, vertical=True)
     # single full-height door next to the corner
     a0, a1 = W_DOOR_Y
-    k.door("W", wc, a0, a1, z0, dz1)
+    k.door("W", wc, a0, a1, z0, dz1, worn="lo")
     k.pull("W", wc, a0 + 1.6, dz1 - 4.5, vertical=True)
     # north: corner door
     a0, a1 = N_CORNER_DOOR
-    k.door("N", nc, a0, a1, z0, dz1)
+    k.door("N", nc, a0, a1, z0, dz1, worn="hi")
     k.pull("N", nc, a1 - 1.6, dz1 - 4.5, vertical=True)
     # four-drawer bank (short top drawer)
     a0, a1 = N_DRAWERS
@@ -206,7 +239,7 @@ def _base(k):
     a0, a1 = N_EAST
     k.drawer("N", nc, a0, a1, dz0, dz1)
     k.knob("N", nc, (a0 + a1) / 2, (dz0 + dz1) / 2)
-    k.door("N", nc, a0, a1, z0, dz0)
+    k.door("N", nc, a0, a1, z0, dz0, worn="lo")
     k.pull("N", nc, a0 + 1.6, dz0 - 4.0, vertical=True)
 
 
@@ -277,7 +310,7 @@ def _uppers(k):
         for i in range(doors):
             d0, d1 = y0 + i * w, y0 + (i + 1) * w
             k.door("W", face_w - DOOR_T, d0, d1, z0, z1)
-            k.pull("W", face_w - DOOR_T, _pull_a(hinge, i, doors, d0, d1), z0 + 3.5, vertical=True)
+            k.pull("W", face_w - DOOR_T, _pull_a(hinge, i, doors, d0, d1), z0 + 3.5 + (PULL_L - 5.0) / 2)
     face_n = NW - UP_D
     for x0, x1, z0, doors, hinge in N_UP:
         k.box("oak_dark", x0, x1, face_n + DOOR_T, NW, z0, z1)
@@ -285,7 +318,7 @@ def _uppers(k):
         for i in range(doors):
             d0, d1 = x0 + i * w, x0 + (i + 1) * w
             k.door("N", face_n + DOOR_T, d0, d1, z0, z1)
-            k.pull("N", face_n + DOOR_T, _pull_a(hinge, i, doors, d0, d1), z0 + 3.5, vertical=True)
+            k.pull("N", face_n + DOOR_T, _pull_a(hinge, i, doors, d0, d1), z0 + 3.5 + (PULL_L - 5.0) / 2)
     # diagonal corner cabinet: carcass prism plus a door on the 45-degree face
     (cx0, cy0), (cx1, cy1) = CORNER
     outline = [_p(WW, cy0, 0)[:2], _p(cx0, cy0, 0)[:2], _p(cx1, cy1, 0)[:2],
@@ -305,17 +338,16 @@ def _uppers(k):
     for u0, u1, t0, t1 in ((g, g + fr, z0 + g, z1 - g), (L - g - fr, L - g, z0 + g, z1 - g),
                            (g + fr, L - g - fr, z0 + g, z0 + g + fr), (g + fr, L - g - fr, z1 - g - fr, z1 - g)):
         lbox(u0, u1, DOOR_T - 0.25, DOOR_T, t0, t1)
-    pu, pz = L - g - 1.6, z0 + 3.5
-    lbox(pu - PULL_T / 2, pu + PULL_T / 2, PULL_OFF - PULL_T, PULL_OFF, pz - PULL_L / 2, pz + PULL_L / 2, "nickel")
-    for zz in (pz - PULL_L / 2 + 0.4, pz + PULL_L / 2 - 0.4):
-        lbox(pu - 0.15, pu + 0.15, 0, PULL_OFF - PULL_T, zz - 0.15, zz + 0.15, "nickel")
+    pu, pz = L - g - 1.6, z0 + 3.5 + (PULL_L - 5.0) / 2
+    out = (mx.to_3x3() @ Vector((0, -1, 0))).normalized()
+    k.pull(None, None, pu, pz, matrix=mx, out=out)
     # cabinet over the fridge: deep box to the wall, a pair of short doors
     x0, x1, fy, z0, z1f = FRIDGE_UP
     k.box("oak_dark", x0, x1, fy + DOOR_T, NW, z0, z1f)
     mid = (x0 + x1) / 2
     for d0, d1, pa in ((x0, mid, mid - 1.6), (mid, x1, mid + 1.6)):
         k.door("N", fy + DOOR_T, d0, d1, z0, z1f)
-        k.pull("N", fy + DOOR_T, pa, z0 + 3.5, vertical=True)
+        k.pull("N", fy + DOOR_T, pa, z0 + 3.5 + (PULL_L - 5.0) / 2)
 
 
 def build(coll):
@@ -328,8 +360,57 @@ def build(coll):
     return [b.to_object(NAME, coll)]
 
 
+def _island_uvs(ob, atlas, regions):
+    """Per connected piece of each region, box-project every face onto the whole region
+    rect using that piece's own bounds (so each drip pan, coil or handle gets the full
+    painted image). Axes as common._axes (seen from outside, image up = +Z or +Y)."""
+    me = ob.data
+    names = [mm.name.split(".")[0] for mm in me.materials]
+    uvl = me.uv_layers["UVMap"]
+    for region in regions:
+        ri = names.index(region)
+        polys = [p for p in me.polygons if p.material_index == ri]
+        parent = {}
+
+        def find(a):
+            parent.setdefault(a, a)
+            while parent[a] != a:
+                parent[a] = parent[parent[a]]
+                a = parent[a]
+            return a
+
+        for p in polys:
+            r0 = find(p.vertices[0])
+            for v in p.vertices[1:]:
+                rv = find(v)
+                if rv != r0:
+                    parent[rv] = r0
+        groups = {}
+        for p in polys:
+            groups.setdefault(find(p.vertices[0]), []).append(p)
+        u0, v0, u1, v1 = common.uv_rect(atlas, region)
+        for ps in groups.values():
+            vids = {v for p in ps for v in p.vertices}
+            rng = {}
+            for p in ps:
+                n = p.normal
+                ax = max(range(3), key=lambda i: abs(n[i]))
+                key = ("+" if n[ax] > 0 else "-") + "XYZ"[ax]
+                ua, va = map(Vector, common._axes(key))
+                if key not in rng:
+                    us = [me.vertices[v].co.dot(ua) for v in vids]
+                    vs = [me.vertices[v].co.dot(va) for v in vids]
+                    rng[key] = (min(us), max(us) - min(us) or 1e-6, min(vs), max(vs) - min(vs) or 1e-6)
+                umin, ur, vmin, vr = rng[key]
+                for li in p.loop_indices:
+                    co = me.vertices[me.loops[li].vertex_index].co
+                    fu, fv = (co.dot(ua) - umin) / ur, (co.dot(va) - vmin) / vr
+                    uvl.data[li].uv = (u0 + fu * (u1 - u0), v0 + fv * (v1 - v0))
+
+
 def texture(objs):
     ob = objs[0]
     mat = common.atlas_material(NAME, ATLAS)
     common.atlas_uvs(ob, ATLAS)
+    _island_uvs(ob, ATLAS, WORN)
     common.collapse_materials(ob, {r: mat for r in REGIONS})

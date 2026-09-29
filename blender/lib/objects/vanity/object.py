@@ -1,9 +1,14 @@
 """Bathroom vanity: 50 in honey-oak sink base on the west wall (full-width top rail
-false front, one door with a bar pull on the south half, two stacked drawers with knobs
-on the north half, toe kick), white cultured-marble top with an integral oval basin set
-off-centre to the south, back and south side splashes, a brushed-nickel two-handle
-faucet, a toilet-paper holder on the north side panel, and the frameless clip-hung
-mirror above.
+false front, one door with an arched bow pull on the south half, two stacked drawers
+with mushroom knobs on the north half, fronts with eased edges, toe kick), white
+cultured-marble top with an integral oval basin set off-centre to the south (pop-up
+drain), back and south side splashes, a brushed-nickel 4 in centerset faucet with two
+lever handles, a two-post toilet-paper holder on the north side panel, and the frameless
+clip-hung mirror above. Hinges are concealed (none show in the photos).
+
+Wear (texture, bathroom atlas): finger grime round the pull and knobs, paler scuffed
+bottom edges, water-marked side panel near the floor, and the basin (own atlas region,
+mapped from above) with a brassy grime ring round the drain and water spots.
 
 Source of truth: scripted, from the bathroom LiDAR survey (Reference/bathroom_survey/,
 fixtures.py boxes vanity_counter, vanity_cabinet, backsplash, sink_bowl, mirror, and the
@@ -38,7 +43,8 @@ ATLAS = S.ATLAS
 MATERIALS = S.MATERIALS
 COLLIDER = "box"
 STATIC = True
-VIEWS = [("plan_top", 0, 89.9, 1.0), ("basin", 0, 55, 0.6), ("survey_view", 330, 30, 0.8)]
+VIEWS = [("plan_top", 0, 89.9, 1.0), ("basin", 0, 55, 0.6), ("survey_view", 330, 30, 0.8),
+         ("front_close", 350, 15, 0.5), ("faucet", 15, 35, 0.28), ("tp_holder", 60, 15, 0.45)]
 
 # --- dimensions (inches) ---------------------------------------------------------
 TOP_W, TOP_D = 50.1, 22.65     # SCAN counter
@@ -54,11 +60,12 @@ RAIL_Z = (25.3, 29.8)          # EST top rail false front (~5 in, survey)
 DOOR_Z = (4.2, 24.8)           # EST
 GAP = 0.4                      # EST between fronts
 FRONT_T = 0.75                 # EST door/drawer slab
+EDGE_EASE = 0.2                # EST chamfer on the fronts' edges
 MIRROR_W, MIRROR_Z = 23.4, (39.2, 76.1)   # SCAN
 MIRROR_X = -0.45               # SCAN centre (plan y 231.0 - 3.9)
 MIRROR_T = 0.25                # EST
 
-REGIONS = ["oak_doors", "oak", "dark", "marble", "nickel", "paper"]
+REGIONS = ["oak_doors", "oak", "dark", "marble", "sink_bowl", "nickel", "paper"]
 
 
 def counter_outline(cx, cy, x0, x1, y0, y1, n=44):
@@ -78,9 +85,12 @@ def counter_outline(cx, cy, x0, x1, y0, y1, n=44):
 
 
 def front_slab(b, x0, x1, z0, z1, yf, frame=0.0):
-    """A door/drawer slab proud of the face at yf; frame > 0 adds a raised frame."""
+    """A door/drawer slab proud of the face at yf, its front edges eased with a small
+    chamfer (the routed edge the photos show); frame > 0 adds a raised frame."""
     t = m(FRONT_T)
-    faces = b.box("oak", (x0, yf - t, z0), (x1, yf, z1))
+    before = set(b.bm.faces)
+    b.box("oak", (x0, yf - t, z0), (x1, yf, z1), bevel=m(EDGE_EASE), segments=1)
+    faces = [f for f in b.bm.faces if f not in before]
     b.bm.normal_update()
     for f in faces:
         if f.normal.y < -0.9:
@@ -127,17 +137,22 @@ def build_vanity(coll):
     front_slab(b, mid + g / 2, fx1, dz0, dzm - g / 2, yf)
     front_slab(b, mid + g / 2, fx1, dzm + g / 2, dz1, yf)
     yface = yf - m(FRONT_T)
-    # Door bar pull: vertical, near the centre gap, upper half.
+    # Door pull: a vertical arched bow pull near the centre gap, upper half (005839):
+    # round rod bowing out from two feet, on small round bases.
     px = mid - g / 2 - m(2.4)
     pz0, pz1 = dz1 - m(9.5), dz1 - m(3.0)
-    b.cylinder("nickel", (px, yface - m(1.25), (pz0 + pz1) / 2), m(0.25), pz1 - pz0 + m(0.4),
-               axis="Z", segments=10)
-    for pz in (pz0 + m(0.3), pz1 - m(0.3)):
-        b.cylinder("nickel", (px, yface - m(0.6), pz), m(0.2), m(1.3), axis="Y", segments=8)
-    # Drawer knobs.
+    bow = [(px, yface - m(1.15) * math.sin(math.pi * (0.08 + 0.84 * i / 8)) + m(0.05),
+            pz0 + (pz1 - pz0) * i / 8) for i in range(9)]
+    b.sweep("nickel", [(x, y, z) for x, y, z in bow], common.circle_profile(m(0.2), 6),
+            up=(0, -1, 0))
+    for pz in (pz0, pz1):
+        S.frustum(b, "nickel", (px, yface - m(0.12), pz), m(0.32), m(0.24), m(0.24), "Y", 8,
+                  sign=-1)
+    # Drawer knobs: small mushroom knobs on a stem.
     kx = (mid + fx1) / 2
     for kz in ((dz0 + dzm) / 2, (dzm + dz1) / 2 + m(0.8)):
-        b.cylinder("nickel", (kx, yface - m(0.5), kz), m(0.25), m(1.0), axis="Y", segments=8)
+        S.frustum(b, "nickel", (kx, yface - m(0.45), kz), m(0.3), m(0.2), m(0.9), "Y", 8,
+                  sign=-1)
         b.cylinder("nickel", (kx, yface - m(1.15), kz), m(0.6), m(0.45), axis="Y", segments=14,
                    bevel=m(0.12))
 
@@ -153,15 +168,25 @@ def build_vanity(coll):
     r_ob = S.ring(b, outer, ztop)
     r_ot = S.ring(b, outer, zt)
     r_rim = S.ring(b, rim, zt)
-    r_mid = S.ring(b, mid_r, zt - m(SINK_DEPTH * 0.55))
+    zmid = zt - m(SINK_DEPTH * 0.55)
+    # Where the bowl wall passes the counter's underside: the underside is an annulus
+    # round this ring (a full cap there used to close the bowl off at 30.4 in).
+    f = (zt - ztop) / (zt - zmid)
+    und = [(a[0] + f * (c[0] - a[0]), a[1] + f * (c[1] - a[1])) for a, c in zip(rim, mid_r)]
+    r_und = S.ring(b, und, ztop)
+    r_mid = S.ring(b, mid_r, zmid)
     r_bot = S.ring(b, bot, zt - m(SINK_DEPTH))
     S.bridge(b, "marble", r_ob, r_ot)
     S.bridge(b, "marble", r_ot, r_rim)
-    S.bridge(b, "marble", r_rim, r_mid)
-    S.bridge(b, "marble", r_mid, r_bot)
-    S.cap(b, "marble", r_bot)
-    S.cap(b, "marble", r_ob)
-    b.cylinder("nickel", (sx, sy, zt - m(SINK_DEPTH) + m(0.06)), m(0.9), m(0.12), segments=12)
+    S.bridge(b, "sink_bowl", r_rim, r_und)
+    S.bridge(b, "sink_bowl", r_und, r_mid)
+    S.bridge(b, "sink_bowl", r_mid, r_bot)
+    S.cap(b, "sink_bowl", r_bot)
+    S.bridge(b, "marble", r_und, r_ob)
+    # Pop-up drain: flange and the stopper cap (the grime ring round it is texture).
+    zb = zt - m(SINK_DEPTH)
+    S.frustum(b, "nickel", (sx, sy, zb + m(0.05)), m(0.9), m(0.8), m(0.12), "Z", 12)
+    b.cylinder("nickel", (sx, sy, zb + m(0.2)), m(0.62), m(0.25), segments=12, bevel=m(0.08))
     # Back splash and the south side splash.
     b.box("marble", (xs, yb - m(SPLASH_T), zt), (xn, yb, zt + m(SPLASH_H)), bevel=m(0.1))
     b.box("marble", (xs, ytf + m(0.6), zt), (xs + m(SPLASH_T), yb - m(SPLASH_T), zt + m(SPLASH_H)),
@@ -174,19 +199,44 @@ def build_vanity(coll):
     arc =[(sx, fy, zt + m(2.4))] + [(sx, fy - m(1.2) - m(3.0) * i / 3,
                                       zt + m(3.0) - m(0.6) * (i / 3) ** 2) for i in range(4)]
     b.sweep("nickel", arc, common.circle_profile(m(0.4), 10), up=(0, 0, 1))
-    for hx in (-4.0, 4.0):
-        b.cylinder("nickel", (sx + m(hx), fy, zt + m(0.6)), m(0.7), m(1.2), segments=12)
-        b.box("nickel", (sx + m(hx) - m(0.25), fy - m(2.6), zt + m(1.1)),
-              (sx + m(hx) + m(0.25), fy + m(0.3), zt + m(1.6)), bevel=m(0.15))
+    # Two lever handles on the 4 in centres (photo 005857): a tapered hub each, and a
+    # flat blade reaching forward and out, tipped slightly up.
+    for hx in (-2.0, 2.0):
+        sgn = 1 if hx > 0 else -1
+        hxm = sx + m(hx)
+        S.frustum(b, "nickel", (hxm, fy, zt + m(0.9)), m(0.75), m(0.5), m(1.1), "Z", 12)
+        blade = [(hxm, fy - m(0.1), zt + m(1.35)),
+                 (hxm + sgn * m(0.9), fy - m(1.2), zt + m(1.65)),
+                 (hxm + sgn * m(1.7), fy - m(2.4), zt + m(1.95)),
+                 (hxm + sgn * m(2.1), fy - m(3.2), zt + m(2.05))]
+        b.sweep("nickel", blade, [(-m(0.32), -m(0.12)), (m(0.32), -m(0.12)), (m(0.26), m(0.12)),
+                                  (-m(0.26), m(0.12))], up=(0, 0, 1))
 
-    # Toilet-paper holder on the north side panel, with a roll.
+    # Toilet-paper holder on the north side panel: two bell posts either side of the
+    # roll with the spindle between them (photos 005931, 005934).
     hy, hz = -m(4.5), m(24.0)
-    b.cylinder("nickel", (cx1 + m(0.2), hy, hz), m(1.0), m(0.4), axis="X", segments=14)
-    b.cylinder("nickel", (cx1 + m(1.4), hy, hz), m(0.3), m(2.4), axis="X", segments=8)
-    b.cylinder("nickel", (cx1 + m(2.6), hy - m(1.4), hz), m(0.3), m(5.0), axis="Y", segments=8)
-    b.cylinder("paper", (cx1 + m(2.6), hy - m(1.6), hz), m(2.2), m(3.9), axis="Y", segments=18,
+    ry = hy - m(1.6)
+    for py in (ry - m(2.3), ry + m(2.3)):
+        S.frustum(b, "nickel", (cx1 + m(1.3), py, hz), m(0.9), m(0.3), m(2.6), "X", 10)
+    b.cylinder("nickel", (cx1 + m(2.6), ry, hz), m(0.3), m(4.6), axis="Y", segments=8)
+    b.cylinder("paper", (cx1 + m(2.6), ry, hz), m(2.2), m(3.9), axis="Y", segments=18,
                cap_region="paper")
-    return b.to_object("vanity", coll)
+    ob = b.to_object("vanity", coll)
+    # The open bowl makes the counter a non-closed shell, and the normal recalc can turn the
+    # bowl faces outward (down): Unity culls them and you see into the cabinet. Face every
+    # bowl face toward a point above the bowl's centre.
+    import bmesh as _bm
+    from mathutils import Vector as _V
+    bm = _bm.new()
+    bm.from_mesh(ob.data)
+    bm.normal_update()
+    bowl = [i for i, s_ in enumerate(ob.data.materials) if s_ and s_.name.split(".")[0] == "sink_bowl"]
+    eye = _V((sx, sy, zt + m(4.0)))
+    flip = [f for f in bm.faces if f.material_index in bowl and f.normal.dot(eye - f.calc_center_median()) < 0]
+    _bm.ops.reverse_faces(bm, faces=flip)
+    bm.to_mesh(ob.data)
+    bm.free()
+    return ob
 
 
 def build_mirror(coll):
@@ -216,6 +266,8 @@ def texture(objs):
     planar = {
         "oak_doors": ("-Y", (-m(TOP_W / 2), m(TOP_W / 2)), (0, m(TOP_Z0))),
         "oak": ("+X", (-m(WALL_Y), m(WALL_Y)), (0, m(TOP_Z0))),
+        "sink_bowl": ("+Z", (m(SINK_X - SINK_W / 2), m(SINK_X + SINK_W / 2)),
+                      (m(SINK_Y - SINK_D / 2), m(SINK_Y + SINK_D / 2))),
     }
     for ob in objs:
         common.atlas_uvs(ob, ATLAS, planar=planar)

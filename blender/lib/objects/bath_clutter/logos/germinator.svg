@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="120" viewBox="0 0 320 120">
+  <!-- Parody disinfectant brand "Germinator": a white oval with a small cartoon germ wearing sunglasses and a script wordmark. Drawn from scratch. -->
+  <ellipse cx="160" cy="60" rx="156" ry="56" fill="#ffffff" stroke="#2a5fb8" stroke-width="5"/>
+  <circle cx="52" cy="60" r="24" fill="#7ac943"/>
+  <rect x="34" y="50" width="36" height="9" rx="4" fill="#111111"/>
+  <text x="84" y="74" font-family="Brush Script MT, Georgia, serif" font-style="italic" font-weight="700" font-size="42" fill="#2a5fb8">Germinator</text>
+</svg>

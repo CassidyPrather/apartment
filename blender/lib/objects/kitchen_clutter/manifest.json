@@ -1,0 +1,32 @@
+{
+  "name": "kitchen_clutter",
+  "fbx": "Assets/Apartment/Models/kitchen_clutter.fbx",
+  "materials": {
+    "kitchen_clutter": {
+      "atlas": "kitchen_clutter",
+      "mode": "opaque",
+      "tiled": false
+    },
+    "kitchen_clutter_clear": {
+      "atlas": "kitchen_clutter",
+      "mode": "transparent",
+      "alpha": 0.22,
+      "tiled": false
+    }
+  },
+  "collider": "none",
+  "static": true,
+  "triangles": 8946,
+  "bounds_m": {
+    "min": [
+      0.0279,
+      4.7321,
+      0.9142
+    ],
+    "max": [
+      3.3096,
+      7.2644,
+      2.126
+    ]
+  }
+}

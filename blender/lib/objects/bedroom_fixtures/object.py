@@ -1,7 +1,7 @@
 """Bedroom fixtures: the small wall/ceiling things of the bedroom, all in one package.
   - vertical vane blinds in the bedroom's south window
   - two tracking base stations on swivel wall brackets (cable run down the wall)
-  - ceiling smoke detector, thermostat on the center wall
+  - ceiling smoke detector (the center-wall thermostat moved to the wall_plates package)
   - all the wall art, textured from rectified capture photos (the six-panel flower print from
     Cassidy's close-up photo IMG_1515)
   - the six keychains by the plushes, modelled: acrylic slabs, metal rings/clasps/chains, a
@@ -431,7 +431,8 @@ def build(coll):
     for bs in BASE_STATIONS:
         base_station(b, *bs)
     smoke_detector(b)
-    thermostat(b)
+    # thermostat(b): the wall_plates package builds it now, from the captures, with the
+    # light switch beside it this block used to cover
     return [b.to_object(NAME, coll)]
 
 

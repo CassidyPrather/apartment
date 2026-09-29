@@ -15,6 +15,9 @@ Dimensions (inches):
   4-panel layout: bottom rail 9.5, lock rail 32-40, top rail 4.75, stiles/mullion 4.5
                            EST, proportions read from IMG_1498 (upper panels ~1.5x lower)
   lever centre 36 up       EST
+Hardware (see doorkit): dark bronze scroll lever on a stepped rose, three dark bronze butt
+hinges (the dark jamb plates in IMG_1523, right-hand door), latch and strike. Wear: faint
+hand smudges around the lever and scuffs along the bottom rail (IMG_1498).
 """
 
 import os
@@ -49,7 +52,7 @@ def rails_4panel(lh):
 def build(coll):
     lh = HEIGHT - K.JAMB_T - K.GAP - K.FLOOR_GAP
     return K.hinged(coll, NAME, WIDTH, HEIGHT, WALL_T, LEAF_T, HAND, OPEN_DEG,
-                    rails_4panel(lh), [2, 2], handle="lever")
+                    rails_4panel(lh), [2, 2], handle="lever", finish="bronze")
 
 
 def texture(objs):

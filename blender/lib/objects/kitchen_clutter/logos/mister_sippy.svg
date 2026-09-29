@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="100" viewBox="0 0 400 100">
+  <!-- Parody coffee-maker brand "Mister Sippy": a little cup with a bent straw and one steam curl, then a spaced white wordmark. Drawn from scratch. -->
+  <rect x="0" y="0" width="400" height="100" fill="#141414"/>
+  <path d="M22 44 h40 l-5 34 h-30 z" fill="#ffffff"/>
+  <path d="M62 50 q14 2 10 14 q-3 8 -13 8" fill="none" stroke="#ffffff" stroke-width="5"/>
+  <path d="M46 42 l6 -20 l14 -6" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round"/>
+  <path d="M32 36 q-6 -8 0 -14 q6 -6 0 -14" fill="none" stroke="#bdbdbd" stroke-width="3" stroke-linecap="round"/>
+  <text x="96" y="66" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="40" letter-spacing="3" fill="#ffffff">MISTER SIPPY</text>
+</svg>

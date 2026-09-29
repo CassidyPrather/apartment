@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="80" viewBox="0 0 200 80">
+  <!-- Parody seltzer brand "Limeyish": a half lime slice with a wink, and a lowercase white wordmark. Drawn from scratch. -->
+  <path d="M8 60 a30 30 0 0 1 60 0 z" fill="#c9e07a" stroke="#ffffff" stroke-width="4"/>
+  <path d="M38 60 L38 34 M38 60 L20 42 M38 60 L56 42" stroke="#8fb34a" stroke-width="3"/>
+  <text x="76" y="56" font-family="Arial Rounded MT Bold, Arial, sans-serif" font-weight="700" textLength="116" lengthAdjust="spacingAndGlyphs" font-size="30" fill="#ffffff">limeyish</text>
+</svg>

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="60" viewBox="0 0 240 60">
+  <!-- Parody tinned-fish brand "Sardeen Machine": a white fish with a tiny gear for an eye, and a red rounded wordmark. Drawn from scratch. -->
+  <path d="M8 30 q24 -22 56 0 q-32 22 -56 0 z M64 30 l14 -12 l0 24 z" fill="#ffffff"/>
+  <circle cx="24" cy="27" r="4" fill="#c42a26"/>
+  <text x="88" y="40" textLength="146" lengthAdjust="spacingAndGlyphs" font-family="Arial Rounded MT Bold, Arial, sans-serif" font-weight="700" font-size="17" fill="#c42a26">Sardeen Machine</text>
+</svg>

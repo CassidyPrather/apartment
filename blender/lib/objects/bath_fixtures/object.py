@@ -5,9 +5,9 @@ all converted from inches to metres. Place at (0, 0, 0) with no rotation.
 Contents:
   linen niche     4 white shelves on cleats between the south wall and the tub stub wall
   towel bar       north wall, west of the tub
-  grab bar        vertical, north wall at the tub entry
+  grab bar        vertical, north wall at the tub entry (bent returns, satin nickel)
   towel ring      south wall, over the vanity end
-  round mirror    small decor mirror on the south wall
+  round mirror    small decor mirror on the south wall, hung on a chain
   light bar       4 up-facing opal cylinder shades on a nickel bar over the vanity mirror
   ceiling light   fan/light plate with two round lamps
 
@@ -22,6 +22,9 @@ the same atlas, whose emission map is lit only in the glow region).
 import math
 import os
 import sys
+
+import bmesh
+from mathutils import Matrix
 
 import common
 
@@ -106,22 +109,46 @@ def niche(b):
             box(b, "trim", (x0 + 1.0, ya, cz0), (x1, yb, cz1))
 
 
+def frustum(b, region, c, r_base, r_tip, d, axis="Y", seg=16, sign=1):
+    """Cone frustum (inches, plan coords): r_base toward -axis*sign, r_tip the other end."""
+    r1, r2 = (r_base, r_tip) if sign > 0 else (r_tip, r_base)
+    r = bmesh.ops.create_cone(b.bm, cap_ends=True, cap_tris=False, segments=seg,
+                              radius1=m(r1), radius2=m(r2), depth=m(d))
+    rot = {"X": Matrix.Rotation(math.pi / 2, 4, "Y"), "Y": Matrix.Rotation(-math.pi / 2, 4, "X"),
+           "Z": Matrix.Identity(4)}[axis]
+    bmesh.ops.transform(b.bm, matrix=Matrix.Translation(P(*c)) @ rot, verts=r["verts"])
+    b._tag(list({f for v in r["verts"] for f in v.link_faces}), region)
+
+
 def towel_bar(b):
     x0, x1, z = TOWEL_BAR
     y = WALL_N - 2.4
     cyl(b, "nickel", ((x0 + x1) / 2, y, z), 0.375, x1 - x0 - 1.0, axis="X", seg=12)
     for x in (x0 + 0.6, x1 - 0.6):
-        cyl(b, "nickel", (x, WALL_N - 1.3, z), 0.55, 2.6, axis="Y", seg=12)
+        # bell post tapering from its wall flange out to the bar
+        frustum(b, "nickel", (x, WALL_N - 1.5, z), 1.0, 0.55, 2.2, sign=-1)
         cyl(b, "nickel", (x, WALL_N - 0.2, z), 1.2, 0.4, axis="Y", seg=16)
 
 
 def grab_bar(b):
+    """Satin-nickel grab bar (photos 010106, 010111): one tube that bends back to the wall
+    at both ends on round flanges."""
     x, z0, z1 = GRAB_BAR
-    y = WALL_N - 2.1
-    cyl(b, "chrome", (x, y, (z0 + z1) / 2), 0.625, z1 - z0 - 2.4, seg=14)
-    for z in (z0 + 1.2, z1 - 1.2):
-        cyl(b, "chrome", (x, WALL_N - 1.2, z), 0.6, 2.4, axis="Y", seg=12)
-        cyl(b, "chrome", (x, WALL_N - 0.2, z), 1.5, 0.4, axis="Y", seg=16)
+    y = WALL_N - 2.1                     # bar centreline off the wall
+    rb = 1.1                             # bend radius
+    za, zb = z0 + 1.5, z1 - 1.5          # return centrelines
+    pts = [(WALL_N - 0.3, za)]
+    for i in range(5):                   # bottom bend: from horizontal (toward -y) to up
+        a = math.radians(90 * i / 4)
+        pts.append((y + rb - rb * math.sin(a), za + rb - rb * math.cos(a)))
+    for i in range(5):                   # top bend: from up back to the wall
+        a = math.radians(90 * i / 4)
+        pts.append((y + rb - rb * math.cos(a), zb - rb + rb * math.sin(a)))
+    pts.append((WALL_N - 0.3, zb))
+    b.sweep("nickel", [P(x, py, pz) for py, pz in pts], common.circle_profile(m(0.625), 12),
+            up=(1, 0, 0))
+    for zc in (za, zb):
+        frustum(b, "nickel", (x, WALL_N - 0.25, zc), 1.5, 1.3, 0.5, sign=-1)
 
 
 def towel_ring(b):
@@ -138,7 +165,14 @@ def round_mirror(b):
     x, z, d = ROUND_MIRROR
     cyl(b, "dark", (x, WALL_S + 0.3, z), d / 2, 0.6, axis="Y", seg=32)
     cyl(b, "mirror", (x, WALL_S + 0.62, z), d / 2 - 0.4, 0.06, axis="Y", seg=32)
-    cyl(b, "dark", (x, WALL_S + 0.5, z + d / 2 + 3.0), 0.35, 1.0, axis="Y", seg=10)   # hook
+    hz = z + d / 2 + 3.0
+    cyl(b, "dark", (x, WALL_S + 0.5, hz), 0.35, 1.0, axis="Y", seg=10)   # hook
+    # The hanging chain: two runs from the hook down to the frame (photo 005827).
+    for sx in (-1, 1):
+        a = math.radians(50)
+        end = P(x + sx * (d / 2) * math.sin(a), WALL_S + 0.35, z + (d / 2) * math.cos(a))
+        b.sweep("dark", [P(x, WALL_S + 0.5, hz - 0.2), end], common.circle_profile(m(0.09), 4),
+                up=(0, 1, 0))
 
 
 def light_bar(b):

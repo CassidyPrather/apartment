@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="80" viewBox="0 0 300 80">
+  <!-- Parody seltzer brand "Glacier Burp": a lopsided ice cube with three rising bubbles, and a tall white condensed wordmark. Drawn from scratch. -->
+  <path d="M10 30 l24 -8 l22 10 l-4 30 l-24 8 l-20 -12 z" fill="none" stroke="#ffffff" stroke-width="5" stroke-linejoin="round"/>
+  <circle cx="44" cy="14" r="5" fill="none" stroke="#ffffff" stroke-width="3"/>
+  <circle cx="56" cy="6" r="3" fill="#ffffff"/>
+  <text x="70" y="58" textLength="222" lengthAdjust="spacingAndGlyphs" font-family="Impact, Arial Narrow, sans-serif" font-weight="700" font-size="36" fill="#ffffff">GLACIER BURP</text>
+</svg>

@@ -27,6 +27,7 @@ VAL_TOP = 75.0      # PHOTO valance board top / crown bottom
 STILE = 2.0         # PHOTO face-frame stile width
 SIDE_T = 0.75       # EST
 DOOR_T = 0.75       # EST
+DOOR_LATCH_DOWN = 6.0  # PHOTO (capture frames 003528/003541): latch plates ~1/3 down the doors
 X0, X1 = -W / 2, W / 2
 Y0, Y1 = -D / 2, D / 2
 FY = Y0 + 0.75                    # carcass front (behind the face frame)

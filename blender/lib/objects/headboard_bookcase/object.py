@@ -1,9 +1,14 @@
-"""Headboard bookcase: a honey-oak laminate cubby bookcase standing behind the bed as its
+"""Headboard bookcase: a solid golden-oak cubby bookcase standing behind the bed as its
 headboard. Two open bays split by a divider, a fixed shelf at mattress height with soft
 clothes stored on it, a lower shelf behind the bed, a toe kick. On top: a white power
 strip with plugs, an over-ear headset with a mic boom, a VR headset with its strap and
 a spare strap, and a few cables looping between them and hanging down the front.
 All items are plain dark shapes with no markings.
+
+Refinement (scan3 close-ups 88386375752, 88399009696, 88401443145 and capture frame
+wide_..012051): thick top overhanging the front with a rounded edge, a rail under it,
+thick side stiles proud of rounded shelf edges, an apron board under the upper shelf,
+oak (not dark) back panel. No hardware anywhere.
 
 Source of truth: scripted from the bedroom LiDAR survey (registered.npz, plan inches)
 and the survey crops. Front faces -Y; origin on the floor at the footprint centre.
@@ -25,7 +30,15 @@ def m(v):
 W = 46.5            # SCAN side panels at plan y 82 and ~128.5 (LiDAR + splat top edge)
 D = 13.0            # SCAN front face x 261.4 to the wall at 274.4
 H = 39.5            # SCAN flat top at z 39-39.5 (LiDAR and splat histograms); items to ~46
-T = 0.75            # EST laminate board
+T = 0.75            # EST board (back, lower shelves)
+TOP_T = 1.25        # EST photo: top edge ~ the shelf edge's height
+OVER = 0.75         # EST photo: top overhangs the side stiles at the front
+SIDE_T = 1.25       # EST photo: side stile ~ as wide as the top is thick
+SIDE_IN = 0.4       # EST photo: top overhangs the sides slightly
+SHELF_T = 1.0       # EST photo: rounded shelf edge
+SHELF_SET = 0.4     # EST photo: shelf edge set back from the side stiles
+RAIL_H = 1.25       # EST photo: rail under the top
+APRON_H = 4.0       # EST photo (88399009696): board under the upper shelf
 DIV_X = 2.75        # SCAN divider at plan y 102.5 (wood-coloured points, both depth bands)
 SHELF_Z = 30.0      # SCAN shelf line in the front elevation; photo: just above the mattress
 LOW_Z = 15.5        # EST lower shelf (hidden behind the bed)
@@ -49,6 +62,7 @@ ATLAS = {
         "cloth_dark": (896, 384, 128, 128),
         "strap": (512, 512, 256, 128),
         "cushion": (768, 512, 256, 128),
+        "oak_v": (0, 512, 512, 512),
     },
 }
 REGIONS = list(ATLAS["regions"])
@@ -56,7 +70,7 @@ MATERIALS = {NAME: {"atlas": NAME, "mode": "opaque", "tiled": False}}
 COLLIDER = "box"
 STATIC = True
 VIEWS = [("photo_front", 0, 14, 1.0), ("photo_front_left", 340, 20, 1.0),
-         ("top_items", 0, 55, 0.55)]
+         ("top_items", 0, 55, 0.55), ("photo_s3_150", 30, 38, 0.8)]
 
 X0, X1 = -W / 2, W / 2
 Y0, Y1 = -D / 2, D / 2
@@ -77,16 +91,28 @@ def cable(b, region, pts, r=0.12):
 def build(coll):
     b = common.Builder(REGIONS)
     bx = lambda r, a, c, bev=0.0: b.box(r, tuple(map(m, a)), tuple(map(m, c)), bevel=m(bev))
-    # carcass
-    bx("oak", (X0, Y0, 0), (X0 + T, Y1, H - T))
-    bx("oak", (X1 - T, Y0, 0), (X1, Y1, H - T))
-    bx("oak", (X0, Y0, H - T), (X1, Y1, H), 0.08)
-    bx("interior", (X0 + T, Y1 - 0.25, KICK), (X1 - T, Y1, H - T))
-    bx("oak", (X0 + T, Y0 + 0.5, 0), (X1 - T, Y0 + 1.25, KICK))            # toe kick
-    for z in (KICK + T, LOW_Z, SHELF_Z):
-        bx("oak_edge", (X0 + T, Y0, z - T), (X1 - T, Y1 - 0.25, z))
-    for za, zb in ((KICK + T, LOW_Z - T), (LOW_Z, SHELF_Z - T), (SHELF_Z, H - T)):
-        bx("oak_edge", (DIV_X - T / 2, Y0, za), (DIV_X + T / 2, Y1 - 0.25, zb))
+    # carcass: rounded solid-oak top overhanging thick side stiles
+    b.box("oak", tuple(map(m, (X0, Y0, H - TOP_T))), tuple(map(m, (X1, Y1, H))),
+          bevel=m(0.4), segments=2)
+    cf = Y0 + OVER                                   # carcass front plane (stile faces)
+    sx0, sx1 = X0 + SIDE_IN + SIDE_T, X1 - SIDE_IN - SIDE_T   # inner faces of the sides
+    for a0, a1 in ((X0 + SIDE_IN, sx0), (sx1, X1 - SIDE_IN)):
+        b.box("oak_v", tuple(map(m, (a0, cf, 0))), tuple(map(m, (a1, Y1, H - TOP_T))),
+              bevel=m(0.3), segments=2)
+    bx("interior", (sx0, Y1 - 0.25, KICK), (sx1, Y1, H - TOP_T))
+    bx("oak", (sx0, cf + 0.25, H - TOP_T - RAIL_H), (sx1, cf + 1.0, H - TOP_T), 0.15)   # top rail
+    bx("oak", (sx0, cf + 0.5, 0), (sx1, cf + 1.25, KICK))                              # toe kick
+    sf = cf + SHELF_SET
+    for z in (KICK + T, LOW_Z):
+        bx("oak_edge", (sx0, sf, z - T), (sx1, Y1 - 0.25, z), 0.12)
+    b.box("oak_edge", tuple(map(m, (sx0, sf, SHELF_Z - SHELF_T))),
+          tuple(map(m, (sx1, Y1 - 0.25, SHELF_Z))), bevel=m(0.3), segments=2)
+    bx("oak_v", (sx0, sf + 0.5, SHELF_Z - SHELF_T - APRON_H), (sx1, sf + 1.25, SHELF_Z - SHELF_T),
+       0.08)                                                                            # apron
+    for za, zb in ((KICK + T, LOW_Z - T), (LOW_Z, SHELF_Z - SHELF_T - APRON_H),
+                   (SHELF_Z, H - TOP_T - RAIL_H)):
+        b.box("oak_v", tuple(map(m, (DIV_X - 0.5, sf, za))), tuple(map(m, (DIV_X + 0.5, Y1 - 0.25, zb))),
+              bevel=m(0.2), segments=1)
 
     # clothes kept in the bays (photo: maroon behind the pillow, mauve and black on the right)
     lump(b, "cloth_maroon", -12.0, 0.5, SHELF_Z, 16.0, 10.0, 5.5)

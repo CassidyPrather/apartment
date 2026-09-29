@@ -60,13 +60,18 @@ def build(coll):
     b = K.builder()
     K.panel_leaf(b, lead - lw, lead, K.FLOOR_GAP, K.FLOOR_GAP + lh, -LEAF_T / 2, LEAF_T / 2,
                  [(0.0, 9.5), (39.0, 43.0), (lh - 4.75, lh)], [1, 1])
-    # edge pull on the leading edge, and flush cup pulls near it on both faces
-    K.box(b, "dark", (lead, -0.35, K.KNOB_Z - 1.5), (lead + 0.12, 0.35, K.KNOB_Z + 1.5))
+    # edge pull on the leading edge (nickel plate, dark finger slot), and a rectangular
+    # flush pull near it on both faces (nickel flange, dark recess)
+    K.box(b, "nickel", (lead - 0.02, -0.5, K.KNOB_Z - 1.6), (lead + 0.05, 0.5, K.KNOB_Z + 1.6))
+    K.box(b, "dark", (lead + 0.05, -0.3, K.KNOB_Z - 1.1), (lead + 0.07, 0.3, K.KNOB_Z + 1.1))
     for sign in (-1, 1):
         yf = sign * LEAF_T / 2
-        K.box(b, "nickel", (lead - 3.2, min(yf, yf + sign * 0.08), K.KNOB_Z - 1.6),
-              (lead - 1.2, max(yf, yf + sign * 0.08), K.KNOB_Z + 1.6))
+        K.box(b, "nickel", (lead - 3.2, yf - sign * 0.02, K.KNOB_Z - 1.6),
+              (lead - 1.2, yf + sign * 0.06, K.KNOB_Z + 1.6))
+        K.box(b, "dark", (lead - 2.95, yf + sign * 0.06, K.KNOB_Z - 1.3),
+              (lead - 1.45, yf + sign * 0.075, K.KNOB_Z + 1.3))
     leaf = b.to_object(NAME + "_leaf", coll, origin=K.mv((lead, 0, 0)))
+    K.register_leaf(leaf.name, lead - lw, lead, K.FLOOR_GAP, K.FLOOR_GAP + lh)
     mk = K.marker(coll, NAME + "_leaf_grab", (lead - 2.2, -LEAF_T / 2 - 1.0, K.KNOB_Z))
     return [frame, leaf, mk]
 

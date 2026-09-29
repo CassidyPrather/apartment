@@ -1,5 +1,6 @@
 """Bedroom closet bypass doors: two sliding leaves on a double head track, 2-panel molded
-(EST, matched to the laundry door) with round finger cups. Closed. No photo yet.
+(EST, matched to the laundry door) with round finger cups. Closed. Photos: bedroom
+LiDAR frames 552-600 (cup, head).
 
 Source of truth: scripted, shared parts in ../door_bedroom/doorkit.py.
 Local frame: origin on the floor at the centre of the opening, on the wall centreline;
@@ -14,6 +15,8 @@ Dimensions (inches):
   wall 4.75                layout (A)
   leaves 30.5 wide each (1 in overlap), 1.375 thick, ~79 tall   EST
   track 1.25 tall, 3.8 deep; leaf centres 1.6 apart            EST
+  finger cups 2.1 across, 36 up, 2.25 from the outer edges       EST, bedroom frame 564
+Wear: smudges around each finger cup, scuffs along the bottoms (the "leaf" region).
 """
 
 import importlib
@@ -61,8 +64,15 @@ def build(coll):
         K.panel_leaf(b, xa, xb, lz0, lz1, ya, yb, rails, [1, 1])
         cx = xa + 2.25 if side < 0 else xb - 2.25                # cups near the outer edges
         for sign, yf in ((-1, ya), (1, yb)):
-            K.cyl(b, "dark", (cx, yf + sign * 0.03, K.KNOB_Z), 0.9, 0.08, seg=12)
+            # round finger cup (bedroom frame 564): a satin nickel flange around a darker
+            # brushed recessed dish
+            cup = K.lathe(b, "nickel", (cx, yf - sign * 0.02, K.KNOB_Z),
+                          [(1.06, 0.0), (1.06, 0.07), (0.8, 0.08), (0.0, 0.085)],
+                          axis="Y", sign=sign, seg=12)
+            b._tag(cup[24:36], "bronze")                     # the dish reads darker (centre fan)
         ob = b.to_object(f"{NAME}_{name}", coll, origin=K.mv(((xa + xb) / 2, yc, 0)))
+        # wear: u = 1 at the cup's edge
+        K.register_leaf(ob.name, xb if side < 0 else xa, xa if side < 0 else xb, lz0, lz1)
         out.append(ob)
         out.append(K.marker(coll, f"{NAME}_{name}_grab", (cx, ya - 1.0, K.KNOB_Z)))
     return out
