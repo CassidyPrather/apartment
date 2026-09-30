@@ -273,13 +273,23 @@ public static class LightingSetup
             UdonSharpEditor.UdonSharpEditorUtility.CopyProxyToUdon(dn);
         }
 
+        LtcgiSetup.AddVolume();                      // the TV's Light Volume, on the new manager
+
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
         Debug.Log("[LightingSetup] done");
     }
 
+    // PC: LTCGI's shadowmap (the TV's light, see LtcgiSetup) bakes first, then the room.
     [MenuItem("Apartment/Bake Lighting")]
     public static void Bake()
+    {
+        EditorSceneManager.SaveScene(EditorSceneManager.GetActiveScene());
+        if (!LtcgiSetup.BakeShadowmap(BakeRoom))
+            BakeRoom();
+    }
+
+    static void BakeRoom()
     {
         EditorSceneManager.SaveScene(EditorSceneManager.GetActiveScene());
         Lightmapping.bakeCompleted -= AfterBake;

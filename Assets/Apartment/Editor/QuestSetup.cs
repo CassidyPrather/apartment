@@ -32,6 +32,14 @@ public static class QuestSetup
 
         foreach (var t in Object.FindObjectsOfType<Transform>(true).Where(t => t.name == "lights_and_night" || t.name == LtcgiSetup.RootName).ToArray())
             Object.DestroyImmediate(t.gameObject);
+        // LTCGI's shadowmap bake turns static batching off on everything it lights (batching
+        // would rewrite the lightmap UVs its offsets refer to); Quest has no LTCGI, so batch.
+        foreach (var r in Object.FindObjectsOfType<Renderer>(true))
+        {
+            var flags = GameObjectUtility.GetStaticEditorFlags(r.gameObject);
+            if ((flags & StaticEditorFlags.ContributeGI) != 0)
+                GameObjectUtility.SetStaticEditorFlags(r.gameObject, flags | StaticEditorFlags.BatchingStatic);
+        }
         LightingSetup.Setup();                       // the room lamps baked in (IsMobileScene)
         EditorSceneManager.SaveScene(scene);
         Debug.Log("[QuestSetup] Quest scene rebuilt from the PC scene; baking");
