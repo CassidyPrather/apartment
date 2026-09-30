@@ -46,6 +46,7 @@ public static class LightingSetup
     // Volumes stop short of the walls: padding pulled in-wall voxels (black) into them.
     // Anything inside a wall's thickness (closed door leaves, jambs) blends from the light
     // probe grid instead, which sits inside the rooms only.
+    const int ShadowResolution = 128;             // lamp shadow maps (Point Light Volumes), see Setup
     const float VolumePadIn = -4f;        // inset: voxels on a wall face bake half-occluded (dark)
     // Open-plan edges with no wall (living | dining | kitchen): no inset there, so the
     // volumes meet. A gap between them lit things straddling it (the dining closet's door)
@@ -274,6 +275,18 @@ public static class LightingSetup
         }
 
         LtcgiSetup.AddVolume();                      // the TV's Light Volume, on the new manager
+
+        // Lamp shadow maps at 128 instead of the package's 256: the four switchable lamps' baked
+        // shadows went from ~50 MB to ~5 MB of the PC download, and night renders of every
+        // shadowed spot came out the same (blender/out/shadowcmp, 2026-09-29).
+        var lvManager = Object.FindObjectsOfType<MonoBehaviour>().FirstOrDefault(m => m.GetType().Name == "LightVolumeManager");
+        if (lvManager != null)
+        {
+            var mso = new SerializedObject(lvManager);
+            mso.FindProperty("ShadowTexturesWidth").intValue = ShadowResolution;
+            mso.FindProperty("ShadowTexturesHeight").intValue = ShadowResolution;
+            mso.ApplyModifiedPropertiesWithoutUndo();
+        }
 
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
