@@ -44,7 +44,7 @@ public static class NightSetup
     static readonly System.Collections.Generic.Dictionary<string, (float size, float intensity, bool point)> Soft =
         new System.Collections.Generic.Dictionary<string, (float, float, bool)>
         {
-            ["bedroom_lamp_0"] = (1.2f, 1.1f, false),
+            ["bedroom_lamp_0"] = (1.2f, 0.7f, true),    // all-round so the spill over the bowl reaches the desk (a 95 deg spot up left it dark); dimmer than the spot was
             ["bath_light_0"] = (1.2f, 1.7f, true),
             ["bath_light_1"] = (1.2f, 0.4f, true),
             ["hall_light_0"] = (1.2f, 0.4f, true),               // the narrow hall's walls sit right by it
