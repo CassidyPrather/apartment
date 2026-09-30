@@ -54,14 +54,27 @@ public class SlidingDoor : UdonSharpBehaviour
         var clips = isOpen ? openClips : closeClips;
         if (sound != null && clips != null && clips.Length > 0)
             sound.PlayOneShot(clips[Random.Range(0, clips.Length)]);
+        StartTick();
     }
 
-    void Update()
+    // Runs only while moving: a per-frame Update on every idle door costs Udon time each
+    // frame (it adds up on Quest), so movement ticks itself one frame at a time instead.
+    bool ticking;
+
+    void StartTick()
+    {
+        if (ticking) return;
+        ticking = true;
+        SendCustomEventDelayedFrames(nameof(_Tick), 1);
+    }
+
+    public void _Tick()
     {
         float target = isOpen ? 1f : 0f;
-        if (t == target) return;
         t = Mathf.MoveTowards(t, target, Time.deltaTime / Mathf.Max(0.05f, seconds));
         transform.localPosition = Vector3.Lerp(closedPosition, openPosition, t * t * (3f - 2f * t));
+        if (t == target) { ticking = false; return; }
+        SendCustomEventDelayedFrames(nameof(_Tick), 1);
     }
 
     void Label() => InteractionText = isOpen ? "Close" : "Open";

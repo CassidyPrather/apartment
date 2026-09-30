@@ -67,12 +67,23 @@ public class BifoldDoor : UdonSharpBehaviour
         {
             latchPending = true;
         }
+        StartTick();
     }
 
-    void Update()
+    // Runs only while moving: a per-frame Update on every idle door costs Udon time each
+    // frame (it adds up on Quest), so movement ticks itself one frame at a time instead.
+    bool ticking;
+
+    void StartTick()
+    {
+        if (ticking) return;
+        ticking = true;
+        SendCustomEventDelayedFrames(nameof(_Tick), 1);
+    }
+
+    public void _Tick()
     {
         float target = isOpen ? 1f : 0f;
-        if (t == target) return;
         t = Mathf.MoveTowards(t, target, Time.deltaTime / Mathf.Max(0.05f, seconds));
         Pose(t * t * (3f - 2f * t));
         if (t <= 0f && latchPending)
@@ -80,6 +91,8 @@ public class BifoldDoor : UdonSharpBehaviour
             latchPending = false;
             Play(closeClips);
         }
+        if (t == target) { ticking = false; return; }
+        SendCustomEventDelayedFrames(nameof(_Tick), 1);
     }
 
     void Pose(float k)

@@ -22,6 +22,7 @@ public static class AtlasSetup
 {
     const string Out = "Assets/Apartment/Atlased";
     const int AtlasSize = 4096;
+    const int MobileMaxSize = 2048;
     const int Pad = 8;
 
     // Photo-derived art (gitignored textures) and textures a script swaps at runtime.
@@ -293,9 +294,16 @@ public static class AtlasSetup
         imp.alphaSource = srgb ? TextureImporterAlphaSource.None : TextureImporterAlphaSource.FromInput;
         imp.crunchedCompression = true;                            // smaller download; same DXT in memory
         imp.compressionQuality = 60;
+        // Quest/iOS: at most 2048 (a 4096 ASTC atlas is ~10 MB of an Android world's 100 MB
+        // download cap, and a headset rarely resolves the difference); PC keeps full size.
         imp.SetPlatformTextureSettings(new TextureImporterPlatformSettings
         {
-            name = "Android", overridden = true, maxTextureSize = max,
+            name = "Android", overridden = true, maxTextureSize = Mathf.Min(max, half ? MobileMaxSize / 2 : MobileMaxSize),
+            format = TextureImporterFormat.ASTC_6x6,
+        });
+        imp.SetPlatformTextureSettings(new TextureImporterPlatformSettings
+        {
+            name = "iPhone", overridden = true, maxTextureSize = Mathf.Min(max, half ? MobileMaxSize / 2 : MobileMaxSize),
             format = TextureImporterFormat.ASTC_6x6,
         });
         imp.SaveAndReimport();

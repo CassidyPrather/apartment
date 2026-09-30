@@ -61,12 +61,23 @@ public class DoorSwing : UdonSharpBehaviour
         {
             latchPending = true;                     // the latch clicks as it shuts
         }
+        StartTick();
     }
 
-    void Update()
+    // Runs only while moving: a per-frame Update on every idle door costs Udon time each
+    // frame (it adds up on Quest), so movement ticks itself one frame at a time instead.
+    bool ticking;
+
+    void StartTick()
+    {
+        if (ticking) return;
+        ticking = true;
+        SendCustomEventDelayedFrames(nameof(_Tick), 1);
+    }
+
+    public void _Tick()
     {
         float target = isOpen ? 1f : 0f;
-        if (t == target) return;
         t = Mathf.MoveTowards(t, target, Time.deltaTime / Mathf.Max(0.05f, seconds));
         float e = t * t * (3f - 2f * t);             // ease in and out
         transform.localRotation = Quaternion.Slerp(closedRotation, openRotation, e);
@@ -75,6 +86,8 @@ public class DoorSwing : UdonSharpBehaviour
             latchPending = false;
             Play(closeClips);
         }
+        if (t == target) { ticking = false; return; }
+        SendCustomEventDelayedFrames(nameof(_Tick), 1);
     }
 
     void Play(AudioClip[] clips)

@@ -53,14 +53,27 @@ public class LightSwitch : UdonSharpBehaviour
         }
         if (toggle != null)
             toggle.localRotation = isOn ? onRotation : offRotation;
+        if (!instant) StartTick();
     }
 
-    void Update()
+    // Runs only while moving: a per-frame Update on every idle door or switch costs Udon time each
+    // frame (it adds up on Quest), so movement ticks itself one frame at a time instead.
+    bool ticking;
+
+    void StartTick()
+    {
+        if (ticking) return;
+        ticking = true;
+        SendCustomEventDelayedFrames(nameof(_Tick), 1);
+    }
+
+    public void _Tick()
     {
         float target = isOn ? 1f : 0f;
-        if (weight == target) return;
         weight = Mathf.MoveTowards(weight, target, Time.deltaTime / Mathf.Max(0.01f, fadeSeconds));
         SetLights();
+        if (weight == target) { ticking = false; return; }
+        SendCustomEventDelayedFrames(nameof(_Tick), 1);
     }
 
     void SetLights()

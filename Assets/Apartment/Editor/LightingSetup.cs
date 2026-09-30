@@ -343,6 +343,26 @@ public static class LightingSetup
         Debug.Log($"[LightingSetup] occlusion baked ({cleared} see-through renderers kept as occludees only, {huge} room-sized always drawn)");
     }
 
+    // Every bake writes new "<light>_shadows N" / volume textures into the scene's
+    // VRCLightVolumes/Temp folder and leaves the old ones behind (12 MB per shadow cubemap).
+    // Delete whatever the saved scene no longer depends on.
+    public static int PruneLightVolumeTemp(string scenePath)
+    {
+        var folder = scenePath.Substring(0, scenePath.Length - ".unity".Length) + "/VRCLightVolumes/Temp";
+        if (!AssetDatabase.IsValidFolder(folder))
+            return 0;
+        var used = new HashSet<string>(AssetDatabase.GetDependencies(scenePath, true));
+        int n = 0;
+        foreach (var guid in AssetDatabase.FindAssets("", new[] { folder }))
+        {
+            var path = AssetDatabase.GUIDToAssetPath(guid);
+            if (!used.Contains(path) && AssetDatabase.DeleteAsset(path))
+                n++;
+        }
+        if (n > 0) Debug.Log($"[LightingSetup] removed {n} stale Light Volume textures from {folder}");
+        return n;
+    }
+
     // The Light Volumes package queues its atlas packing after a bake, and the queued job
     // doesn't always run (the volumes then stay switched off). Once the package has saved
     // its volume textures, pack the atlas ourselves and save the scene when it's done.
@@ -376,6 +396,7 @@ public static class LightingSetup
                 EditorSceneManager.MarkSceneDirty(manager.gameObject.scene);
                 EditorSceneManager.SaveScene(manager.gameObject.scene);
                 Debug.Log(atlas != null ? "[LightingSetup] bake done, Light Volume atlas packed" : "[LightingSetup] Light Volume atlas didn't pack");
+                PruneLightVolumeTemp(manager.gameObject.scene.path);
                 BakeOcclusion();
             }
             EditorApplication.update += SaveWhenPacked;
