@@ -109,6 +109,7 @@ public static class ApartmentSetup
         AudioSetup.Setup();
         FutonSetup.Setup();
         DoorSetup.Setup();
+        LtcgiSetup.Setup();                                        // after the atlas step (it flags the atlas materials)
         EditorSceneManager.SaveScene(EditorSceneManager.GetActiveScene());
         LightingSetup.Setup();
         AssetDatabase.SaveAssets();

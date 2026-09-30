@@ -13,7 +13,9 @@ public static class VideoSetup
     const string PlayerPrefab = "Assets/USharpVideo/USharpVideo.prefab";
 
     // Controls panel: plan (x, y, z) inches on the center wall's living-room face, and width.
-    static readonly Vector3 ControlsSpot = new Vector3(134f, 106f, 46f);
+    // South of the TV, between it and the media hutch: north of the TV are the wall heater
+    // and the thermostat (wall_plates living_thermostat at y 108.2).
+    static readonly Vector3 ControlsSpot = new Vector3(134f, 38f, 46f);
     const float ControlsWidth = 0.5f;
 
     [MenuItem("Apartment/Setup TV Video")]
@@ -61,8 +63,30 @@ public static class VideoSetup
         float s = ControlsWidth / Mathf.Max(1f, controls.rect.width);
         controls.localScale = new Vector3(s, s, s);
 
-        // Speakers at the TV.
-        player.transform.Find("AudioSources").position = b.center + normal * 0.05f;
+        // Speakers: the TV's own, in its bezel (no sound bar in the apartment). The prefab's
+        // video-mode source was nearly 2D and its stream L/R pair sat 3.5 m apart, inside the
+        // walls; all three become fully 3D point-ish sources at the screen, L and R at its edges.
+        var audio = player.transform.Find("AudioSources");
+        audio.position = b.center + normal * 0.05f;
+        var right = Vector3.Cross(Vector3.up, -normal).normalized;     // a viewer's right, facing the TV
+        foreach (var src in audio.GetComponentsInChildren<AudioSource>(true))
+        {
+            float side = src.name.EndsWith("L") ? -1f : src.name.EndsWith("R") ? 1f : 0f;
+            src.transform.position = b.center + normal * 0.05f + right * side * (width / 2f - 0.05f);
+            src.spatialBlend = 1f;
+            src.spread = 0f;
+            src.dopplerLevel = 0f;
+            var spatial = src.GetComponent<VRC.SDK3.Components.VRCSpatialAudioSource>();
+            if (spatial == null)
+                continue;
+            spatial.EnableSpatialization = true;
+            spatial.UseAudioSourceVolumeCurve = false;   // VRChat's inverse-square falloff
+            spatial.Gain = 10f;
+            spatial.Near = 0.5f;
+            spatial.Far = 15f;                         // fades out across the apartment
+            spatial.VolumetricRadius = 0.25f;           // a TV-sized source, not a point
+            EditorUtility.SetDirty(spatial);
+        }
 
         EditorSceneManager.MarkSceneDirty(player.scene);
         Debug.Log($"[VideoSetup] player on the TV: screen {width:F3} x {height:F3} m");

@@ -30,7 +30,7 @@ public static class QuestSetup
         EditorSceneManager.SaveScene(EditorSceneManager.GetActiveScene(), QuestScene, true);   // save a copy
         var scene = EditorSceneManager.OpenScene(QuestScene);
 
-        foreach (var t in Object.FindObjectsOfType<Transform>(true).Where(t => t.name == "lights_and_night").ToArray())
+        foreach (var t in Object.FindObjectsOfType<Transform>(true).Where(t => t.name == "lights_and_night" || t.name == LtcgiSetup.RootName).ToArray())
             Object.DestroyImmediate(t.gameObject);
         LightingSetup.Setup();                       // the room lamps baked in (IsMobileScene)
         EditorSceneManager.SaveScene(scene);

@@ -12,6 +12,7 @@ Material:
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
+  - LTCGI
   - _REFLECTIONS_ON
   - _SPECULAR_HIGHLIGHTS_ON
   m_InvalidKeywords: []
@@ -275,10 +276,10 @@ Material:
     - _HuePost: 0
     - _IgnoreRealtimeGI: 0
     - _IndirectSpecularOcclusionStrength: 0.2
-    - _LTCGI: 0
+    - _LTCGI: 1
     - _LTCGIRoughness: 1
     - _LTCGISpecularOcclusion: 0
-    - _LTCGIStrength: 1
+    - _LTCGIStrength: 6
     - _LightVolumeBias: 0.25
     - _LightVolumeSpecularity: 0
     - _LightVolumeSpecularityStrength: 1

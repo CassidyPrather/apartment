@@ -5,6 +5,9 @@
     },
     "red.sim.lightvolumes": {
       "version": "3.0.0-dev.20"
+    },
+    "at.pimaker.ltcgi": {
+      "version": "1.7.3"
     }
   },
   "locked": {
@@ -20,6 +23,10 @@
     },
     "red.sim.lightvolumes": {
       "version": "3.0.0-dev.20",
+      "dependencies": {}
+    },
+    "at.pimaker.ltcgi": {
+      "version": "1.7.3",
       "dependencies": {}
     }
   }

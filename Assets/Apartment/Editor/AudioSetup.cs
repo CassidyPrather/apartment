@@ -153,6 +153,11 @@ public static class AudioSetup
 
         Label(cgo.transform, font, "UTILITIES", 30, FontStyle.Bold, new Vector2(0f, 160f), new Vector2(260f, 44f));
         LinkField(cgo.transform, font, new Vector2(0f, 60f), new Vector2(264f, 40f));
+        // Credits for the lighting tech (LTCGI's MIT terms ask for a link; the full list is
+        // CREDITS.md in the repository above).
+        Label(cgo.transform, font, "Lighting: VRC Light Volumes by REDSIM", 12, FontStyle.Normal, new Vector2(0f, -30f), new Vector2(264f, 20f));
+        Label(cgo.transform, font, "TV glow: LTCGI by _pi_", 12, FontStyle.Normal, new Vector2(0f, -52f), new Vector2(264f, 20f));
+        Label(cgo.transform, font, "github.com/PiMaker/ltcgi", 12, FontStyle.Italic, new Vector2(0f, -72f), new Vector2(264f, 20f));
         Label(cgo.transform, font, "Ambient sound", 22, FontStyle.Bold, new Vector2(0f, -150f), new Vector2(260f, 34f));
         Label(cgo.transform, font, "(breaker below)", 14, FontStyle.Italic, new Vector2(0f, -178f), new Vector2(260f, 24f));
     }
