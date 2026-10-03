@@ -3,6 +3,7 @@
 // center wall beside the TV at hand height. Apartment > Setup TV Video; Build Apartment
 // Scene runs it too.
 
+using System.Linq;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -25,20 +26,21 @@ public static class VideoSetup
         if (old != null)
             Object.DestroyImmediate(old);
 
-        var tv = GameObject.Find("wall_tv");
-        Transform screen = null;
-        if (tv != null)
-            foreach (var t in tv.GetComponentsInChildren<Transform>())
-                if (t.name == "wall_tv_screen")
-                    screen = t;
+        // The package has a wall_tv inside a wall_tv, so GameObject.Find("wall_tv") can return the
+        // inner one with no screen: start from the screen and take its outermost wall_tv.
+        var screen = Object.FindObjectsOfType<Transform>().FirstOrDefault(t => t.name == "wall_tv_screen");
         if (screen == null)
         {
-            Debug.LogWarning("[VideoSetup] no wall_tv with a wall_tv_screen child in the scene");
+            Debug.LogWarning("[VideoSetup] no wall_tv_screen in the scene");
             return;
         }
+        Transform tv = screen.parent;
+        for (var t = screen.parent; t != null; t = t.parent)
+            if (t.name == "wall_tv")
+                tv = t;
 
         // Package objects face local +Z in Unity (Blender's -Y front).
-        var normal = tv.transform.rotation * Vector3.forward;
+        var normal = tv.rotation * Vector3.forward;
         var b = screen.GetComponent<Renderer>().bounds;
         float height = b.size.y;
         float width = Vector3.ProjectOnPlane(b.size, Vector3.up).magnitude;   // the axis along the wall
@@ -82,8 +84,8 @@ public static class VideoSetup
             spatial.EnableSpatialization = true;
             spatial.UseAudioSourceVolumeCurve = false;   // VRChat's inverse-square falloff
             spatial.Gain = 10f;
-            spatial.Near = 0.5f;
-            spatial.Far = 15f;                         // fades out across the apartment
+            spatial.Near = 3.5f;                       // full volume out to the couch (~3 m); a 0.5 m plateau left it 30 dB down there
+            spatial.Far = 14f;                         // fades out across the apartment
             spatial.VolumetricRadius = 0.25f;           // a TV-sized source, not a point
             EditorUtility.SetDirty(spatial);
         }

@@ -21,11 +21,15 @@ public class LightSwitch : UdonSharpBehaviour
     [UdonSynced] public bool isOn;
 
     float weight;
+    float[] fullIntensity;                 // each light's authored intensity, scaled by the fade
     MaterialPropertyBlock block;
 
     void Start()
     {
         block = new MaterialPropertyBlock();
+        fullIntensity = new float[lights.Length];
+        for (int i = 0; i < lights.Length; i++)
+            if (lights[i] != null) fullIntensity[i] = lights[i].Intensity;
         weight = isOn ? 1f : 0f;
         Apply(true);
     }
@@ -76,9 +80,10 @@ public class LightSwitch : UdonSharpBehaviour
         SendCustomEventDelayedFrames(nameof(_Tick), 1);
     }
 
+    // Light Volumes 3's SetWeight is only a render priority, so the fade scales the intensity.
     void SetLights()
     {
-        foreach (var l in lights)
-            if (l != null) l.SetWeight(weight);
+        for (int i = 0; i < lights.Length; i++)
+            if (lights[i] != null) lights[i].SetIntensity(fullIntensity[i] * weight);
     }
 }
