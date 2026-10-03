@@ -310,10 +310,74 @@ public static class LightingSetup
     static void BakeRoom()
     {
         EditorSceneManager.SaveScene(EditorSceneManager.GetActiveScene());
+        QuietForBake();
         Lightmapping.bakeCompleted -= AfterBake;
         Lightmapping.bakeCompleted += AfterBake;
-        Lightmapping.BakeAsync();
+        if (!Lightmapping.BakeAsync())
+            RestoreAfterBake();
         Debug.Log("[LightingSetup] bake started");
+    }
+
+    // The reflection probes render the scene as it stands in the editor, where the switchable
+    // lamps are at full intensity and their glass and the idle TV glow (they only go dark when the
+    // game starts). The bath's probe came out with the room fully lit, so every glossy object in
+    // it shone against the dark lightmap by day. Bake the probes the way the world starts:
+    // lamps off, glass dark, TV on its black standby.
+    static readonly string[] GlowMaterials = { "ceiling_light_bar_lens", "bath_fixtures_glow", "ceiling_dome_light_diffuser", "floor_lamp_glow" };
+    static System.Action restoreBakeState;
+
+    static void QuietForBake()
+    {
+        RestoreAfterBake();
+        var undo = new List<System.Action>();
+        foreach (var l in Object.FindObjectsOfType<VRCLightVolumes.PointLightVolumeInstance>())
+        {
+            float full = l.Intensity;
+            l.SetIntensity(0f);
+            undo.Add(() => { if (l != null) l.SetIntensity(full); });
+        }
+        foreach (var m in Object.FindObjectsOfType<MeshRenderer>().SelectMany(r => r.sharedMaterials).Where(m => m != null && GlowMaterials.Contains(m.name)).Distinct())
+        {
+            var c = m.GetColor("_EmissionColor");
+            m.SetColor("_EmissionColor", Color.black);
+            undo.Add(() => { if (m != null) m.SetColor("_EmissionColor", c); });
+        }
+        var crt = Object.FindObjectOfType<pi.LTCGI.LTCGI_Controller>()?.VideoTexture as CustomRenderTexture;
+        if (crt != null && crt.material.GetTexture("_MainTex") == null)
+        {
+            crt.material.SetTexture("_MainTex", Texture2D.blackTexture);
+            undo.Add(() => { if (crt != null) crt.material.SetTexture("_MainTex", null); });
+        }
+        restoreBakeState = () => undo.ForEach(a => a());
+    }
+
+    // Probes alone, without a lightmap bake: same quiet scene, each probe written over its own file.
+    [MenuItem("Apartment/Rebake Reflection Probes")]
+    public static void RebakeProbes()
+    {
+        QuietForBake();
+        try
+        {
+            int n = 0;
+            foreach (var p in Object.FindObjectsOfType<ReflectionProbe>())
+            {
+                var path = p.bakedTexture != null ? AssetDatabase.GetAssetPath(p.bakedTexture) : null;
+                if (!string.IsNullOrEmpty(path) && Lightmapping.BakeReflectionProbe(p, path))
+                    n++;
+            }
+            Debug.Log($"[LightingSetup] rebaked {n} reflection probes");
+        }
+        finally
+        {
+            RestoreAfterBake();
+            AssetDatabase.Refresh();
+        }
+    }
+
+    static void RestoreAfterBake()
+    {
+        restoreBakeState?.Invoke();
+        restoreBakeState = null;
     }
 
     // Occlusion culling: interior walls hide most of the apartment from any one spot (a big
@@ -387,6 +451,7 @@ public static class LightingSetup
     static void AfterBake()
     {
         Lightmapping.bakeCompleted -= AfterBake;
+        RestoreAfterBake();
         int frames = 0;
         void Wait()
         {
