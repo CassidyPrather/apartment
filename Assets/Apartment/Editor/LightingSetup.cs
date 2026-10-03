@@ -285,6 +285,11 @@ public static class LightingSetup
             var mso = new SerializedObject(lvManager);
             mso.FindProperty("ShadowTexturesWidth").intValue = ShadowResolution;
             mso.FindProperty("ShadowTexturesHeight").intValue = ShadowResolution;
+            // Each light stops dead where its brightness falls to this cutoff; the default 0.35 made
+            // hard-edged arcs across walls and ceilings. At 0.1 every lamp reaches past the apartment
+            // (the walls and shadow maps do the limiting), so all six may overlap on a pixel.
+            mso.FindProperty("LightsBrightnessCutoff").floatValue = 0.1f;
+            mso.FindProperty("AdditiveMaxOverdraw").intValue = 6;
             mso.ApplyModifiedPropertiesWithoutUndo();
         }
 

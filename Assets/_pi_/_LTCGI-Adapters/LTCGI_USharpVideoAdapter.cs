@@ -25,6 +25,12 @@ public class LTCGI_USharpVideoAdapter : UdonSharpBehaviour
         VideoPlayer.RegisterCallbackReceiver(this);
 
         sharedMaterial.SetFloat(MATERIAL_PARAM_OVERLAY_OPACITY, 0.0f);
+
+        // The player only calls back on a mode or texture change, so until the first video starts the
+        // blit material has no texture and LTCGI treats the screen as full white: show standby (black).
+        sharedMaterial.SetTexture(MATERIAL_PARAM_TEX, StandbyTexture);
+        sharedMaterial.SetFloat(MATERIAL_PARAM_FLIPUV, 1.0f);
+        sharedMaterial.SetFloat(MATERIAL_PARAM_GAMMA, 0.0f);
     }
 
     public void OnUSharpVideoModeChange() => OnUSharpVideoRenderTextureChange();

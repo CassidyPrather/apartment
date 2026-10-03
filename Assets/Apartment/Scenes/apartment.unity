@@ -19499,7 +19499,7 @@ MonoBehaviour:
   LightVolumeAtlas: {fileID: 8400000, guid: 8f3c77b5c8bccde4e83acdf63bdd8dcb, type: 2}
   CustomTexturesWidth: 512
   CustomTexturesHeight: 512
-  LightsBrightnessCutoff: 0.35
+  LightsBrightnessCutoff: 0.1
   ShadowTexturesWidth: 128
   ShadowTexturesHeight: 128
   ShadowTextureFormat: 1
@@ -19515,7 +19515,7 @@ MonoBehaviour:
   SharpBounds: 1
   AutoUpdateVolumes: 1
   AutoUpdateTextures: 1
-  AdditiveMaxOverdraw: 4
+  AdditiveMaxOverdraw: 6
   ForceSceneLighting: 0
   ShaderStripping: 1
   AutoShaderFeatures: 1
