@@ -196,6 +196,11 @@ public static class NightSetup
         if (falloff != null) falloff.floatValue = 0.5f;
         so.FindProperty("IsDynamic").boolValue = false;
         so.ApplyModifiedPropertiesWithoutUndo();
+        // The shadow bake renders depth with a camera, so a fixture's shade right at the light was
+        // an opaque dome around it (the torchiere lit only above its bowl's rim, with hard edges).
+        // The fixtures stay out of the bake; the light shines through its own glass.
+        inst.ExclusionMask = Object.FindObjectsOfType<MeshRenderer>()
+            .Where(r => Sources.Any(s => r.name.StartsWith(s.fixture) && !r.name.Contains("glow"))).Cast<Renderer>().ToArray();
         // The package's own sync (as its menu item does) derives the runtime values.
         var sync = System.AppDomain.CurrentDomain.GetAssemblies()
             .Select(a => a.GetType("VRCLightVolumes.PointLightVolumeEditorUtility")).FirstOrDefault(t => t != null)

@@ -3244,7 +3244,7 @@ MonoBehaviour:
   OuterAngleTan: 0
   SpotCookieAspect: 1
   Height: 1
-  SquaredRange: 28.103804
+  SquaredRange: 360.4716
   SquaredScale: 1.0000002
   LightVolumeManager: {fileID: 1762549793}
   RegistryOrder: 2
@@ -3264,7 +3264,7 @@ MonoBehaviour:
   LayerMask: 270849
   NearClip: 0.01
   FarClip: 0
-  BakedFarClip: 5.301302
+  BakedFarClip: 18.98609
   Bias: 0.01
   Blur: 1
   ContactHardening: 0
@@ -3282,7 +3282,12 @@ MonoBehaviour:
   DebugRange: 0
   Shadows: 1
   RebakeShadows: 1
-  ExclusionMask: []
+  ExclusionMask:
+  - {fileID: 228032239}
+  - {fileID: 569624577}
+  - {fileID: 809560532}
+  - {fileID: 1271752224}
+  - {fileID: 2056332424}
   DebugClipPlanes: 0
   ForceCubemapShadows: 0
   ShadowMap: {fileID: 8900000, guid: bab3d7a5cf2fc8d4db958c04cd29a4f8, type: 2}
@@ -4719,7 +4724,7 @@ MonoBehaviour:
   OuterAngleTan: -0.5773503
   SpotCookieAspect: 1
   Height: 1
-  SquaredRange: 18.35721
+  SquaredRange: 225.16379
   SquaredScale: 1.0000002
   LightVolumeManager: {fileID: 1762549793}
   RegistryOrder: 1
@@ -4739,7 +4744,7 @@ MonoBehaviour:
   LayerMask: 270849
   NearClip: 0.01
   FarClip: 0
-  BakedFarClip: 4.2845316
+  BakedFarClip: 15.005459
   Bias: 0.01
   Blur: 1
   ContactHardening: 0
@@ -4757,7 +4762,12 @@ MonoBehaviour:
   DebugRange: 0
   Shadows: 1
   RebakeShadows: 1
-  ExclusionMask: []
+  ExclusionMask:
+  - {fileID: 228032239}
+  - {fileID: 569624577}
+  - {fileID: 809560532}
+  - {fileID: 1271752224}
+  - {fileID: 2056332424}
   DebugClipPlanes: 0
   ForceCubemapShadows: 0
   ShadowMap: {fileID: 2800000, guid: 7ff843918e1486f4bbd478c105e55314, type: 2}
@@ -13010,7 +13020,7 @@ MonoBehaviour:
   OuterAngleTan: -0.5773503
   SpotCookieAspect: 1
   Height: 1
-  SquaredRange: 18.35721
+  SquaredRange: 225.16379
   SquaredScale: 1.0000002
   LightVolumeManager: {fileID: 1762549793}
   RegistryOrder: 0
@@ -13030,7 +13040,7 @@ MonoBehaviour:
   LayerMask: 270849
   NearClip: 0.01
   FarClip: 0
-  BakedFarClip: 4.2845316
+  BakedFarClip: 15.005459
   Bias: 0.01
   Blur: 1
   ContactHardening: 0
@@ -13048,7 +13058,12 @@ MonoBehaviour:
   DebugRange: 0
   Shadows: 1
   RebakeShadows: 1
-  ExclusionMask: []
+  ExclusionMask:
+  - {fileID: 228032239}
+  - {fileID: 569624577}
+  - {fileID: 809560532}
+  - {fileID: 1271752224}
+  - {fileID: 2056332424}
   DebugClipPlanes: 0
   ForceCubemapShadows: 0
   ShadowMap: {fileID: 2800000, guid: ee595d6f407940f49b0b44c9a292607a, type: 2}
@@ -13107,7 +13122,7 @@ Camera:
     width: 1
     height: 1
   near clip plane: 0.01
-  far clip plane: 7.0895476
+  far clip plane: 25.137732
   field of view: 90
   orthographic: 0
   orthographic size: 5
@@ -16979,7 +16994,7 @@ MonoBehaviour:
   OuterAngleTan: 0
   SpotCookieAspect: 1
   Height: 1
-  SquaredRange: 28.103804
+  SquaredRange: 360.4716
   SquaredScale: 1.0000002
   LightVolumeManager: {fileID: 1762549793}
   RegistryOrder: 4
@@ -17017,7 +17032,12 @@ MonoBehaviour:
   DebugRange: 0
   Shadows: 0
   RebakeShadows: 1
-  ExclusionMask: []
+  ExclusionMask:
+  - {fileID: 228032239}
+  - {fileID: 569624577}
+  - {fileID: 809560532}
+  - {fileID: 1271752224}
+  - {fileID: 2056332424}
   DebugClipPlanes: 0
   ForceCubemapShadows: 0
   ShadowMap: {fileID: 0}
@@ -21258,8 +21278,8 @@ MonoBehaviour:
   OuterAngleTan: 0
   SpotCookieAspect: 1
   Height: 1
-  SquaredRange: 50.26167
-  SquaredScale: 1.0000005
+  SquaredRange: 631.9054
+  SquaredScale: 1.0000007
   LightVolumeManager: {fileID: 1762549793}
   RegistryOrder: 5
   RegistryWeight: 0
@@ -21271,14 +21291,14 @@ MonoBehaviour:
   ShadowMapTexture: {fileID: 8900000, guid: 964c37c1ed001d349b4a5c4804dc27a7, type: 2}
   ShadowMapMaterial: {fileID: 0}
   AutoUpdateShadowMap: 0
-  ShadowMapID: 1
+  ShadowMapID: 0
   WorldSpaceShadows: 0
   ShadowBakePosition: {x: -7.98576, y: 2.19456, z: -1.2801601}
   ShadowBakeRotation: {x: -0, y: 0.7071068, z: 0.7071068, w: 0}
   LayerMask: 270849
   NearClip: 0.01
   FarClip: 0
-  BakedFarClip: 7.0895476
+  BakedFarClip: 25.137732
   Bias: 0.01
   Blur: 1
   ContactHardening: 0
@@ -21296,14 +21316,19 @@ MonoBehaviour:
   DebugRange: 0
   Shadows: 1
   RebakeShadows: 1
-  ExclusionMask: []
+  ExclusionMask:
+  - {fileID: 228032239}
+  - {fileID: 569624577}
+  - {fileID: 809560532}
+  - {fileID: 1271752224}
+  - {fileID: 2056332424}
   DebugClipPlanes: 0
   ForceCubemapShadows: 0
   ShadowMap: {fileID: 8900000, guid: 964c37c1ed001d349b4a5c4804dc27a7, type: 2}
   ShadowMapTextureIsCubemap: 1
   ShadowMapTextureHasDepthSlices: 0
   ShadowMapUsesCubemap: 1
-  IsRangeDirty: 0
+  IsRangeDirty: 1
   AreaCookieMirror: 1
   ShadowBakeResolution: 0
 --- !u!4 &1971574866
@@ -22292,7 +22317,7 @@ MonoBehaviour:
   OuterAngleTan: 0
   SpotCookieAspect: 1
   Height: 1
-  SquaredRange: 124.12118
+  SquaredRange: 1536.6842
   SquaredScale: 1.0000002
   LightVolumeManager: {fileID: 1762549793}
   RegistryOrder: 3
@@ -22330,7 +22355,12 @@ MonoBehaviour:
   DebugRange: 0
   Shadows: 0
   RebakeShadows: 1
-  ExclusionMask: []
+  ExclusionMask:
+  - {fileID: 228032239}
+  - {fileID: 569624577}
+  - {fileID: 809560532}
+  - {fileID: 1271752224}
+  - {fileID: 2056332424}
   DebugClipPlanes: 0
   ForceCubemapShadows: 0
   ShadowMap: {fileID: 0}
