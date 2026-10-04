@@ -23,6 +23,13 @@ scripts/format.sh --check      # dotnet-format over the CI-visible C#
 scripts/test.sh                # headless NUnit run of Runtime/Core + Tests
 ```
 
+### Headless environments (no Unity)
+
+`scripts/cloud-env-setup.sh` sets up a Debian/Ubuntu machine or cloud session
+for everything except Unity: .NET 8 (the checks above), Blender 5.0 and GIMP 3
+(the object packages and textures), Python helpers, and the Git LFS content.
+Unity is left out on purpose; see the known limitation in the script's header.
+
 ### Advanced
 
 Pre-commit hook: `git config core.hooksPath .githooks` (runs the meta and

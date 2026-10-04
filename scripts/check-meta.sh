@@ -46,8 +46,10 @@ fi
 while IFS= read -r meta; do
     [ -z "$meta" ] && continue
     target=${meta%.meta}
-    if ! printf '%s\n' "$files" | grep -qxF "$target" \
-        && ! printf '%s\n' "$files" | grep -q "^$(printf '%s' "$target" | sed 's/[].[^$*\\]/\\&/g')/"; then
+    # Here-strings, not pipes: under pipefail, `grep -q` exiting at its first match can
+    # SIGPIPE the printf feeding it, which reads as "no match" and flags a live meta as stale.
+    if ! grep -qxF "$target" <<< "$files" \
+        && ! grep -q "^$(printf '%s' "$target" | sed 's/[].[^$*\\]/\\&/g')/" <<< "$files"; then
         echo "check-meta: stale meta (its subject is no longer tracked): $meta"
         status=1
     fi

@@ -9,10 +9,28 @@
 #   - numpy + Pillow    system Python helpers (crops, atlas checks, splat converters)
 #   - Git LFS content   blender/assets/*.blend etc. (checkouts here skip LFS smudging)
 #
-# Not installed: Unity and the Blender/GIMP/Unity MCP servers. Unity needs a licensed
-# editor and the VPM-installed Worlds SDK, so the Unity half of the pipeline (import,
-# scene build, bake, Quest rebuild, render checks) stays a local-machine job. The
-# object-package and texture steps do run here, headless, without the MCPs.
+# Works on any x86_64 Debian/Ubuntu machine (root, or a user with sudo), not just
+# claude.ai cloud sessions; developed against Ubuntu 24.04.
+#
+# Not installed: Unity and the Blender/GIMP/Unity MCP servers. The object-package and
+# texture steps run headless without the MCPs. The Unity half of the pipeline (import,
+# scene build, bake, Quest rebuild, render checks) stays a local-machine job.
+#
+# KNOWN LIMITATION (checked 2026-10-04; likely to change, so recheck before relying on it):
+#   Unity Personal cannot be activated headlessly the supported way. Unity's docs say
+#   command-line activation does not apply to Personal (Hub login only), and the manual
+#   .alf -> .ulf route is gone for Personal seats. The only workaround found is GameCI's
+#   `Unity.Licensing.Client --activate-all --include-personal --username/--password`: it
+#   uses undocumented flags, needs a Unity account without 2FA, and holds a seat that
+#   must be returned on every exit. Not worth it for this project. Everything else Unity
+#   needs is reachable from a cloud session if that changes (send a descriptive
+#   User-Agent to packages.vrchat.com or its WAF returns 403):
+#     editor 2022.3.22f1  https://download.unity3d.com/download_unity/887be4894c44/LinuxEditorInstaller/Unity.tar.xz
+#     com.vrchat.worlds   https://vrchat.github.io/packages/index.json
+#     red.sim.lightvolumes  https://redsim.github.io/vpmlisting/index.json
+#     at.pimaker.ltcgi    https://vpm.pimaker.at/index.json
+#   Sources: docs.unity3d.com/2022.3/Documentation/Manual/ManagingYourUnityLicense.html,
+#            github.com/game-ci/cli/pull/246
 set -euo pipefail
 
 BLENDER_VERSION="${BLENDER_VERSION:-5.0.1}"
@@ -21,6 +39,12 @@ GIMP_VERSION="${GIMP_VERSION:-3.0.8}"
 
 log() { printf '\n==> %s\n' "$*"; }
 SUDO=""; [ "$(id -u)" -eq 0 ] || SUDO="sudo"
+
+if [ "$(uname -m)" != "x86_64" ] || ! command -v apt-get >/dev/null 2>&1; then
+    echo "cloud-env-setup: needs x86_64 Debian/Ubuntu (apt-get); install .NET 8, Blender ${BLENDER_VERSION}," >&2
+    echo "  GIMP ${GIMP_VERSION} (3.x), numpy and Pillow yourself on other platforms." >&2
+    exit 1
+fi
 
 REPO="$(git -C "$(dirname "$(readlink -f "$0")")" rev-parse --show-toplevel 2>/dev/null || true)"
 [ -n "$REPO" ] || REPO="$(git rev-parse --show-toplevel 2>/dev/null || true)"
