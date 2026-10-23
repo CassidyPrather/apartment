@@ -1,0 +1,26 @@
+{
+  "name": "dresser_contents",
+  "fbx": "Assets/Apartment/Models/dresser_contents.fbx",
+  "materials": {
+    "dresser_contents": {
+      "atlas": "dresser_contents",
+      "mode": "opaque",
+      "tiled": false
+    }
+  },
+  "collider": "none",
+  "static": false,
+  "triangles": 7600,
+  "bounds_m": {
+    "min": [
+      -0.3835,
+      -0.2019,
+      0.0545
+    ],
+    "max": [
+      0.3835,
+      0.1969,
+      1.4281
+    ]
+  }
+}

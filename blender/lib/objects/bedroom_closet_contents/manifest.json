@@ -1,0 +1,26 @@
+{
+  "name": "bedroom_closet_contents",
+  "fbx": "Assets/Apartment/Models/bedroom_closet_contents.fbx",
+  "materials": {
+    "bedroom_closet_contents": {
+      "atlas": "bedroom_closet_contents",
+      "mode": "opaque",
+      "tiled": false
+    }
+  },
+  "collider": "none",
+  "static": true,
+  "triangles": 13858,
+  "bounds_m": {
+    "min": [
+      6.4186,
+      3.4315,
+      0.0
+    ],
+    "max": [
+      6.9748,
+      5.0229,
+      2.4874
+    ]
+  }
+}

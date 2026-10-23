@@ -11,7 +11,7 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: e108c1a30e0e3bf4fa475ae516d29fd1,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: -0
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: e108c1a30e0e3bf4fa475ae516d29fd1,
         type: 3}
@@ -36,12 +36,12 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: e108c1a30e0e3bf4fa475ae516d29fd1,
         type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: e108c1a30e0e3bf4fa475ae516d29fd1,
         type: 3}
       propertyPath: m_LocalRotation.z
-      value: -0
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: e108c1a30e0e3bf4fa475ae516d29fd1,
         type: 3}
@@ -58,12 +58,37 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: -4990099413520625229, guid: e108c1a30e0e3bf4fa475ae516d29fd1,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 87
+      objectReference: {fileID: 0}
+    - target: {fileID: -4063008712875595887, guid: e108c1a30e0e3bf4fa475ae516d29fd1,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 87
+      objectReference: {fileID: 0}
+    - target: {fileID: -3440407216279715828, guid: e108c1a30e0e3bf4fa475ae516d29fd1,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 87
+      objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: e108c1a30e0e3bf4fa475ae516d29fd1,
         type: 3}
       propertyPath: m_Name
       value: dresser
       objectReference: {fileID: 0}
-    - target: {fileID: 919132149155446097, guid: e108c1a30e0e3bf4fa475ae516d29fd1,
+    - target: {fileID: 1327658089035990271, guid: e108c1a30e0e3bf4fa475ae516d29fd1,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 87
+      objectReference: {fileID: 0}
+    - target: {fileID: 3048105903982744094, guid: e108c1a30e0e3bf4fa475ae516d29fd1,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 87
+      objectReference: {fileID: 0}
+    - target: {fileID: 7621374995528214463, guid: e108c1a30e0e3bf4fa475ae516d29fd1,
         type: 3}
       propertyPath: m_StaticEditorFlags
       value: 87

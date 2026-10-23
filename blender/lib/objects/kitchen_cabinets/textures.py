@@ -12,6 +12,12 @@ to run the grain across, with a paler worn band along the top edge and around th
 small pale nicks, and grime along the bottom edge; "oak_edge" (the stile each base-door
 pull is mounted on) is the oak tile with a paler worn patch where hands grab below the
 pull, pale scratches and grime at the foot. The uppers stay clean and glossy, as seen.
+
+Interiors (inside photos Reference/cupboards_drawers 0-14): "melamine" warm white carcass
+and shelves, "drawer" the slightly creamier drawer boxes (photos 9-13), "floor_stain" (each
+base floor gets the whole image) white melamine with brown drip rings, grime speckles and
+a dirty front edge (photo 14), "floor_water" the under-sink floor: swollen, water-stained
+melamine with brown tide marks and grey-brown blotches (photo 7), "pvc" white drain pipe.
 """
 
 import random
@@ -72,9 +78,11 @@ def build():
     a.fill("oak_dark", (128, 78, 36), 0.0, 0.3, noise=0.06, blur=1.0)   # shadowed oak frame in the reveals
     a.fill("panel_black", (30, 30, 32), 0.0, 0.5)
     a.fill("drain", (70, 70, 72), 1.0, 0.4)
-    # unused corner of the atlas: neutral
-    fill_rect(a.img, a.lay, (512, 960, 128, 64), (128, 128, 128))
+    a.fill("melamine", (236, 232, 220), 0.0, 0.45, noise=0.02, blur=1.0)   # photos 0-8: warm white
+    a.fill("drawer", (236, 226, 200), 0.0, 0.4, noise=0.03, blur=1.0)     # photos 9-13: cream boxes
+    a.fill("pvc", (226, 224, 216), 0.0, 0.5, noise=0.02, blur=1.0)
     worn(a, tile)
+    stains(a)
     a.save()
 
 
@@ -141,3 +149,54 @@ def worn(a, tile):
     _nicks(a, (x2, y2 + 10, w2, h2 - 20), 10, False)
     a.material("oak_worn", 0.0, 0.26)
     a.material("oak_edge", 0.0, 0.26)
+
+
+def _blot_in(a, clip, cx, cy, rx, ry, rgb, alpha, feather=0.0):
+    a.img.select_ellipse(Gimp.ChannelOps.REPLACE, cx - rx, cy - ry, 2 * rx, 2 * ry)
+    if feather:
+        Gimp.Selection.feather(a.img, feather)
+    _clip(a.img, clip)
+    if not Gimp.Selection.is_empty(a.img):
+        _fill(a.lay, tuple(rgb) + (alpha,))
+    Gimp.Selection.none(a.img)
+
+
+def stains(a):
+    """Base cabinet floors: drip rings and grime (floor_stain), the water-damaged under-sink
+    floor (floor_water)."""
+    rs = random.Random(7)
+    x, y, w, h = a.rect("floor_stain")
+    r = (x, y, w, h)
+    fill_rect(a.img, a.lay, r, (228, 222, 206))
+    grain(a.img, a.lay, r, 0.05, 1.0)
+    for _ in range(9):                                            # drip rings / spills
+        cx, cy = x + rs.uniform(10, w - 10), y + rs.uniform(10, h - 10)
+        rr = rs.uniform(5, 16)
+        _blot_in(a, r, cx, cy, rr * rs.uniform(0.8, 1.3), rr, (150, 118, 76), rs.uniform(0.18, 0.35), 3)
+        _blot_in(a, r, cx, cy, rr * 0.7, rr * 0.6, (214, 204, 184), 0.4, 3)
+    for _ in range(70):                                           # grime speckles
+        cx, cy = x + rs.uniform(2, w - 2), y + rs.uniform(2, h - 2)
+        _blot_in(a, r, cx, cy, rs.uniform(0.6, 2.0), rs.uniform(0.6, 2.0), (96, 78, 56), rs.uniform(0.3, 0.6))
+    for edge in ((x - 6, y - 6, w + 12, 14), (x - 6, y + h - 8, w + 12, 14), (x - 6, y - 6, 14, h + 12),
+                 (x + w - 8, y - 6, 14, h + 12)):
+        _soft_rect(a, edge, r, (120, 100, 74), 0.22, 6)
+    a.material("floor_stain", 0.0, 0.3)
+    x, y, w, h = a.rect("floor_water")
+    r = (x, y, w, h)
+    fill_rect(a.img, a.lay, r, (220, 212, 192))
+    grain(a.img, a.lay, r, 0.08, 1.5)
+    for _ in range(14):                                           # tide-marked water stains
+        cx, cy = x + rs.uniform(0, w), y + rs.uniform(0, h)
+        rx, ry = rs.uniform(10, 34), rs.uniform(10, 40)
+        _blot_in(a, r, cx, cy, rx, ry, (128, 100, 64), rs.uniform(0.25, 0.45), 4)
+        _blot_in(a, r, cx, cy, rx * 0.8, ry * 0.8, (196, 180, 150), 0.45, 6)
+    for _ in range(10):                                           # swollen, peeled grey-brown patches
+        cx, cy = x + rs.uniform(0, w), y + rs.uniform(0, h)
+        _blot_in(a, r, cx, cy, rs.uniform(4, 14), rs.uniform(4, 22), (140, 128, 108), rs.uniform(0.4, 0.7), 2)
+    for _ in range(90):
+        cx, cy = x + rs.uniform(2, w - 2), y + rs.uniform(2, h - 2)
+        _blot_in(a, r, cx, cy, rs.uniform(0.6, 2.4), rs.uniform(0.6, 2.4), (84, 66, 46), rs.uniform(0.3, 0.7))
+    for edge in ((x - 6, y - 6, w + 12, 16), (x - 6, y + h - 10, w + 12, 16), (x - 6, y - 6, 16, h + 12),
+                 (x + w - 10, y - 6, 16, h + 12)):
+        _soft_rect(a, edge, r, (104, 84, 58), 0.3, 8)
+    a.material("floor_water", 0.0, 0.2)

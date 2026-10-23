@@ -105,7 +105,7 @@ PLACES = {
     "vanity": (182.65, 227.55, 90.0),           # back on the west wall face; the mirror hangs on it
     # Built in the building's own coordinates.
     "door_kitchen_closet": (134.0, 229.5, -90.0),   # S
-    "door_dining_closet": (136.375, 194.0, 90.0),   # 30 in 4-panel door, nickel lever (IMG_1523); hinged north, swings into the closet
+    "door_dining_closet": (136.375, 194.0, 90.0),   # 30 in 4-panel door, nickel lever (IMG_1523); hinged north, swings out into the dining room
     # Living room and dining (living capture, S).
     "couch": (22.5, 69.0, 90.0),            # SCAN: 87 in long, back at x 3
     "couch_blankets": (22.5, 69.0, 90.0),
@@ -154,6 +154,15 @@ PLACES = {
     "living_floor": (0.0, 0.0, 0.0),             # the AC drain tub and tube, the runners by the couch
     "bedroom_cables": (0.0, 0.0, 0.0),           # built in plan coordinates
     "own_art": (0.0, 0.0, 0.0),                  # Cassidy's own paintings and prints, plan coordinates
+    # inside the cupboards, drawers and closets (Reference/cupboards_drawers), plan coordinates;
+    # drawer contents ride in their drawers (CabinetSetup)
+    "kitchen_upper_contents": (0.0, 0.0, 0.0),
+    "kitchen_base_contents": (0.0, 0.0, 0.0),
+    "kitchen_closet_contents": (0.0, 0.0, 0.0),
+    "dining_closet_contents": (0.0, 0.0, 0.0),
+    "bedroom_closet_contents": (0.0, 0.0, 0.0),
+    "dresser_contents": (264.75, 18.0, -90.0),   # dresser-local, like dresser_items
+    "vanity_contents": (0.0, 0.0, 0.0),
     # Light fixtures hang from their origin at the ceiling (z 108).
     "ceiling_light_bar": (68.0, 235.0, 0.0, 108.0),        # S
     "ceiling_dome_light__dining": (67.0, 152.0, 0.0, 108.0),   # A: near the entry, per the survey

@@ -109,6 +109,7 @@ public static class ApartmentSetup
         AudioSetup.Setup();
         FutonSetup.Setup();
         DoorSetup.Setup();
+        CabinetSetup.Setup();                                      // cupboard doors and drawers, with their contents
         LtcgiSetup.Setup();                                        // after the atlas step (it flags the atlas materials)
         EditorSceneManager.SaveScene(EditorSceneManager.GetActiveScene());
         LightingSetup.Setup();

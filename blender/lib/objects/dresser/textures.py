@@ -7,6 +7,9 @@ grain and wear. The top reuses two drawer crops (grain along X); the sides come 
 clean stretch of the left side panel (src_side.jpg, wide_..012006, between the lamp pole
 and the lamp shade). Lighting is flattened and tinted to the dresser's oak. The only
 painted wear is a slightly paler, worn strip along the top's front edge, as in the photo.
+The drawer boxes are light unfinished birch (flat fill with streaky grain, colour from the
+open-drawer photos 21-22), the glides white plastic, and the carcass interior plain darker
+wood (photo 21: the inside back reads dark brown).
 """
 
 import ast
@@ -110,4 +113,15 @@ def build():
     a.material("side", 0.0, 0.40)
     a.fill("dark", (46, 30, 18), 0.0, 0.2, noise=0.03)
     a.fill("edge", EDGE, 0.0, 0.4, noise=0.05)
+    # drawer boxes: unfinished birch with soft streaky grain along u
+    a.fill("birch", (208, 172, 128), 0.0, 0.3)
+    r = a.rect("birch")
+    a.img.select_rectangle(Gimp.ChannelOps.REPLACE, *r)
+    gegl(a.lay, "gegl:noise-rgb", correlated=False, independent=False, red=0.07, green=0.07,
+         blue=0.07, gaussian=True, seed=7)
+    gegl(a.lay, "gegl:motion-blur-linear", length=40.0, angle=0.0)
+    Gimp.Selection.none(a.img)
+    fill_rect(a.img, a.lay, (r[0], r[1], r[2], 3), (236, 214, 180, 0.8))   # worn top edge
+    a.fill("glide", (232, 232, 226), 0.0, 0.55, noise=0.02)
+    a.fill("interior", (92, 66, 44), 0.0, 0.2, noise=0.04, blur=2.0)
     a.save()

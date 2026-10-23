@@ -1,0 +1,31 @@
+{
+  "name": "vanity_contents",
+  "fbx": "Assets/Apartment/Models/vanity_contents.fbx",
+  "materials": {
+    "vanity_contents": {
+      "atlas": "vanity_contents",
+      "mode": "opaque",
+      "tiled": false
+    },
+    "vanity_contents_clear": {
+      "atlas": "vanity_contents",
+      "mode": "transparent",
+      "alpha": 0.35
+    }
+  },
+  "collider": "none",
+  "static": true,
+  "triangles": 5048,
+  "bounds_m": {
+    "min": [
+      4.3733,
+      5.1567,
+      0.1246
+    ],
+    "max": [
+      4.8735,
+      6.3393,
+      0.5154
+    ]
+  }
+}

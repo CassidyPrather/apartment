@@ -1,0 +1,26 @@
+{
+  "name": "dining_closet_contents",
+  "fbx": "Assets/Apartment/Models/dining_closet_contents.fbx",
+  "materials": {
+    "dining_closet_contents": {
+      "atlas": "dining_closet_contents",
+      "mode": "opaque",
+      "tiled": false
+    }
+  },
+  "collider": "mesh",
+  "static": true,
+  "triangles": 5356,
+  "bounds_m": {
+    "min": [
+      3.5433,
+      4.1445,
+      0.0
+    ],
+    "max": [
+      4.2299,
+      5.0223,
+      2.5931
+    ]
+  }
+}

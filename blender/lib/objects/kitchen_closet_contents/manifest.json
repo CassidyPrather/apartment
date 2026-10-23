@@ -1,0 +1,31 @@
+{
+  "name": "kitchen_closet_contents",
+  "fbx": "Assets/Apartment/Models/kitchen_closet_contents.fbx",
+  "materials": {
+    "kitchen_closet_contents": {
+      "atlas": "kitchen_closet_contents",
+      "mode": "opaque",
+      "tiled": false
+    },
+    "kitchen_closet_contents_clear": {
+      "atlas": "kitchen_closet_contents",
+      "mode": "transparent",
+      "alpha": 0.3
+    }
+  },
+  "collider": "mesh",
+  "static": true,
+  "triangles": 9704,
+  "bounds_m": {
+    "min": [
+      3.5306,
+      5.144,
+      0.0
+    ],
+    "max": [
+      4.2299,
+      7.2639,
+      2.4714
+    ]
+  }
+}

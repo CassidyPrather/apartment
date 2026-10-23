@@ -1,0 +1,32 @@
+{
+  "name": "kitchen_upper_contents",
+  "fbx": "Assets/Apartment/Models/kitchen_upper_contents.fbx",
+  "materials": {
+    "kitchen_upper_contents": {
+      "atlas": "kitchen_upper_contents",
+      "mode": "opaque",
+      "tiled": false
+    },
+    "kitchen_upper_contents_clear": {
+      "atlas": "kitchen_upper_contents",
+      "mode": "transparent",
+      "alpha": 0.35,
+      "tiled": false
+    }
+  },
+  "collider": "none",
+  "static": true,
+  "triangles": 11964,
+  "bounds_m": {
+    "min": [
+      0.0165,
+      4.834,
+      1.3652
+    ],
+    "max": [
+      2.4694,
+      7.2474,
+      2.4181
+    ]
+  }
+}

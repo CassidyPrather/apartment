@@ -17,12 +17,27 @@ EST = from the photos or standard sizes.
 
 Local frame: front faces -Y, back against the wall at +Y. Placed at rotation 90 the
 front faces east, local +X points north and local +Y west (the wall):
-  plan y = 227.55 + local x,  plan x = 189.1 - local y   (inches, model plan coords)
+  plan y = 227.55 + local x,  plan x = 182.65 - local y   (inches, model plan coords)
 Origin on the floor at the counter's footprint centre; the wall face is at y +11.35 in.
 
+Interior (photos 17/18, Reference/cupboards_drawers/ 032025775 and 032032811): the
+carcass is hollow behind an oak face frame. Sides, back and floor are white melamine
+inside (floor top 5.0 in, its front edge chipped), a white partition separates the sink
+space from the drawer stack, and a white PVC tailpiece and P-trap run from the basin's
+drain back into the wall. The basin has an underside shell so it reads from below.
+
 Objects:
-  vanity         cabinet, top, basin, faucet, toilet-paper holder (static)
-  vanity_mirror  frameless wall mirror with clips
+  vanity                       carcass, face frame, rail false front, top, basin, drain,
+                               faucet, toilet-paper holder (static)
+  vanity_mirror                frameless wall mirror with clips
+  vanity_door_sink             the sink door with its bow pull, HINGED ON ITS SOUTH (outer,
+                               local -X) EDGE (photo 17: the hinges are on the left stile);
+                               origin on the hinge axis at the leaf's front outer corner
+  vanity_door_sink_out         empty 1 in in front of the door's face centre
+  vanity_drawer_top / _bottom  white open-top drawer boxes with the oak fronts and knobs;
+                               origin at the box's bottom centre (photo 18 = top drawer)
+  vanity_drawer_top_grab / vanity_drawer_bottom_grab   empties at the knobs
+Render-only check: VANITY_OPEN=1 swings the door 100 deg and pulls the drawers.
 """
 
 import importlib
@@ -61,11 +76,21 @@ DOOR_Z = (4.2, 24.8)           # EST
 GAP = 0.4                      # EST between fronts
 FRONT_T = 0.75                 # EST door/drawer slab
 EDGE_EASE = 0.2                # EST chamfer on the fronts' edges
+STILE = 1.5                    # PHOTO 17 face-frame end stiles (vs the 0.75 in panels)
+MID_STILE = 1.7                # PHOTO 17/18 stile between the door and the drawer stack
+MID_RAIL = 1.2                 # EST rail between the two drawers
+FLOOR_Z = 5.0                  # PHOTO 17 cabinet floor top (white melamine), on the bottom rail
+OPEN_TOP = 24.3                # EST top of the openings (the fronts overlay them ~0.5 in)
+DRAWER_D = 19.0                # EST drawer box depth (photo 18: deep, ends short of the back)
+DRAWER_SIDE = 0.5              # PHOTO 18 white drawer-box sides/back
+DRAWER_BOT = 0.25              # EST drawer bottom
+DRAWER_H = 7.0                 # EST drawer box height (both drawers)
+DRAWER_CLR = 0.5               # EST box-to-opening side clearance (slides)
 MIRROR_W, MIRROR_Z = 23.4, (39.2, 76.1)   # SCAN
 MIRROR_X = -0.45               # SCAN centre (plan y 231.0 - 3.9)
 MIRROR_T = 0.25                # EST
 
-REGIONS = ["oak_doors", "oak", "dark", "marble", "sink_bowl", "nickel", "paper"]
+REGIONS = ["oak_doors", "oak", "dark", "marble", "sink_bowl", "nickel", "paper", "porcelain"]
 
 
 def counter_outline(cx, cy, x0, x1, y0, y1, n=44):
@@ -106,55 +131,89 @@ def front_slab(b, x0, x1, z0, z1, yf, frame=0.0):
                     f.material_index = b.idx("oak_doors")
 
 
-def build_vanity(coll):
-    b = common.Builder(REGIONS)
-    xs, xn = -m(TOP_W / 2), m(TOP_W / 2)           # south, north counter ends
-    cx0, cx1 = xs, xs + m(CAB_W)
-    yb = m(WALL_Y)
-    yf = yb - m(CAB_D)
-    ytf = yb - m(TOP_D)
-    ztop = m(TOP_Z0)
-    t = m(0.75)
-    # Toe kick, carcass (sides, back, deck, face).
-    b.box("dark", (cx0 + t, yf + m(TOE_D), 0), (cx1 - t, yb, m(TOE_H)))
-    b.box("oak", (cx0, yf, 0), (cx0 + t, yb, ztop))
-    b.box("oak", (cx1 - t, yf, 0), (cx1, yb, ztop))
-    b.box("oak", (cx0 + t, yb - t, m(TOE_H)), (cx1 - t, yb, ztop))
-    b.box("oak", (cx0 + t, yf, m(TOE_H)), (cx1 - t, yb - t, m(TOE_H) + t))
-    faces = b.box("oak", (cx0 + t, yf, m(TOE_H)), (cx1 - t, yf + t, ztop))
+def panel(b, region, lo, hi, inner=None, inner_region="porcelain"):
+    """A carcass panel (closed box); its faces whose normal points along `inner` (the
+    side facing the cabinet's interior) get the white melamine."""
+    faces = b.box(region, lo, hi)
+    if inner is not None:
+        b.bm.normal_update()
+        for f in faces:
+            if f.normal.dot(inner) > 0.9:
+                f.material_index = b.idx(inner_region)
+    return faces
+
+
+def frame_box(b, lo, hi):
+    """A face-frame member: oak, its front face on the door-grain projection."""
+    faces = b.box("oak", lo, hi)
     b.bm.normal_update()
     for f in faces:
         if f.normal.y < -0.9:
             f.material_index = b.idx("oak_doors")
-    # Fronts: rail false front, south door, north drawers.
-    g = m(GAP)
-    fx0, fx1 = cx0 + m(0.6), cx1 - m(0.6)
-    mid = (fx0 + fx1) / 2
-    front_slab(b, fx0, fx1, m(RAIL_Z[0]), m(RAIL_Z[1]), yf)
-    dz0, dz1 = m(DOOR_Z[0]), m(DOOR_Z[1])
-    front_slab(b, fx0, mid - g / 2, dz0, dz1, yf, frame=2.3)
-    dzm = (dz0 + dz1) / 2
-    front_slab(b, mid + g / 2, fx1, dz0, dzm - g / 2, yf)
-    front_slab(b, mid + g / 2, fx1, dzm + g / 2, dz1, yf)
-    yface = yf - m(FRONT_T)
-    # Door pull: a vertical arched bow pull near the centre gap, upper half (005839):
-    # round rod bowing out from two feet, on small round bases.
-    px = mid - g / 2 - m(2.4)
-    pz0, pz1 = dz1 - m(9.5), dz1 - m(3.0)
-    bow = [(px, yface - m(1.15) * math.sin(math.pi * (0.08 + 0.84 * i / 8)) + m(0.05),
-            pz0 + (pz1 - pz0) * i / 8) for i in range(9)]
-    b.sweep("nickel", [(x, y, z) for x, y, z in bow], common.circle_profile(m(0.2), 6),
-            up=(0, -1, 0))
-    for pz in (pz0, pz1):
-        S.frustum(b, "nickel", (px, yface - m(0.12), pz), m(0.32), m(0.24), m(0.24), "Y", 8,
-                  sign=-1)
-    # Drawer knobs: small mushroom knobs on a stem.
-    kx = (mid + fx1) / 2
-    for kz in ((dz0 + dzm) / 2, (dzm + dz1) / 2 + m(0.8)):
-        S.frustum(b, "nickel", (kx, yface - m(0.45), kz), m(0.3), m(0.2), m(0.9), "Y", 8,
-                  sign=-1)
-        b.cylinder("nickel", (kx, yface - m(1.15), kz), m(0.6), m(0.45), axis="Y", segments=14,
-                   bevel=m(0.12))
+    return faces
+
+
+def layout():
+    """Shared x/y/z of the carcass, fronts and openings (metres)."""
+    L = {}
+    L["xs"], L["xn"] = -m(TOP_W / 2), m(TOP_W / 2)
+    L["cx0"], L["cx1"] = L["xs"], L["xs"] + m(CAB_W)
+    L["yb"] = m(WALL_Y)
+    L["yf"] = L["yb"] - m(CAB_D)
+    L["ztop"] = m(TOP_Z0)
+    L["fx0"], L["fx1"] = L["cx0"] + m(0.6), L["cx1"] - m(0.6)
+    L["mid"] = (L["fx0"] + L["fx1"]) / 2
+    L["dz0"], L["dz1"] = m(DOOR_Z[0]), m(DOOR_Z[1])
+    L["dzm"] = (L["dz0"] + L["dz1"]) / 2
+    L["yface"] = L["yf"] - m(FRONT_T)
+    L["kx"] = (L["mid"] + L["fx1"]) / 2
+    # Face-frame openings: door (south) and the two drawers (north).
+    L["ox0"] = L["cx0"] + m(STILE)                  # door opening south edge
+    L["ox1"] = L["mid"] - m(MID_STILE / 2)          # door opening north edge
+    L["ox2"] = L["mid"] + m(MID_STILE / 2)          # drawer openings south edge
+    L["ox3"] = L["cx1"] - m(STILE)                  # drawer openings north edge
+    L["oz0"], L["oz1"] = m(FLOOR_Z), m(OPEN_TOP)
+    return L
+
+
+def build_vanity(coll):
+    b = common.Builder(REGIONS)
+    L = layout()
+    xs, xn = L["xs"], L["xn"]
+    cx0, cx1, yb, yf, ytf = L["cx0"], L["cx1"], L["yb"], L["yf"], L["yb"] - m(TOP_D)
+    ztop = L["ztop"]
+    t = m(0.75)
+    zf = m(FLOOR_Z)
+    # Toe kick; hollow carcass: sides, back and floor are oak outside and white melamine
+    # inside (photo 17: white walls and floor under the sink).
+    b.box("dark", (cx0 + t, yf + m(TOE_D), 0), (cx1 - t, yb, m(TOE_H)))
+    panel(b, "oak", (cx0, yf, 0), (cx0 + t, yb, ztop), inner=(1, 0, 0))
+    panel(b, "oak", (cx1 - t, yf, 0), (cx1, yb, ztop), inner=(-1, 0, 0))
+    panel(b, "oak", (cx0 + t, yb - t, m(TOE_H)), (cx1 - t, yb, ztop), inner=(0, -1, 0))
+    panel(b, "oak", (cx0 + t, yf + t, zf - t), (cx1 - t, yb - t, zf), inner=(0, 0, 1))
+    # Chipped front edge of the floor (photo 17): particleboard showing through the white
+    # in a few nicks along the front.
+    for a, w in ((0.06, 2.2), (0.21, 0.8), (0.33, 3.1), (0.55, 1.4), (0.74, 2.6), (0.9, 0.9)):
+        x0 = L["ox0"] + (L["ox1"] - L["ox0"]) * a
+        b.box("oak", (x0, yf + t - m(0.02), zf - m(0.04)), (x0 + m(w), yf + t + m(0.22), zf + m(0.012)))
+    # Partition between the sink space and the drawer stack, white both sides.
+    p0 = L["ox2"] - t
+    panel(b, "porcelain", (p0, yf + t, zf), (L["ox2"], yb - t, ztop))
+    # Face frame (stiles, rails), flush with the old solid face: the openings it leaves.
+    yfr = yf + t
+    frame_box(b, (cx0, yf, m(TOE_H)), (L["ox0"], yfr, ztop))
+    frame_box(b, (L["ox3"], yf, m(TOE_H)), (cx1, yfr, ztop))
+    frame_box(b, (L["ox1"], yf, m(TOE_H)), (L["ox2"], yfr, ztop))
+    frame_box(b, (L["ox0"], yf, m(TOE_H)), (L["ox1"], yfr, zf))
+    frame_box(b, (L["ox2"], yf, m(TOE_H)), (L["ox3"], yfr, zf))
+    frame_box(b, (L["ox0"], yf, L["oz1"]), (L["ox3"], yfr, ztop))
+    frame_box(b, (L["ox2"], yf, L["dzm"] - m(MID_RAIL / 2)), (L["ox3"], yfr, L["dzm"] + m(MID_RAIL / 2)))
+    # Semi-concealed hinges on the south stile's opening edge (photo 17: chrome, two).
+    for hz in (L["dz0"] + m(3.2), L["dz1"] - m(3.2)):
+        b.box("nickel", (L["ox0"] - m(0.02), yf + m(0.04), hz - m(1.1)),
+              (L["ox0"] + m(0.1), yf + m(0.62), hz + m(1.1)))
+    # Rail false front (static).
+    front_slab(b, L["fx0"], L["fx1"], m(RAIL_Z[0]), m(RAIL_Z[1]), yf)
 
     # Counter with the integral basin: outer rectangle -> rim -> bowl -> floor.
     sx, sy = m(SINK_X), m(SINK_Y)
@@ -183,8 +242,32 @@ def build_vanity(coll):
     S.bridge(b, "sink_bowl", r_mid, r_bot)
     S.cap(b, "sink_bowl", r_bot)
     S.bridge(b, "marble", r_und, r_ob)
-    # Pop-up drain: flange and the stopper cap (the grime ring round it is texture).
+    # Underside of the basin, seen from inside the cabinet: a shell 0.3 in under the bowl
+    # (the bowl faces alone are one-sided and would show the room through them).
+    def push(ring_, d):
+        out = []
+        for x, y in ring_:
+            dx, dy = x - sx, y - sy
+            k = math.hypot(dx, dy) or 1.0
+            out.append((x + dx / k * m(d), y + dy / k * m(d)))
+        return out
     zb = zt - m(SINK_DEPTH)
+    u0 = S.ring(b, push(und, 0.3), ztop)
+    u1 = S.ring(b, push(mid_r, 0.3), zmid - m(0.25))
+    u2 = S.ring(b, push(bot, 0.3), zb - m(0.3))
+    shell = S.bridge(b, "porcelain", u0, u1) + S.bridge(b, "porcelain", u1, u2) +         S.cap(b, "porcelain", u2)
+    # Drain under the basin (photo 17): white PVC tailpiece, slip nuts, a P-trap whose
+    # arm runs back into the wall.
+    pr = common.circle_profile(m(0.75), 10)
+    trap = [(sx, sy, zb - m(0.3)), (sx, sy, m(21.2)), (sx, sy + m(0.4), m(19.9)),
+            (sx, sy + m(1.6), m(19.3)), (sx, sy + m(2.8), m(19.9)), (sx, sy + m(3.2), m(21.0)),
+            (sx, sy + m(3.6), m(22.0)), (sx, sy + m(4.8), m(22.3)), (sx, yb - m(0.5), m(22.3))]
+    b.sweep("porcelain", common.smooth_path(trap, samples=3), pr, up=(1, 0, 0))
+    for c, ax in (((sx, sy, m(23.2)), "Z"), ((sx, sy + m(3.4), m(21.7)), "Z"),
+                  ((sx, sy + m(5.6), m(22.3)), "Y")):
+        b.cylinder("porcelain", c, m(0.98), m(0.7), axis=ax, segments=10)
+    b.cylinder("nickel", (sx, yb - t - m(0.08), m(22.3)), m(1.5), m(0.12), axis="Y", segments=12)
+    # Pop-up drain: flange and the stopper cap (the grime ring round it is texture).
     S.frustum(b, "nickel", (sx, sy, zb + m(0.05)), m(0.9), m(0.8), m(0.12), "Z", 12)
     b.cylinder("nickel", (sx, sy, zb + m(0.2)), m(0.62), m(0.25), segments=12, bevel=m(0.08))
     # Back splash and the south side splash.
@@ -221,6 +304,8 @@ def build_vanity(coll):
     b.cylinder("nickel", (cx1 + m(2.6), ry, hz), m(0.3), m(4.6), axis="Y", segments=8)
     b.cylinder("paper", (cx1 + m(2.6), ry, hz), m(2.2), m(3.9), axis="Y", segments=18,
                cap_region="paper")
+    b.bm.faces.index_update()
+    shell_idx = [f.index for f in shell]
     ob = b.to_object("vanity", coll)
     # The open bowl makes the counter a non-closed shell, and the normal recalc can turn the
     # bowl faces outward (down): Unity culls them and you see into the cabinet. Face every
@@ -233,10 +318,104 @@ def build_vanity(coll):
     bowl = [i for i, s_ in enumerate(ob.data.materials) if s_ and s_.name.split(".")[0] == "sink_bowl"]
     eye = _V((sx, sy, zt + m(4.0)))
     flip = [f for f in bm.faces if f.material_index in bowl and f.normal.dot(eye - f.calc_center_median()) < 0]
+    # The basin's underside shell faces away from that point (down and out).
+    bm.faces.ensure_lookup_table()
+    flip += [bm.faces[i] for i in shell_idx
+             if bm.faces[i].normal.dot(eye - bm.faces[i].calc_center_median()) > 0]
     _bm.ops.reverse_faces(bm, faces=flip)
     bm.to_mesh(ob.data)
     bm.free()
     return ob
+
+
+def marker(coll, name, loc):
+    import bpy
+    ob = bpy.data.objects.new(name, None)
+    ob.empty_display_type = "PLAIN_AXES"
+    ob.empty_display_size = 0.03
+    ob.location = loc
+    coll.objects.link(ob)
+    return ob
+
+
+DOOR = "vanity_door_sink"
+DRAWERS = ("vanity_drawer_top", "vanity_drawer_bottom")
+
+
+def build_door(coll):
+    """The sink door, hinged on its south (outer) edge: origin on the hinge axis at the
+    front outer corner of the leaf, so the leaf swings out clear of the face frame and
+    the south wall. Arched bow pull near the free (north) edge, upper half."""
+    L = layout()
+    b = common.Builder(REGIONS)
+    g = m(GAP)
+    x0, x1 = L["fx0"], L["mid"] - g / 2
+    dz0, dz1, yf, yface = L["dz0"], L["dz1"], L["yf"], L["yface"]
+    front_slab(b, x0, x1, dz0, dz1, yf, frame=2.3)
+    # Bow pull (005839): round rod bowing out from two feet, on small round bases.
+    px = x1 - m(2.4)
+    pz0, pz1 = dz1 - m(9.5), dz1 - m(3.0)
+    bow = [(px, yface - m(1.15) * math.sin(math.pi * (0.08 + 0.84 * i / 8)) + m(0.05),
+            pz0 + (pz1 - pz0) * i / 8) for i in range(9)]
+    b.sweep("nickel", bow, common.circle_profile(m(0.2), 6), up=(0, -1, 0))
+    for pz in (pz0, pz1):
+        S.frustum(b, "nickel", (px, yface - m(0.12), pz), m(0.32), m(0.24), m(0.24), "Y", 8,
+                  sign=-1)
+    # Hinge leaves on the back of the door (photo 17), clear of the stile.
+    for hz in (dz0 + m(3.2), dz1 - m(3.2)):
+        b.box("nickel", (L["ox0"] + m(0.15), yf, hz - m(1.1)), (L["ox0"] + m(1.2), yf + m(0.06), hz + m(1.1)))
+    pin = (x0, yface, dz0)
+    ob = b.to_object(DOOR, coll, origin=pin)
+    out = marker(coll, DOOR + "_out", ((x0 + x1) / 2, yface - m(1.0), (dz0 + dz1) / 2))
+    return [ob, out]
+
+
+def build_drawer(coll, name, z0, z1):
+    """A drawer: oak front with its mushroom knob, and a white open-top box behind it
+    (photo 18). Origin on the box's bottom at its centre; `_grab` at the knob."""
+    L = layout()
+    b = common.Builder(REGIONS)
+    g = m(GAP)
+    yf, yface, kx = L["yf"], L["yface"], L["kx"]
+    front_slab(b, L["mid"] + g / 2, L["fx1"], z0, z1, yf)
+    # The front's back face is white like the box (photo 18).
+    b.bm.normal_update()
+    for f in b.bm.faces:
+        if f.normal.y > 0.9 and f.material_index == b.idx("oak"):
+            f.material_index = b.idx("porcelain")
+    kz = (z0 + z1) / 2 if z0 < L["dzm"] else (z0 + z1) / 2 + m(0.8)
+    S.frustum(b, "nickel", (kx, yface - m(0.45), kz), m(0.3), m(0.2), m(0.9), "Y", 8, sign=-1)
+    b.cylinder("nickel", (kx, yface - m(1.15), kz), m(0.6), m(0.45), axis="Y", segments=14,
+               bevel=m(0.12))
+    # Box: inside the opening with slide clearance.
+    oz0 = L["oz0"] if z0 < L["dzm"] else L["dzm"] + m(MID_RAIL / 2)
+    oz1 = L["dzm"] - m(MID_RAIL / 2) if z0 < L["dzm"] else L["oz1"]
+    bx0, bx1 = L["ox2"] + m(DRAWER_CLR), L["ox3"] - m(DRAWER_CLR)
+    bz0 = oz0 + m(0.4)
+    bz1 = min(bz0 + m(DRAWER_H), oz1 - m(0.5))
+    by0, by1 = yf, yf + m(DRAWER_D)
+    s_, bt = m(DRAWER_SIDE), m(DRAWER_BOT)
+    w = "porcelain"
+    b.box(w, (bx0, by0, bz0), (bx1, by0 + s_, bz1))                 # front wall
+    b.box(w, (bx0, by1 - s_, bz0), (bx1, by1, bz1))                 # back
+    b.box(w, (bx0, by0 + s_, bz0), (bx0 + s_, by1 - s_, bz1))       # sides
+    b.box(w, (bx1 - s_, by0 + s_, bz0), (bx1, by1 - s_, bz1))
+    b.box(w, (bx0 + s_, by0 + s_, bz0), (bx1 - s_, by1 - s_, bz0 + bt))   # bottom
+    org = ((bx0 + bx1) / 2, (by0 + by1) / 2, bz0)
+    ob = b.to_object(name, coll, origin=org)
+    grab = marker(coll, name + "_grab", (kx, yface - m(1.15), kz))
+    return [ob, grab]
+
+
+def drawer_interior(which):
+    """(x0, x1, y0, y1, floor z) of a drawer's inside, metres, vanity-local, closed."""
+    L = layout()
+    top = which == "top"
+    oz0 = L["dzm"] + m(MID_RAIL / 2) if top else L["oz0"]
+    s_ = m(DRAWER_SIDE)
+    bx0, bx1 = L["ox2"] + m(DRAWER_CLR), L["ox3"] - m(DRAWER_CLR)
+    return (bx0 + s_, bx1 - s_, L["yf"] + s_, L["yf"] + m(DRAWER_D) - s_,
+            oz0 + m(0.4) + m(DRAWER_BOT))
 
 
 def build_mirror(coll):
@@ -258,7 +437,23 @@ def build_mirror(coll):
 
 
 def build(coll):
-    return [build_vanity(coll), build_mirror(coll)]
+    L = layout()
+    g = m(GAP)
+    objs = [build_vanity(coll), build_mirror(coll)]
+    objs += build_door(coll)
+    objs += build_drawer(coll, DRAWERS[0], L["dzm"] + g / 2, L["dz1"])
+    objs += build_drawer(coll, DRAWERS[1], L["dz0"], L["dzm"] - g / 2)
+    for ob in objs:
+        ob["origin0"] = tuple(ob.location)
+    if os.environ.get("VANITY_OPEN"):            # render-only check: door open, top drawer out
+        for ob in objs:
+            if ob.name == DOOR:
+                ob.rotation_euler.z = -math.radians(100)
+            elif ob.name == DRAWERS[0]:
+                ob.location.y -= m(DRAWER_D) * 0.75
+            elif ob.name == DRAWERS[1]:
+                ob.location.y -= m(DRAWER_D) * 0.35
+    return objs
 
 
 def texture(objs):
@@ -270,6 +465,15 @@ def texture(objs):
                       (m(SINK_Y - SINK_D / 2), m(SINK_Y + SINK_D / 2))),
     }
     for ob in objs:
-        common.atlas_uvs(ob, ATLAS, planar=planar)
+        if ob.type != "MESH":
+            continue
+        o = ob.get("origin0", (0.0, 0.0, 0.0))       # planar bounds are in object space
+        pl = {}
+        for r, (ax, (u0, u1), (v0, v1)) in planar.items():
+            ua, va = common._axes(ax)
+            du = sum(a * c for a, c in zip(ua, o))
+            dv = sum(a * c for a, c in zip(va, o))
+            pl[r] = (ax, (u0 - du, u1 - du), (v0 - dv, v1 - dv))
+        common.atlas_uvs(ob, ATLAS, planar=pl)
         regions = [s.name.split(".")[0] for s in ob.data.materials]
         common.collapse_materials(ob, {r: mat for r in regions})

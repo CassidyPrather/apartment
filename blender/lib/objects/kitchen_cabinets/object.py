@@ -4,24 +4,48 @@ upper wall cabinets (short over the sink and the microwave, a diagonal corner do
 the cabinet over the fridge. The dishwasher, range, microwave and fridge are their own
 packages; this one leaves their gaps.
 
+The cabinets are hollow: side/back/floor/top panels with white melamine insides, an oak
+face frame (centre stiles on the paired doors), white melamine shelves, worn/stained base
+floors (the under-sink floor water-damaged), and the sink's disposal and drain under it.
+Interior boxes and shelf heights come from interior.py (shared with the contents packages).
+
+Objects (all in plan coordinates, see FRAME):
+    kitchen_cabinets                      body: carcasses, face frames, shelves, counter,
+                                          sink, plumbing, toe kicks, the sink false front
+    kitchen_cabinets_door_<id>            one per door leaf (pull and hinge cups included),
+                                          origin on the hinge axis (front face, hinge edge,
+                                          door bottom); <id> per interior.py, pairs _l/_r
+                                          (left/right seen from the room)
+    kitchen_cabinets_door_<id>_out        empty 1 in in front of the leaf's face centre
+    kitchen_cabinets_drawer_<id>          hollow drawer box + oak front + knob, origin at
+                                          the drawer's centre (d1-d4, ed)
+    kitchen_cabinets_drawer_<id>_grab     empty at the knob tip
+
 Source of truth: scripted from the living-room/kitchen LiDAR survey (registered splat +
-LiDAR points in plan inches) and the survey photo crops (door and drawer layout, pulls).
+LiDAR points in plan inches), the survey photo crops (door and drawer layout, pulls) and
+the 2026-10-23 inside photos (Reference/cupboards_drawers, sorted index 0-14: shelves,
+hinge sides, white interiors, euro hinges, drawer boxes).
 
 FRAME: PLAN COORDINATES. The object origin is plan (0, 0, 0) (the living room's SW
 interior corner at floor level): object X = plan x, object Y = plan y, in metres. Place it
 at the plan origin with no rotation (like window_units). West run fronts face +X, north
-run fronts face -Y.
+run fronts face -Y. Leaves and drawers carry their own origins but stay in the same frame.
 
 Provenance tags: SCAN = measured on the registered survey points, PHOTO = counted or
-proportioned from the survey crops, EST = standard size or guess.
+proportioned from the survey crops / inside photos, EST = standard size or guess.
+
+Verification hook: KC_OPEN_TEST=1 in the environment swings every leaf 100 degrees and pulls
+every drawer out after texturing (render-only checks; never export with it set).
 """
 
 import math
+import os
 
 import mathutils
 from mathutils import Vector
 
 import common
+import interior as I
 
 IN = 0.0254
 
@@ -38,6 +62,10 @@ TOP_Z0, TOP_Z1 = 34.5, 36.0   # SCAN top at 36; EST 1.5 in laminate slab with bu
 CARC_Z = TOP_Z0         # carcass top
 TOE_H, TOE_D = 4.0, 3.0 # EST toe kick (light vinyl base in the photos)
 DOOR_T = 0.75           # EST
+FRAME_T = I.FRAME_T     # EST 3/4 in oak face frame behind the doors
+PANEL = I.PANEL         # EST 1/2 in carcass sides/back
+FLOOR_T = I.FLOOR_T     # EST 3/4 in cabinet floor
+STILE = 1.5             # PHOTO face-frame stile/rail width (photos 0-8)
 GAP = 0.2               # EST reveal between fronts (shows the oak frame behind)
 SPLASH_H, SPLASH_T = 4.0, 0.75   # PHOTO/EST short laminate backsplash
 
@@ -57,6 +85,8 @@ N_CORNER_DOOR = (25.5, 36.5)   # PHOTO corner door
 N_DRAWERS = (36.5, 49.5)       # PHOTO four-drawer bank
 N_EAST = (79.5, 100.0)         # PHOTO drawer over door
 DRAWER_Z = (27.0, CARC_Z)      # PHOTO top drawer band on door sections
+BANK_EDGES = [CARC_Z, 28.5, 20.5, 12.5, TOE_H]   # PHOTO four-drawer bank front edges (short top drawer)
+DRAWER_BOX_Y1 = I.DRAWER_BACK_Y  # EST drawer box back (21.25 in deep boxes)
 
 # sink (SCAN centre (12, 230.5), bowls y 214-246)
 SINK_RIM = (1.0, 23.0, 213.5, 246.5)          # EST x0, x1, y0, y1 of the rim
@@ -70,21 +100,24 @@ UP_D = 13.0             # SCAN depth (north front y ~273, west front x ~13)
 UP_Z = (53.0, 97.5)     # SCAN
 SINK_UP_Z0 = 70.0       # SCAN short cabinets over the sink
 MW_UP_Z0 = 76.0         # SCAN short cabinets over the microwave (microwave top)
-W_UP = [                 # (y0, y1, z0, doors, pull side "lo"/"hi"/"pair")  PHOTO
-    (189.0, 214.0, UP_Z[0], 2, "pair"),        # a pair: the towel hangs on the south pull (capture 004026/004057)
-    (214.0, 246.0, SINK_UP_Z0, 2, "pair"),
-    (246.0, 264.0, UP_Z[0], 1, "lo"),
+# (id, a0, a1, z0, [(leaf id, hinge end "lo"/"hi" along the run)])  PHOTO (inside photos 0-6,
+# survey crops 004158/004251: both north-run doors left of the microwave pull on their east edge)
+W_UP = [
+    ("wu1", 189.0, 214.0, UP_Z[0], [("wu1_l", "lo"), ("wu1_r", "hi")]),   # photo 0: pair, centre stile
+    ("wu2", 214.0, 246.0, SINK_UP_Z0, [("wu2_l", "lo"), ("wu2_r", "hi")]),  # photo 1
+    ("wu3", 246.0, 264.0, UP_Z[0], [("wu3", "hi")]),                     # photo 2: hinged north
 ]
-CORNER = ((13.0, 264.0), (22.0, 273.0))   # PHOTO/EST 45-degree corner door face
-N_UP = [                 # (x0, x1, z0, doors, pull side)  PHOTO
-    (22.0, 49.5, UP_Z[0], 2, "pair"),
-    (49.5, 79.5, MW_UP_Z0, 2, "pair"),
-    (79.5, 98.0, UP_Z[0], 1, "lo"),
+CORNER = ((13.0, 264.0), (22.0, 273.0))   # PHOTO/EST 45-degree corner door face (photo 3: hinged SW end)
+N_UP = [
+    ("nu1", 22.0, 49.5, UP_Z[0], [("nu1_l", "lo"), ("nu1_r", "lo")]),    # photo 4: two bays, both hinged west
+    ("nu2", 49.5, 79.5, MW_UP_Z0, [("nu2_l", "lo"), ("nu2_r", "hi")]),   # photo 5: pair, centre stile
+    ("nu3", 79.5, 98.0, UP_Z[0], [("nu3", "hi")]),                       # photo 6: hinged east
 ]
 FRIDGE_UP = (99.0, 134.0, 268.0, 84.0, 97.5)   # SCAN x0, x1, front y (splat/photos 004358, 004011: ~267-270), z0, z1 (to the wall)
 PULL_L, PULL_W, PULL_T, PULL_OFF = 6.3, 0.45, 0.28, 1.15   # PHOTO brushed-nickel bow pulls: a flat bar
                                                 # arching off the door on two feet (EST 128 mm centres)
 KNOB_R, KNOB_L = 0.62, 1.0                      # PHOTO mushroom drawer knobs (EST 1.25 in)
+CUP_IN = 1.9            # EST euro hinge cup centre from the door's hinge edge (photos 0-8)
 
 NAME = "kitchen_cabinets"
 ATLAS = {
@@ -92,21 +125,26 @@ ATLAS = {
     "size": 1024,
     "regions": {
         "oak": (0, 0, 1024, 640),
-        "counter": (0, 640, 512, 384),
+        "counter": (0, 640, 256, 384),
+        "melamine": (256, 640, 128, 128),
+        "drawer": (384, 640, 128, 128),
+        "floor_stain": (256, 768, 128, 256),
+        "floor_water": (384, 768, 128, 256),
         "steel": (512, 640, 256, 192),
         "nickel": (768, 640, 128, 128),
         "toe": (896, 640, 128, 128),
         "oak_dark": (768, 768, 128, 128),
         "panel_black": (896, 768, 128, 128),
         "drain": (512, 832, 128, 128),
+        "pvc": (512, 960, 128, 64),
         "oak_edge": (640, 832, 128, 192),
         "oak_worn": (768, 896, 256, 128),
     },
 }
 REGIONS = list(ATLAS["regions"])
-WORN = ("oak_edge", "oak_worn")   # island-mapped: each piece gets the whole painted wear image
+WORN = ("oak_edge", "oak_worn", "floor_stain", "floor_water")   # island-mapped: each piece gets the whole painted image
 MATERIALS = {"kitchen_cabinets": {"atlas": "kitchen_cabinets", "mode": "opaque", "tiled": False}}
-COLLIDER = "mesh"
+COLLIDER = "mesh"       # body; CabinetSetup strips colliders from the moving leaves/drawers
 STATIC = True
 # (name, azimuth, elevation, distance scale); az 0 = from the south. Match the survey crops.
 VIEWS = [("from_dining_se", 30, 18, 0.75), ("from_dining_s", 8, 20, 0.7),
@@ -121,38 +159,47 @@ def _p(x, y, z):
 
 
 class Kit:
-    def __init__(self, b):
+    """Builds in run coordinates: a along the run, d outward from `face` toward the room
+    (W: x = face + d, a = y; N: y = face - d, a = x; C: the corner's local frame `cmx`)."""
+
+    def __init__(self, b, cmx=None):
         self.b = b
+        self.cmx = cmx
 
     def box(self, region, x0, x1, y0, y1, z0, z1, bevel=0.0):
-        self.b.box(region, _p(min(x0, x1), min(y0, y1), min(z0, z1)),
-                   _p(max(x0, x1), max(y0, y1), max(z0, z1)), bevel=m(bevel))
+        return self.b.box(region, _p(min(x0, x1), min(y0, y1), min(z0, z1)),
+                          _p(max(x0, x1), max(y0, y1), max(z0, z1)), bevel=m(bevel))
 
     def rbox(self, region, run, face, a0, a1, d0, d1, z0, z1, bevel=0.0):
         """Box in run coordinates: a along the wall, d outward from `face` (toward the room)."""
         if run == "W":
-            self.box(region, face + d0, face + d1, a0, a1, z0, z1, bevel)
-        else:
-            self.box(region, a0, a1, face - d0, face - d1, z0, z1, bevel)
+            return self.box(region, face + d0, face + d1, a0, a1, z0, z1, bevel)
+        if run == "N":
+            return self.box(region, a0, a1, face - d0, face - d1, z0, z1, bevel)
+        return self.b.box(region, _p(min(a0, a1), -max(d0, d1), min(z0, z1)),
+                          _p(max(a0, a1), -min(d0, d1), max(z0, z1)), bevel=m(bevel), matrix=self.cmx)
 
     def _out(self, run):
-        return Vector((1, 0, 0)) if run == "W" else Vector((0, -1, 0))
+        if run == "W":
+            return Vector((1, 0, 0))
+        if run == "N":
+            return Vector((0, -1, 0))
+        return (self.cmx.to_3x3() @ Vector((0, -1, 0))).normalized()
 
     def _pt(self, run, face, a, d, z):
-        return Vector(_p(face + d, a, z) if run == "W" else _p(a, face - d, z))
+        if run == "W":
+            return Vector(_p(face + d, a, z))
+        if run == "N":
+            return Vector(_p(a, face - d, z))
+        return self.cmx @ Vector(_p(a, -d, z))
 
-    def pull(self, run, face, a, z, vertical=True, matrix=None, out=None):
+    def pull(self, run, face, a, z):
         """Bow pull: a flat bar arching off the door face on two feet (vertical)."""
         h = PULL_L / 2
         pts = [(a, DOOR_T - 0.05, z - h), (a, DOOR_T + PULL_OFF - PULL_T / 2, z - h + 0.9),
                (a, DOOR_T + PULL_OFF - PULL_T / 2, z + h - 0.9), (a, DOOR_T - 0.05, z + h)]
-        if matrix is None:
-            path = [self._pt(run, face, *p) for p in pts]
-            out = self._out(run)
-        else:
-            path = [matrix @ Vector((m(u), m(-v), m(zz))) for u, v, zz in pts]
-        path = common.smooth_path(path, samples=2)
-        self.b.sweep("nickel", path, common.rect_profile(m(PULL_W), m(PULL_T)), up=tuple(out))
+        path = common.smooth_path([self._pt(run, face, *p) for p in pts], samples=2)
+        self.b.sweep("nickel", path, common.rect_profile(m(PULL_W), m(PULL_T)), up=tuple(self._out(run)))
 
     def knob(self, run, face, a, z):
         """Mushroom knob: a short neck flaring to a domed cap (lathe, 10 sides)."""
@@ -172,6 +219,7 @@ class Kit:
             for i in range(n):
                 faces.append(bm.faces.new((r0[i], r0[(i + 1) % n], r1[(i + 1) % n], r1[i])))
         faces.append(bm.faces.new(vs[-1]))
+        faces.append(bm.faces.new(list(reversed(vs[0]))))     # closed, so normals orient outward
         self.b._tag(faces, "nickel")
 
     def door(self, run, face, a0, a1, z0, z1, frame=2.0, worn=None):
@@ -187,60 +235,222 @@ class Kit:
                 region = "oak_edge"
             self.rbox(region, run, face, s0, s1, DOOR_T - 0.25, DOOR_T, t0, t1)
 
-    def drawer(self, run, face, a0, a1, z0, z1):
+    def drawer_front(self, run, face, a0, a1, z0, z1):
         self.rbox("oak_worn", run, face, a0 + GAP, a1 - GAP, 0, DOOR_T, z0 + GAP, z1 - GAP, bevel=0.12)
+
+    def panel(self, region_in, run, face, a0, a1, d0, d1, z0, z1, inward, region_out="oak_dark"):
+        """A closed carcass panel: `region_out` everywhere except the face(s) whose normal
+        points along `inward` (a world-space direction into the cabinet): `region_in`."""
+        faces = self.rbox(region_out, run, face, a0, a1, d0, d1, z0, z1)
+        self.b.bm.normal_update()
+        idx = self.b.idx(region_in)
+        for f in faces:
+            if f.is_valid and f.normal.dot(inward) > 0.9:
+                f.material_index = idx
+        return faces
+
+    def frame(self, run, face, a0, a1, z0, z1, stiles, rails, region="oak"):
+        """Oak face frame in the plane just behind the doors (d -FRAME_T..0): full-height
+        stiles [(s0, s1)] and rails [(t0, t1)] between a0 and a1."""
+        for s0, s1 in stiles:
+            self.rbox(region, run, face, s0, s1, -FRAME_T, 0, z0, z1)
+        # rails only between the stiles: overlapping coplanar faces flicker (z-fighting)
+        segs = [(a0, a1)]
+        for s0, s1 in stiles:
+            segs = [(p, q) for u, v in segs for p, q in ((u, min(v, s0)), (max(u, s1), v)) if q - p > 1e-3]
+        for t0, t1 in rails:
+            for u, v in segs:
+                self.rbox(region, run, face, u, v, -FRAME_T, 0, t0, t1)
+
+    def hinge_plate(self, run, face, a_stile_in, toward, z):
+        """Static euro-hinge mounting plate on the inner edge of the hinge-side stile."""
+        s = 1 if toward > 0 else -1
+        self.rbox("nickel", run, face, a_stile_in, a_stile_in + s * 0.14, -FRAME_T + 0.05, -0.08,
+                  z - 1.25, z + 1.25)
+
+
+def _vec_a(run):
+    return Vector((0, 1, 0)) if run == "W" else Vector((1, 0, 0))
+
+
+def marker(coll, name, loc):
+    import bpy
+    ob = bpy.data.objects.new(name, None)
+    ob.empty_display_type = "PLAIN_AXES"
+    ob.empty_display_size = 0.03
+    ob.location = loc
+    coll.objects.link(ob)
+    return ob
+
+
+# --- moving parts -------------------------------------------------------------------
+
+def _leaf(coll, objs, body_kit, lid, run, face, a0, a1, z0, z1, hinge, pull_z, worn=False,
+          stile_in=None, cmx=None):
+    """One door leaf as its own object. a0..a1 / z0..z1 is the door's section (GAP is taken
+    off inside); hinge "lo"/"hi" is the hinged end. stile_in: the a of the hinge-side stile's
+    inner edge (where the static hinge plate sits)."""
+    b = common.Builder(REGIONS)
+    k = Kit(b, cmx)
+    worn_side = ("hi" if hinge == "lo" else "lo") if worn else None
+    k.door(run, face, a0, a1, z0, z1, worn=worn_side)
+    s = 1 if hinge == "lo" else -1                      # from the hinge edge toward the pull
+    ha = a0 + GAP if hinge == "lo" else a1 - GAP
+    pa = a1 - 1.6 if hinge == "lo" else a0 + 1.6
+    k.pull(run, face, pa, pull_z)
+    # concealed hinges: a cup let into the back of the door and the arm reaching back to the
+    # plate on the face-frame stile (small nickel boxes)
+    zs = (z0 + GAP + 3.0, z1 - GAP - 3.0)
+    if z1 - z0 > 40:                                    # the tall uppers have three (photos 0, 2, 3)
+        zs = zs + ((z0 + z1) / 2,)
+    ca = ha + s * CUP_IN
+    for hz in zs:
+        k.rbox("nickel", run, face, ca - 0.75, ca + 0.75, -0.12, 0.02, hz - 0.95, hz + 0.95)
+        k.rbox("nickel", run, face, ca - 0.3 - s * 0.2, ca + 0.3 - s * 0.2, -FRAME_T + 0.08, -0.1,
+               hz - 0.5, hz + 0.5)
+        if stile_in is not None:
+            body_kit.hinge_plate(run, face, stile_in, s, hz)
+    origin = k._pt(run, face, ha, DOOR_T, z0 + GAP)
+    ob = b.to_object(f"{NAME}_door_{lid}", coll, origin=tuple(origin))
+    objs.append(ob)
+    out = k._pt(run, face, (a0 + a1) / 2, DOOR_T + 1.0, (z0 + z1) / 2)
+    objs.append(marker(coll, f"{NAME}_door_{lid}_out", tuple(out)))
+    return ob
+
+
+def _drawer(coll, objs, did, a0, a1, fz0, fz1, knob_z):
+    """North-run drawer: oak front, knob and an open-top melamine box (inside per interior.py)."""
+    b = common.Builder(REGIONS)
+    k = Kit(b)
+    nc = N_FACE
+    k.drawer_front("N", nc, a0, a1, fz0, fz1)
+    ka = (a0 + a1) / 2
+    k.knob("N", nc, ka, knob_z)
+    d = I.DRAWERS[did]
+    (ix0, ix1), (iy0, iy1), (iz0, iz1) = d["x"], d["y"], d["z"]
+    sd, bt = I.DRAWER_SIDE, I.DRAWER_BOTTOM
+    x0, x1, y0, y1, z0 = ix0 - sd, ix1 + sd, iy0 - sd, iy1 + sd, iz0 - bt
+    k.box("drawer", x0, x1, y0, iy0, z0, iz1)              # sub-front (behind the oak front)
+    k.box("drawer", x0, ix0, iy0, iy1, z0, iz1)            # sides
+    k.box("drawer", ix1, x1, iy0, iy1, z0, iz1)
+    k.box("drawer", x0, x1, iy1, y1, z0, iz1)              # back
+    k.box("drawer", ix0, ix1, iy0, iy1, z0, iz0)           # bottom
+    # metal runners low on the sides
+    for xa, xb in ((x0 - 0.45, x0), (x1, x1 + 0.45)):
+        k.box("nickel", xa, xb, y0 + 0.5, y1 - 0.3, z0 + 0.3, z0 + 1.2)
+    origin = _p((a0 + a1) / 2, (nc - DOOR_T + y1) / 2, (fz0 + fz1) / 2)
+    ob = b.to_object(f"{NAME}_drawer_{did}", coll, origin=origin)
+    objs.append(ob)
+    objs.append(marker(coll, f"{NAME}_drawer_{did}_grab", tuple(k._pt("N", nc, ka, DOOR_T + KNOB_L, knob_z))))
+    return ob
 
 
 # --- base run -----------------------------------------------------------------------
 
-def _base(k):
-    wc = W_FACE     # west carcass face (fronts sit on it)
-    nc = N_FACE     # north carcass face
+def _carcass(k, run, face, a0, a1, depth, z0, z1, floor_region="melamine", top=True,
+             sides=(True, True), back=True):
+    """Hollow carcass between a0..a1, from the back wall (d = -depth) to the face frame
+    (d = -FRAME_T): back, sides, floor (z0..z0+FLOOR_T) and optional top (z1-PANEL..z1)."""
+    out = k._out(run)
+    av = _vec_a(run)
+    up = Vector((0, 0, 1))
+    df = -FRAME_T
+    if back:
+        k.panel("melamine", run, face, a0, a1, -depth, -depth + PANEL, z0, z1, out)
+    if sides[0]:
+        k.panel("melamine", run, face, a0, a0 + PANEL, -depth, df, z0, z1, av)
+    if sides[1]:
+        k.panel("melamine", run, face, a1 - PANEL, a1, -depth, df, z0, z1, -av)
+    k.panel(floor_region, run, face, a0, a1, -depth, df, z0, z0 + FLOOR_T, up)
+    if top:
+        k.panel("melamine", run, face, a0, a1, -depth, df, z1 - PANEL, z1, -up)
+
+
+def _shelf(k, run, face, a0, a1, depth, s, shelf_depth=None):
+    d1 = -FRAME_T - I.FRONT_SETBACK
+    d0 = -depth + PANEL
+    if shelf_depth:
+        d1 = d0 + shelf_depth
+    k.rbox("melamine", run, face, a0, a1, d0, d1, s - I.SHELF_T, s)
+
+
+def _base(k, coll, objs):
+    wc = W_FACE     # west face-frame front (doors sit on it)
+    nc = N_FACE     # north face-frame front
+    wd = wc - WW    # west base depth to the wall
+    nd = NW - nc
     s0, s1 = SINK_BASE_Y
-    # west carcass (dishwasher gap left open); under the sink the top drops below the bowls
-    k.box("oak_dark", WW, wc, s0, s1, TOE_H, TOP_Z1 - SINK_DEPTH - 1.0)
-    k.box("oak_dark", wc - 0.75, wc, s0, s1, TOE_H, CARC_Z)          # face frame
-    k.box("oak_dark", WW, wc, s1, NW, TOE_H, CARC_Z)                  # to the north wall (corner)
-    k.box("oak_dark", WW, wc, STUB_Y, DW_Y[0], TOE_H, CARC_Z)         # filler at the stub wall
+    z0, dz0, dz1 = TOE_H, DRAWER_Z[0], DRAWER_Z[1]
+    up = Vector((0, 0, 1))
+    # fillers that stay solid: at the stub wall, the dishwasher's side panel
+    k.box("oak_dark", WW, wc, STUB_Y, DW_Y[0], TOE_H, CARC_Z)
     k.box("oak", wc, wc + DOOR_T, STUB_Y, DW_Y[0] - GAP, TOE_H, CARC_Z)
-    k.box("oak_dark", WW, wc, DW_Y[1] - 0.5, s0, TOE_H, CARC_Z)       # dishwasher side panel
-    # north carcass, corner door to the range and range to the end
-    k.box("oak_dark", wc, RANGE_X[0], nc, NW, TOE_H, CARC_Z)
-    k.box("oak_dark", RANGE_X[1], N_X1, nc, NW, TOE_H, CARC_Z)
-    k.box("oak", N_X1 - 0.5, N_X1, nc - DOOR_T, NW, TOE_H, CARC_Z)   # finished end panel
+    k.box("oak_dark", WW, wc, DW_Y[1] - 0.5, s0, TOE_H, CARC_Z)
     # toe kicks
     k.box("toe", WW, wc - TOE_D, STUB_Y, DW_Y[0], 0, TOE_H)
     k.box("toe", WW, wc - TOE_D, DW_Y[1], nc + TOE_D, 0, TOE_H)
     k.box("toe", WW, RANGE_X[0], nc + TOE_D, NW, 0, TOE_H)
     k.box("toe", RANGE_X[1], N_X1, nc + TOE_D, NW, 0, TOE_H)
+    k.box("oak", N_X1 - 0.5, N_X1, nc - DOOR_T, NW, TOE_H, CARC_Z)   # finished end panel
 
-    z0, dz0, dz1 = TOE_H, DRAWER_Z[0], DRAWER_Z[1]
-    # sink base: false front over two doors, pulls by the meeting stiles
+    # --- sink base (photo 7): hollow, water-damaged floor, centre stile, no top
     mid = (s0 + s1) / 2
-    k.drawer("W", wc, s0, s1, dz0, dz1)
-    for a0, a1, pa, wside in ((s0, mid, mid - 1.6, "hi"), (mid, s1, mid + 1.6, "lo")):
-        k.door("W", wc, a0, a1, z0, dz0, worn=wside)
-        k.pull("W", wc, pa, dz0 - 4.0, vertical=True)
-    # single full-height door next to the corner
+    _carcass(k, "W", wc, s0, s1, wd, z0, CARC_Z, floor_region="floor_water", top=False)
+    k.frame("W", wc, s0, s1, z0, CARC_Z, [(s0, s0 + STILE), (mid - 0.75, mid + 0.75), (s1 - 1.5, s1 + 0.5)],
+            [(z0, z0 + STILE), (dz0 - 1.25, CARC_Z)])
+    k.drawer_front("W", wc, s0, s1, dz0, dz1)                 # fixed false front
+    for lid, a0, a1, hinge, st in (("sink_l", s0, mid, "lo", s0 + STILE), ("sink_r", mid, s1, "hi", s1 - 1.5)):
+        _leaf(coll, objs, k, lid, "W", wc, a0, a1, z0, dz0, hinge, dz0 - 4.0, worn=True, stile_in=st)
+
+    # --- west single door next to the corner (no inside photo): one shelf
     a0, a1 = W_DOOR_Y
-    k.door("W", wc, a0, a1, z0, dz1, worn="lo")
-    k.pull("W", wc, a0 + 1.6, dz1 - 4.5, vertical=True)
-    # north: corner door
+    _carcass(k, "W", wc, a0, a1, wd, z0, CARC_Z, floor_region="floor_stain", top=False, sides=(True, False))
+    k.rbox("melamine", "W", wc, a1 - PANEL, a1 + FRAME_T, -wd + PANEL, -FRAME_T, z0, CARC_Z)   # also closes the blind corner
+    k.frame("W", wc, s1 + 0.5, a1, z0, CARC_Z, [(a1 - STILE, a1)],
+            [(z0, z0 + STILE), (CARC_Z - 2.0, CARC_Z)])
+    for s in I.CABINETS["wb"]["shelves"]:
+        _shelf(k, "W", wc, a0 + PANEL, a1 - PANEL, wd, s)
+    # hinged on the south (sink) side: survey frames 003812 / kitchen_base_west_3 show no pull on
+    # its south stile and the pull up by the inside corner (the old model had it the other way)
+    _leaf(coll, objs, k, "wb", "W", wc, a0, a1, z0, dz1, "lo", dz1 - 4.5, worn=True, stile_in=s1 + 0.5)
+
+    # --- north blind corner (photo 8): door x 25.5-36.5, L-shaped shelf
+    cx0, cx1 = WW, 36.25
+    av = _vec_a("N")
+    k.panel("melamine", "N", nc, cx0, cx1, -nd, -nd + PANEL, z0, CARC_Z, Vector((0, -1, 0)))       # back
+    k.panel("melamine", "N", nc, cx0, cx0 + PANEL, -nd, -FRAME_T, z0, CARC_Z, av)                  # west wall side
+    k.panel("melamine", "N", nc, cx1 - PANEL, cx1, -nd, -FRAME_T, z0, CARC_Z, -av)                 # to the drawers
+    k.panel("floor_stain", "N", nc, cx0, cx1, -nd, -FRAME_T, z0, z0 + FLOOR_T, up)
+    # the blind part's front (behind the west run's door) is closed by the west cabinet's side
+    k.frame("N", nc, wc - FRAME_T, cx1, z0, CARC_Z, [(wc - FRAME_T, 26.5), (35.5, 37.25)],
+            [(z0, z0 + STILE), (CARC_Z - 2.0, CARC_Z)])
+    sp = I.CABINETS["corner"]["shelf_poly"]
+    for s in I.CABINETS["corner"]["shelves"]:
+        k.b.prism("melamine", [_p(x, y, 0)[:2] for x, y in sp], m(s - I.SHELF_T), m(s))
     a0, a1 = N_CORNER_DOOR
-    k.door("N", nc, a0, a1, z0, dz1, worn="hi")
-    k.pull("N", nc, a1 - 1.6, dz1 - 4.5, vertical=True)
-    # four-drawer bank (short top drawer)
+    _leaf(coll, objs, k, "corner", "N", nc, a0, a1, z0, dz1, "lo", dz1 - 4.5, worn=True, stile_in=26.5)
+
+    # --- four-drawer bank (photos 9-12)
     a0, a1 = N_DRAWERS
-    edges = [dz1, 28.5, 20.5, 12.5, z0]
-    for zt, zb in zip(edges, edges[1:]):
-        k.drawer("N", nc, a0, a1, zb, zt)
-        k.knob("N", nc, (a0 + a1) / 2, (zb + zt) / 2 + (1.0 if zt < dz1 else 0.0))
-    # east of the range: drawer over a door
+    _carcass(k, "N", nc, cx1, RANGE_X[0], nd, z0, CARC_Z, top=False, sides=(False, True))
+    rails = [(z0, z0 + 0.9), (11.75, 12.75), (19.75, 20.75), (27.6, 28.9), (CARC_Z - 0.75, CARC_Z)]
+    k.frame("N", nc, 37.25, RANGE_X[0], z0, CARC_Z, [(48.75, RANGE_X[0])], rails)
+    for (zt, zb), did in zip(zip(BANK_EDGES, BANK_EDGES[1:]), ("d1", "d2", "d3", "d4")):
+        _drawer(coll, objs, did, a0, a1, zb, zt, (zb + zt) / 2 + (1.0 if zt < dz1 else 0.0))
+
+    # --- east of the range (photos 13, 14): drawer over a door with one shelf
     a0, a1 = N_EAST
-    k.drawer("N", nc, a0, a1, dz0, dz1)
-    k.knob("N", nc, (a0 + a1) / 2, (dz0 + dz1) / 2)
-    k.door("N", nc, a0, a1, z0, dz0, worn="lo")
-    k.pull("N", nc, a0 + 1.6, dz0 - 4.0, vertical=True)
+    _carcass(k, "N", nc, a0, a1 - 0.5, nd, z0, CARC_Z, floor_region="floor_stain", top=False,
+             sides=(True, False))
+    eb = I.CABINETS["eb"]
+    k.rbox("melamine", "N", nc, a0 + PANEL, a1 - 0.5, -nd + PANEL, -FRAME_T, eb["z"][1], eb["z"][1] + 0.75)   # drawer deck
+    k.rbox("melamine", "N", nc, a1 - 0.56, a1 - 0.5, -nd + PANEL, -FRAME_T, z0, CARC_Z)   # white inside the end panel
+    k.frame("N", nc, a0, a1 - 0.5, z0, CARC_Z, [(a0, 80.75), (98.75, a1 - 0.5)],
+            [(z0, z0 + STILE), (26.25, 27.5), (CARC_Z - 0.75, CARC_Z)])
+    for s in eb["shelves"]:
+        _shelf(k, "N", nc, a0 + PANEL, a1 - 0.5, nd, s)
+    _drawer(coll, objs, "ed", a0, a1, dz0, dz1, (dz0 + dz1) / 2)
+    _leaf(coll, objs, k, "eb", "N", nc, a0, a1, z0, dz0, "hi", dz0 - 4.0, worn=True, stile_in=98.75)
 
 
 def _counter(k):
@@ -366,85 +576,134 @@ def _sink(k):
     k.box("nickel", fx - 0.3, fx + 0.3, fy + 1.0, fy + 4.0, top + 5.0, top + 5.6)
 
 
+
+
+def _plumbing(k):
+    """Under the sink (photo 7): a black disposal under the south bowl, its white waste arm
+    across to the north bowl's black tailpiece and P-trap into the back wall, and two
+    chrome supply stops with braided lines up to the faucet."""
+    b = k.b
+    dx = (SINK_BX[0] + SINK_BX[1]) / 2
+    dy = sum(SINK_BOWLS[0]) / 2
+    ny = sum(SINK_BOWLS[1]) / 2
+    zb = TOP_Z1 - SINK_DEPTH                      # bowl floor (drain flange)
+    b.cylinder("panel_black", _p(dx, dy, 21.0), m(3.3), m(11.0), segments=12)   # EST disposal body z 15.5-26.5
+    b.cylinder("nickel", _p(dx, dy, zb - 0.95), m(1.9), m(1.1), segments=12)    # mounting ring
+    b.cylinder("panel_black", _p(dx, dy, 15.3), m(2.4), m(0.5), segments=12)    # base cap
+    pipe = common.circle_profile(m(0.75), 8)
+    b.sweep("pvc", [_p(dx, dy + 3.1, 23.0), _p(dx, ny, 23.0)], pipe, up=(0, 0, 1))   # waste arm (white, photo 7)
+    b.sweep("panel_black", [_p(dx, ny, zb - 0.4), _p(dx, ny, 19.5)], pipe, up=(0, 1, 0))  # tailpiece + tee
+    b.cylinder("panel_black", _p(dx, ny, 23.0), m(1.0), m(2.2), segments=8)    # tee
+    trap = common.smooth_path([_p(dx, ny, 19.5), _p(dx, ny, 16.6), _p(dx - 1.3, ny, 15.0),
+                               _p(dx - 2.8, ny, 15.6), _p(dx - 3.4, ny, 17.6), _p(dx - 4.2, ny, 18.6),
+                               _p(WW + 0.6, ny, 18.6)], samples=2)
+    b.sweep("panel_black", trap, pipe, up=(0, 1, 0))
+    b.cylinder("pvc", _p(WW + 0.6, ny, 18.6), m(1.4), m(0.25), axis="X", segments=10)   # wall escutcheon
+    for sy in (226.0, 235.0):                                       # EST supply stops
+        b.cylinder("nickel", _p(WW + 1.2, sy, 13.0), m(0.45), m(1.6), axis="X", segments=8)
+        b.cylinder("nickel", _p(WW + 2.2, sy, 13.0), m(0.35), m(0.9), axis="Z", segments=8)
+        line = common.smooth_path([_p(WW + 2.2, sy, 13.4), _p(WW + 2.6, sy, 20.0),
+                                   _p(FAUCET[0] + 0.3, (sy + FAUCET[1]) / 2, 30.0),
+                                   _p(FAUCET[0], FAUCET[1] + (sy - FAUCET[1]) * 0.1, TOP_Z0 - 0.05)], samples=2)
+        b.sweep("nickel", line, common.circle_profile(m(0.2), 6), up=(1, 0, 0))
+
+
 # --- uppers -------------------------------------------------------------------------
 
-def _pull_a(hinge, i, doors, d0, d1):
-    if hinge == "pair":
-        return d1 - 1.6 if i % 2 == 0 else d0 + 1.6
-    return d0 + 1.6 if hinge == "lo" else d1 - 1.6
+def _upper(k, coll, objs, cid, run, face, a0, a1, z0, z1, depth, leaves):
+    """Hollow upper: carcass, face frame (centre stile on pairs), partitions, shelves, leaves."""
+    _carcass(k, run, face, a0, a1, depth, z0, z1)
+    mid = (a0 + a1) / 2
+    stiles = [(a0, a0 + STILE), (a1 - STILE, a1)]
+    if len(leaves) == 2:
+        stiles.append((mid - 0.75, mid + 0.75))
+    k.frame(run, face, a0, a1, z0, z1, stiles, [(z0, z0 + STILE), (z1 - 2.0, z1)])
+    cab = I.CABINETS[cid]
+    bays = [(a0 + PANEL, a1 - PANEL)]
+    for p0, p1 in cab.get("partitions", []):
+        k.rbox("melamine", run, face, p0, p1, -depth + PANEL, -FRAME_T, z0 + FLOOR_T, z1 - PANEL)
+        bays = [bb for b0, b1 in bays for bb in ((b0, p0), (p1, b1)) if b0 < p0 < b1] or bays
+    for s in cab["shelves"]:
+        for b0, b1 in bays:
+            _shelf(k, run, face, b0, b1, depth, s, cab.get("shelf_depth"))
+    sections = [(a0, a1)] if len(leaves) == 1 else [(a0, mid), (mid, a1)]
+    for (lid, hinge), (d0, d1) in zip(leaves, sections):
+        if hinge == "lo":
+            st = a0 + STILE if d0 == a0 else mid + 0.75
+        else:
+            st = a1 - STILE if d1 == a1 else mid - 0.75
+        _leaf(coll, objs, k, lid, run, face, d0, d1, z0, z1, hinge, z0 + 3.5 + (PULL_L - 5.0) / 2,
+              stile_in=st)
 
 
-def _uppers(k):
+def _uppers(k, coll, objs):
     z1 = UP_Z[1]
-    face_w = WW + UP_D
-    for y0, y1, z0, doors, hinge in W_UP:
-        k.box("oak_dark", WW, face_w - DOOR_T, y0, y1, z0, z1)
-        w = (y1 - y0) / doors
-        for i in range(doors):
-            d0, d1 = y0 + i * w, y0 + (i + 1) * w
-            k.door("W", face_w - DOOR_T, d0, d1, z0, z1)
-            k.pull("W", face_w - DOOR_T, _pull_a(hinge, i, doors, d0, d1), z0 + 3.5 + (PULL_L - 5.0) / 2)
-    face_n = NW - UP_D
-    for x0, x1, z0, doors, hinge in N_UP:
-        k.box("oak_dark", x0, x1, face_n + DOOR_T, NW, z0, z1)
-        w = (x1 - x0) / doors
-        for i in range(doors):
-            d0, d1 = x0 + i * w, x0 + (i + 1) * w
-            k.door("N", face_n + DOOR_T, d0, d1, z0, z1)
-            k.pull("N", face_n + DOOR_T, _pull_a(hinge, i, doors, d0, d1), z0 + 3.5 + (PULL_L - 5.0) / 2)
-    # diagonal corner cabinet: carcass prism plus a door on the 45-degree face
+    face_w = WW + UP_D - DOOR_T          # face-frame front (door back) plane
+    for cid, y0, y1, z0, leaves in W_UP:
+        _upper(k, coll, objs, cid, "W", face_w, y0, y1, z0, z1, face_w - WW, leaves)
+    face_n = NW - UP_D + DOOR_T
+    for cid, x0, x1, z0, leaves in N_UP:
+        _upper(k, coll, objs, cid, "N", face_n, x0, x1, z0, z1, NW - face_n, leaves)
+    # cabinet over the fridge: a box to the wall, a pair of short doors (no photo)
+    x0, x1, fy, z0, z1f = FRIDGE_UP
+    _upper(k, coll, objs, "fu", "N", fy + DOOR_T, x0, x1, z0, z1f, NW - fy - DOOR_T,
+           [("fu_l", "lo"), ("fu_r", "hi")])
+    _corner_upper(k, coll, objs)
+
+
+def _corner_upper(k, coll, objs):
+    """Diagonal corner cabinet (photo 3): pentagon carcass, 45-degree face frame and door
+    (hinged at its SW end), three pentagon shelves."""
     (cx0, cy0), (cx1, cy1) = CORNER
-    outline = [_p(WW, cy0, 0)[:2], _p(cx0, cy0, 0)[:2], _p(cx1, cy1, 0)[:2],
-               _p(cx1, NW, 0)[:2], _p(WW, NW, 0)[:2]]
-    k.b.prism("oak_dark", outline, m(UP_Z[0]), m(z1))
+    z0, z1 = UP_Z
     L = math.hypot(cx1 - cx0, cy1 - cy0)
     ang = math.atan2(cy1 - cy0, cx1 - cx0)
-    import mathutils
     mx = mathutils.Matrix.Translation(_p(cx0, cy0, 0)) @ mathutils.Matrix.Rotation(ang, 4, "Z")
-    # door in a local frame: u along the face (0..L), v outward (-Y local points to the room)
-    g, fr, z0 = GAP, 2.0, UP_Z[0]
-
-    def lbox(u0, u1, v0, v1, zz0, zz1, region="oak"):
-        k.b.box(region, (m(u0), m(-v1), m(zz0)), (m(u1), m(-v0), m(zz1)), matrix=mx)
-
-    lbox(g, L - g, 0, DOOR_T - 0.25, z0 + g, z1 - g)
-    for u0, u1, t0, t1 in ((g, g + fr, z0 + g, z1 - g), (L - g - fr, L - g, z0 + g, z1 - g),
-                           (g + fr, L - g - fr, z0 + g, z0 + g + fr), (g + fr, L - g - fr, z1 - g - fr, z1 - g)):
-        lbox(u0, u1, DOOR_T - 0.25, DOOR_T, t0, t1)
-    pu, pz = L - g - 1.6, z0 + 3.5 + (PULL_L - 5.0) / 2
-    out = (mx.to_3x3() @ Vector((0, -1, 0))).normalized()
-    k.pull(None, None, pu, pz, matrix=mx, out=out)
-    # cabinet over the fridge: a box to the wall, a pair of short doors
-    x0, x1, fy, z0, z1f = FRIDGE_UP
-    k.box("oak_dark", x0, x1, fy + DOOR_T, NW, z0, z1f)
-    mid = (x0 + x1) / 2
-    for d0, d1, pa in ((x0, mid, mid - 1.6), (mid, x1, mid + 1.6)):
-        k.door("N", fy + DOOR_T, d0, d1, z0, z1f)
-        k.pull("N", fy + DOOR_T, pa, z0 + 3.5 + (PULL_L - 5.0) / 2)
+    kc = Kit(k.b, mx)        # local frame: a along the face (0..L), d outward (local -Y)
+    fo = FRAME_T * math.sqrt(2)          # floor/top stop at the back of the diagonal face frame
+    outline = [_p(x, y, 0)[:2] for x, y in ((WW, cy0), (cx0 - fo, cy0), (cx1, cy1 + fo), (cx1, NW), (WW, NW))]
+    k.b.prism("oak_dark", outline, m(z0), m(z0 + FLOOR_T), cap_region="melamine")
+    k.b.prism("oak_dark", outline, m(z1 - PANEL), m(z1), bottom_region="melamine")
+    zi0, zi1 = z0 + FLOOR_T, z1 - PANEL
+    k.panel("melamine", "W", WW, cy0, NW, 0, PANEL, zi0, zi1, Vector((1, 0, 0)))            # west wall back
+    k.panel("melamine", "N", NW, WW, cx1, 0, PANEL, zi0, zi1, Vector((0, -1, 0)))           # north wall back
+    k.panel("melamine", "W", WW, cy0, cy0 + PANEL, PANEL, cx0 - 0.4, zi0, zi1, Vector((0, 1, 0)))   # south side
+    k.panel("melamine", "W", WW, cy1 + 0.4, NW - PANEL, cx1 - PANEL, cx1, zi0, zi1, Vector((-1, 0, 0)))  # east side
+    kc.frame("C", None, 0, L, z0, z1, [(0, 1.25), (L - 1.25, L)], [(z0, z0 + STILE), (z1 - 2.0, z1)])
+    cab = I.CABINETS["cu"]
+    for s in cab["shelves"]:
+        k.b.prism("melamine", [_p(x, y, 0)[:2] for x, y in cab["poly"]], m(s - I.SHELF_T), m(s))
+    _leaf(coll, objs, kc, "cu", "C", None, 0, L, z0, z1, "lo", z0 + 3.5 + (PULL_L - 5.0) / 2,
+          stile_in=1.25, cmx=mx)
 
 
 def build(coll):
     b = common.Builder(REGIONS)
     k = Kit(b)
-    _base(k)
+    objs = []
+    _base(k, coll, objs)
     _counter(k)
     _sink(k)
-    _uppers(k)
+    _plumbing(k)
+    _uppers(k, coll, objs)
     ob = b.to_object(NAME, coll)
     _face_bowls_up(ob)
-    return [ob]
+    leaves = [o for o in objs if o.type == "MESH"]
+    print("moving parts:", len(leaves), [o.name for o in leaves])
+    return [ob] + objs
 
 
 def _face_bowls_up(ob):
     """to_object() orients normals as if every piece were closed, which turns the open sink
     bowls inside out (Unity then culls them): face everything inside a bowl toward an eye
-    above that bowl."""
+    above that bowl, then add a reversed copy just below so the bowls are solid seen from
+    under the sink too."""
     import bmesh
     bm = bmesh.new()
     bm.from_mesh(ob.data)
     bm.normal_update()
     (bx0, bx1), zt = SINK_BX, TOP_Z1 + 0.12
-    flip = []
+    flip, bowl = [], []
     for f in bm.faces:
         c = f.calc_center_median()
         for y0, y1 in SINK_BOWLS:
@@ -452,11 +711,23 @@ def _face_bowls_up(ob):
                 eye = Vector(_p((bx0 + bx1) / 2, (y0 + y1) / 2, TOP_Z1 + 10.0))
                 if f.normal.dot(eye - c) < 0:
                     flip.append(f)
+                bowl.append(f)
                 break
     bmesh.ops.reverse_faces(bm, faces=flip)
+    ret = bmesh.ops.duplicate(bm, geom=bowl)
+    dup_f = [g for g in ret["geom"] if isinstance(g, bmesh.types.BMFace)]
+    dup_v = [g for g in ret["geom"] if isinstance(g, bmesh.types.BMVert)]
+    bmesh.ops.reverse_faces(bm, faces=dup_f)
+    for v in dup_v:                      # push the copy out of the bowl (not coplanar: no bake/z-fight)
+        y0, y1 = min(SINK_BOWLS, key=lambda b: abs(m((b[0] + b[1]) / 2) - v.co.y))
+        c = Vector(_p((bx0 + bx1) / 2, (y0 + y1) / 2, 0))
+        r = Vector((v.co.x - c.x, v.co.y - c.y, 0))
+        if r.length > 1e-6:
+            r.normalize()
+        v.co += r * m(0.08) + Vector((0, 0, -m(0.08)))
     bm.to_mesh(ob.data)
     bm.free()
-    print("sink faces turned up:", len(flip))
+    print("sink faces turned up:", len(flip), "underside copies:", len(dup_f))
 
 
 def _island_uvs(ob, atlas, regions):
@@ -507,9 +778,69 @@ def _island_uvs(ob, atlas, regions):
                     uvl.data[li].uv = (u0 + fu * (u1 - u0), v0 + fv * (v1 - v0))
 
 
+def _box_uvs(ob, lo, ext):
+    """common.atlas_uvs' default box projection, but over the whole package's bounds in plan
+    space, so the leaves and drawers get the same oak scale and grain as the body."""
+    me = ob.data
+    uvl = me.uv_layers.get("UVMap") or me.uv_layers.new(name="UVMap")
+    me.uv_layers.active = uvl
+    names = [mm.name.split(".")[0] for mm in me.materials]
+    off = Vector(ob.location)
+    for p in me.polygons:
+        u0, v0, u1, v1 = common.uv_rect(ATLAS, names[p.material_index])
+        n = p.normal
+        ax = max(range(3), key=lambda i: abs(n[i]))
+        ua, va = [(1, 2), (0, 2), (0, 1)][ax]
+        for li in p.loop_indices:
+            co = me.vertices[me.loops[li].vertex_index].co + off
+            fu = (co[ua] - lo[ua]) / max(ext[ua], 1e-6)
+            fv = (co[va] - lo[va]) / max(ext[va], 1e-6)
+            uvl.data[li].uv = (u0 + fu * (u1 - u0), v0 + fv * (v1 - v0))
+
+
 def texture(objs):
-    ob = objs[0]
+    meshes = [o for o in objs if o.type == "MESH"]
+    pts = [v.co + Vector(o.location) for o in meshes for v in o.data.vertices]
+    lo = Vector([min(p[i] for p in pts) for i in range(3)])
+    hi = Vector([max(p[i] for p in pts) for i in range(3)])
     mat = common.atlas_material(NAME, ATLAS)
-    common.atlas_uvs(ob, ATLAS)
-    _island_uvs(ob, ATLAS, WORN)
-    common.collapse_materials(ob, {r: mat for r in REGIONS})
+    for ob in meshes:
+        _box_uvs(ob, lo, hi - lo)
+        _island_uvs(ob, ATLAS, WORN)
+        common.collapse_materials(ob, {r: mat for r in REGIONS})
+    if os.environ.get("KC_OPEN_TEST"):
+        _open_all(objs, os.environ["KC_OPEN_TEST"])
+
+
+def _open_all(objs, which="1"):
+    """Render-only check: swing each leaf 100 degrees toward its _out marker (as Unity's
+    CabinetSetup does) and pull each drawer out 75% of its depth toward its _grab marker.
+    which: "1" = everything, else comma-separated ids (e.g. "wb,corner,d1")."""
+    import bpy
+    names = {o.name: o for o in objs}
+    ids = None if which == "1" else set(which.split(","))
+    for ob in objs:
+        if ob.type != "MESH" or ob is objs[0]:
+            continue
+        if ids is not None and ob.name.split("_door_")[-1].split("_drawer_")[-1] not in ids:
+            continue
+        verts = [v.co for v in ob.data.vertices]
+        if "_door_" in ob.name:
+            out = Vector(names[ob.name + "_out"].location)
+            best = None
+            for turn in (100.0, -100.0):
+                rot = mathutils.Matrix.Rotation(math.radians(turn), 3, "Z")
+                c = sum((rot @ v for v in verts), Vector()) / len(verts) + Vector(ob.location)
+                c0 = sum(verts, Vector()) / len(verts) + Vector(ob.location)
+                d = (c - c0).dot(out - c0)
+                if best is None or d > best[0]:
+                    best = (d, turn)
+            ob.rotation_euler.z += math.radians(best[1])
+        elif "_drawer_" in ob.name:
+            g = Vector(names[ob.name + "_grab"].location) - Vector(ob.location)
+            g.z = 0
+            axis = Vector((0, math.copysign(1, g.y), 0)) if abs(g.y) > abs(g.x) else Vector((math.copysign(1, g.x), 0, 0))
+            ys = [v.dot(axis) for v in verts]
+            ob.location += axis * 0.75 * (max(ys) - min(ys))
+    bpy.context.view_layer.update()
+    print("KC_OPEN_TEST: leaves swung, drawers pulled")

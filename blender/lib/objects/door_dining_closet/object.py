@@ -3,7 +3,7 @@ ones), white semi-gloss, brushed-nickel scroll lever and three nickel butt hinge
 
 Source of truth: scripted, shared parts in ../door_bedroom/doorkit.py.
 Local frame: origin on the floor at the hinge-side edge of the clear opening, on the wall
-centreline; front (-Y) = dining-room side (the door swings into the closet); the opening
+centreline; front (-Y) = dining-room side (the door swings out into the dining room); the opening
 runs to -X (hinge on the left seen from the dining room, IMG_1523).
 
 Dimensions (inches):

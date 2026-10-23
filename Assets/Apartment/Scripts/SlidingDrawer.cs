@@ -45,6 +45,7 @@ public class SlidingDrawer : UdonSharpBehaviour
     private Quaternion handleRot;
     private bool held;
     private bool ready;
+    private float applied = -1f;   // the open distance last applied; idle drawers skip the work
 
     private void Start()
     {
@@ -78,6 +79,7 @@ public class SlidingDrawer : UdonSharpBehaviour
         if (open < snapClosed)
             open = 0f;
         Apply();
+        applied = -1f;                 // re-seat the handle once more next frame, after the pickup lets go
         if (Networking.IsOwner(gameObject))
             RequestSerialization();
     }
@@ -113,7 +115,9 @@ public class SlidingDrawer : UdonSharpBehaviour
         }
 
         // Not held here: follow the (interpolated) synced value and keep the
-        // handle seated on the pull against physics drift.
+        // handle seated on the pull. Idle drawers (most of them, most of the time) stop here.
+        if (open == applied)
+            return;
         Apply();
     }
 
@@ -121,6 +125,7 @@ public class SlidingDrawer : UdonSharpBehaviour
     {
         if (!ready)
             return;
+        applied = open;
         Vector3 offset = axis * open;
         drawer.localPosition = closedDrawerPos + offset;
         transform.localPosition = closedHandlePos + offset;
