@@ -9,6 +9,11 @@ ModelImporter:
       assembly: UnityEngine.CoreModule
       name: kitchen_cabinets
     second: {fileID: 2100000, guid: 22514c9e2c0e65046a400f300fabc91d, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: kitchen_cabinets_counter
+    second: {fileID: 2100000, guid: 33d170c5eb688e348866aac7bc3dec18, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

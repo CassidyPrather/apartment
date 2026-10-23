@@ -5,8 +5,9 @@ LiDAR frames 552-600 (cup, head).
 Source of truth: scripted, shared parts in ../door_bedroom/doorkit.py.
 Local frame: origin on the floor at the centre of the opening, on the wall centreline;
 front (-Y) = hallway side. Objects: door_closet_sliding (jamb liners, track, floor guide),
-door_closet_sliding_left (front track, -X half) and door_closet_sliding_right (back track,
-+X half), each with its origin on the floor at its own centre so it slides along X, plus
+door_closet_sliding_left (back track, -X half = plan north) and door_closet_sliding_right
+(front track, +X half = plan south: bedroom frame 465 shows the south leaf's edge over the
+north one at the meeting stiles, and closet photos 19/20 agree), each with its origin on the floor at its own centre so it slides along X, plus
 a _grab marker at each finger cup.
 
 Dimensions (inches):
@@ -56,7 +57,7 @@ def build(coll):
     lz0, lz1 = 0.5, top - TRACK_H - 0.25
     lh = lz1 - lz0
     rails = [(0.0, 9.5), (39.0, 43.0), (lh - 4.75, lh)]
-    for side, name, yc in ((-1, "left", -0.8), (1, "right", 0.8)):
+    for side, name, yc in ((-1, "left", 0.8), (1, "right", -0.8)):   # south (+X) leaf in front
         xa = x0 + K.JAMB_T if side < 0 else x1 - K.JAMB_T - lw
         xb = xa + lw
         ya, yb = yc - LEAF_T / 2, yc + LEAF_T / 2

@@ -86,16 +86,26 @@ def build():
     a.fill("black_glass", (40, 40, 44), 0.2, 0.9)
     a.fill("dark_red", (120, 20, 26), 0.0, 0.3)
 
-    # --- oven glove: cream knit with blue stripe bands (no wordmark) ---------------------
+    # --- oven glove: cream knit, blue silicone stripes (no wordmark). Mapped top-down over
+    # each whole glove: image top = finger tips, bottom = cuff opening.
     a.fill("glove", (234, 226, 204), 0.0, 0.1, noise=0.10, blur=0.7)
-    for i in range(4):                       # long bands up the back of the hand
-        fx = 0.12 + i * 0.2
-        sub("glove", fx, 0.30, fx + 0.035, 0.95, (32, 72, 170))
-        sub("glove", fx + 0.06, 0.38, fx + 0.08, 0.9, (32, 72, 170))
-    for j in range(6):                       # short dashes on the fingers
-        for i in range(8):
-            sub("glove", 0.06 + i * 0.115, 0.03 + j * 0.04, 0.06 + i * 0.115 + 0.06,
-                0.03 + j * 0.04 + 0.016, (32, 72, 170))
+    a.fill("glove_in", (150, 140, 118), 0.0, 0.05, noise=0.08)
+    BL = (32, 72, 170)
+    for j in range(7):                       # fingers: rows of short dashes across each finger
+        for i in range(9):
+            fx = 0.04 + i * 0.105 + (j % 2) * 0.03
+            sub("glove", fx, 0.03 + j * 0.045, fx + 0.05, 0.03 + j * 0.045 + 0.018, BL)
+    for b in range(4):                       # back of the hand: diagonal bands (stepped)
+        for t in range(14):
+            fx = 0.08 + b * 0.2 + t * 0.012
+            fy = 0.36 + t * 0.022
+            sub("glove", fx, fy, fx + 0.06, fy + 0.024, BL)
+    for b in range(3):                       # cuff: long gently curving bands
+        for t in range(12):
+            fx = 0.18 + b * 0.26 + (0.03 if 3 < t < 9 else 0.0)
+            fy = 0.68 + t * 0.026
+            sub("glove", fx, fy, fx + 0.045, fy + 0.028, BL)
+    sub("glove", 0.0, 0.95, 1.0, 0.975, (214, 204, 180))   # ribbed cuff edge
     soften("glove", 0.05, 0.8)
 
     # --- stained cabinet floor: off-white melamine with brown water rings and grit -------

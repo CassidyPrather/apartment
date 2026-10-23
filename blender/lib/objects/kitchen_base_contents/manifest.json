@@ -10,22 +10,22 @@
     "kitchen_base_contents_clear": {
       "atlas": "kitchen_base_contents",
       "mode": "transparent",
-      "alpha": 0.35,
+      "alpha": 0.28,
       "tiled": false
     }
   },
   "collider": "none",
   "static": false,
-  "triangles": 13908,
+  "triangles": 16766,
   "bounds_m": {
     "min": [
       0.0698,
-      5.4033,
+      5.4122,
       0.1184
     ],
     "max": [
       2.5038,
-      7.2644,
+      7.2441,
       0.8166
     ]
   }

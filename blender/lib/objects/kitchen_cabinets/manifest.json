@@ -6,11 +6,16 @@
       "atlas": "kitchen_cabinets",
       "mode": "opaque",
       "tiled": false
+    },
+    "kitchen_cabinets_counter": {
+      "atlas": "kitchen_cabinets_counter",
+      "mode": "opaque",
+      "tiled": true
     }
   },
   "collider": "mesh",
   "static": true,
-  "triangles": 11584,
+  "triangles": 10884,
   "bounds_m": {
     "min": [
       0.0,

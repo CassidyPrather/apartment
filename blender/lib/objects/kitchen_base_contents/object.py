@@ -122,6 +122,8 @@ ATLAS = {
         "dark_red": (512, 128, 64, 64),
         # painted regions (each piece gets the whole image, island-mapped)
         "glove": (0, 256, 256, 256),
+        "glove_b": (0, 256, 256, 256),      # same print; the second glove's own top-down UVs
+        "glove_in": (576, 128, 64, 64),
         "stain": (256, 256, 256, 256),
         "detergent": (512, 256, 128, 128),
         "bleach_label": (640, 256, 128, 128),
@@ -144,12 +146,13 @@ ATLAS = {
     },
 }
 REGIONS = list(ATLAS["regions"])
-PAINTED = ("glove", "stain", "detergent", "bleach_label", "dish_label", "air_label",
+TOPDOWN = ("glove", "glove_b")   # one planar projection from above over each glove
+PAINTED = ("stain", "detergent", "bleach_label", "dish_label", "air_label",
            "spray_label", "duster_label", "jug_label", "whetstone", "cereal", "snack_box",
            "zip_box", "chip_bag", "trash_roll", "cardboard", "towel", "potholder", "slotted",
            "glass_cleaner")
 CLEAR_REGIONS = ("glass", "clear_plastic")
-CLEAR_ALPHA = 0.35
+CLEAR_ALPHA = 0.28
 MATERIALS = {
     NAME: {"atlas": NAME, "mode": "opaque", "tiled": False},
     NAME + "_clear": {"atlas": NAME, "mode": "transparent", "alpha": CLEAR_ALPHA, "tiled": False},
@@ -218,7 +221,7 @@ class Kit:
     def cbox(self, r, cx, cy, z0, w, d, h, bevel=0.0):
         self.box(r, cx - w / 2, cx + w / 2, cy - d / 2, cy + d / 2, z0, z0 + h, bevel)
 
-    def lathe(self, r, prof, seg=10, oval=(1.0, 1.0), regions=None, closed=False):
+    def lathe(self, r, prof, seg=10, oval=(1.0, 1.0), regions=None, closed=False, capped=True):
         """Revolve [(radius, z)] about local Z, bottom to top; ends with radius > 0 get a
         cap. regions: optional per-band region list (len(prof) - 1)."""
         n0 = self._mark()
@@ -246,11 +249,11 @@ class Kit:
             self.b._tag(band, regions[k] if regions else r)
             faces += band
         caps = []
-        if closed:
+        if closed or not capped:
             pass
         elif len(rings[0]) > 1:
             caps.append(bm.faces.new(list(reversed(rings[0]))))
-        if not closed and len(rings[-1]) > 1:
+        if not closed and capped and len(rings[-1]) > 1:
             caps.append(bm.faces.new(rings[-1]))
         self.b._tag(caps, r)
         self._apply(n0)
@@ -282,6 +285,28 @@ class Kit:
             q = common.smooth_path(q, samples)
         self.b.sweep(r, q, common.rect_profile(m(w), m(t)), up=(0, 0, 1))
         self._apply(n0)
+
+    def loop(self, r, cx, cy, rx, ry, w, t, z=0.0, n=10, rot=0.0):
+        """Closed flat ring (scissor finger loop, wire): a w x t strap round an ellipse."""
+        main = self._mark()
+        a0 = math.radians(rot)
+        pts = []
+        for i in range(n):
+            a = 2 * math.pi * i / n
+            x, y = rx * math.cos(a), ry * math.sin(a)
+            pts.append(Vector((m(cx + x * math.cos(a0) - y * math.sin(a0)),
+                               m(cy + x * math.sin(a0) + y * math.cos(a0)), m(z))))
+        self.b.sweep(r, pts, common.rect_profile(m(w), m(t)), up=(0, 0, 1), closed=True)
+        self._apply(main)
+
+    def wire(self, r, pts, rad=0.05, sides=3, closed=False, samples=0):
+        """Thin round wire through local points (inches)."""
+        main = self._mark()
+        q = [Vector((m(x), m(y), m(z))) for x, y, z in pts]
+        if samples:
+            q = common.smooth_path(q, samples)
+        self.b.sweep(r, q, common.circle_profile(m(rad), sides), up=(0, 0, 1), closed=closed)
+        self._apply(main)
 
     def blob(self, r, cx, cy, cz, sx, sy, sz, cuts=2, amp=0.12, seed=0, sq=0.45, freq=1.3):
         """Lumpy rounded box (fabric, bags): a subdivided cube pushed toward a sphere,
@@ -338,13 +363,42 @@ def scissors(k, u0, v0, u1, v1, w, ring="red_plastic", grip="black_plastic", bla
     """Scissors lying flat from the handle end (u0, v0) to the tip (u1, v1)."""
     with k.seg(u0, v0, u1, v1, w) as L:
         hl = L * 0.42
-        for side, sg in ((0.9, 1), (-0.9, -1)):
-            k.rrect(grip, hl * 0.45, side, hl * 0.9, 1.8, 0.8, 0, 0.32)
-            k.rrect(ring, hl * 0.45, side, hl * 0.6, 0.9, 0.4, 0.32, 0.36)
+        for side, big in ((0.95, 1.15), (-0.85, 0.95)):
+            rx, ry = hl * 0.42 * big, 0.75 * big
+            k.loop(grip, hl * 0.45, side, rx, ry, 0.32, 0.3, z=0.15, n=12)               # black loop
+            k.loop(ring, hl * 0.45, side, rx - 0.22, ry - 0.22, 0.14, 0.34, z=0.15, n=12)  # red liner
+            k.box(grip, hl * 0.8, hl + 0.2, side * 0.25 - 0.2, side * 0.25 + 0.2, 0.0, 0.3)  # neck
         k.prism(blade, [(hl, -0.45), (L, -0.05), (L, 0.05), (hl, 0.5)], 0.05, 0.18)
         k.prism(blade, [(hl, 0.45), (L * 0.97, 0.12), (L * 0.97, 0.2), (hl, -0.4)], 0.18, 0.3)
         with k.at(hl + 0.1, 0, 0.3):
             k.cyl("steel_dark", 0.25, 0, 0.1, seg=6)
+
+
+def whisk(k, u0, v0, u1, v1, w, handle="black_plastic", R=1.0, loops=4):
+    """Balloon whisk lying from its handle end to the wire tip."""
+    with k.seg(u0, v0, u1, v1, w + R) as L:
+        hl = L * 0.45
+        k.rrect(handle, hl / 2, 0, hl, 0.7, 0.3, -0.3, 0.3, seg=2)
+        wl = L - hl
+        for i in range(loops):
+            a = math.radians(i * 180 / loops)
+            ca, sa = math.cos(a), math.sin(a)
+            prof = [(0, 0.15), (0.3 * wl, 0.55 * R), (0.7 * wl, R), (0.95 * wl, 0.5 * R), (wl, 0.0),
+                    (0.95 * wl, -0.5 * R), (0.7 * wl, -R), (0.3 * wl, -0.55 * R), (0, -0.15)]
+            k.wire("steel", [(hl + x, y * ca, y * sa) for x, y in prof], rad=0.05, sides=3,
+                   closed=True, samples=2)
+
+
+def masher(k, u0, v0, u1, v1, w, handle="black_plastic"):
+    """Potato masher lying on its side: handle, steel shaft, zigzag wire head (on edge)."""
+    with k.seg(u0, v0, u1, v1, w + 1.7) as L:
+        k.rrect(handle, 2.2, 0, 4.4, 0.9, 0.4, -0.35, 0.35, seg=2)
+        k.box("steel", 4.4, L - 0.2, -0.15, 0.15, -0.1, 0.1)
+        zig = [(L, -1.6 + i * 0.8, (0.7 if i % 2 else -0.7)) for i in range(5)]
+        k.wire("steel", [(L, -1.6, 0.0)] + [(x, y, z * 2.2) for x, y, z in zig] + [(L, 1.6, 0.0)],
+               rad=0.09, sides=4)
+        k.wire("steel", [(L - 0.2, 0, 0), (L, -1.6, 0)], rad=0.09, sides=4)
+        k.wire("steel", [(L - 0.2, 0, 0), (L, 1.6, 0)], rad=0.09, sides=4)
 
 
 def utensil(k, u0, v0, u1, v1, w, handle, head, kind, head_l, head_w, handle_w=0.7,
@@ -362,6 +416,15 @@ def utensil(k, u0, v0, u1, v1, w, handle, head, kind, head_l, head_w, handle_w=0
                 k.lathe(head, [(0.01, -0.3), (head_w * 0.35, -0.22), (head_w / 2, 0.05),
                                (head_w / 2 - 0.12, 0.12), (0.01, -0.12)], seg=10,
                         oval=(head_l / head_w, 1.0))
+        elif kind == "server":                       # pasta server: shallow bowl ringed with teeth
+            with k.at(c, 0, 0.3):
+                k.lathe(head, [(0.01, -0.3), (head_w * 0.35, -0.22), (head_w / 2, 0.05),
+                               (head_w / 2 - 0.12, 0.12), (0.01, -0.12)], seg=10,
+                        oval=(head_l / head_w, 1.0))
+                for i in range(7):
+                    a = math.radians(-60 + i * 20)
+                    tx, ty = head_l / 2 * math.cos(a), head_w / 2 * math.sin(a)
+                    k.box(head, tx - 0.12, tx + 0.12, ty - 0.12, ty + 0.12, 0.0, 0.55)
         elif kind == "ladle":
             k.box(handle, hl - 0.2, hl + head_l * 0.2, -0.25, 0.25, 0.1, 0.3)
             with k.at(c + head_l * 0.15, 0, head_w * 0.45):
@@ -398,7 +461,7 @@ def sink(coll):
         depth = xf - x0
         wid = y1 - y0
         # south bay, front to back, left to right
-        with k.at(2.4, 5.5, 0.04, rz=68):                       # detergent box, broad face to the north
+        with k.at(2.75, 5.5, 0.04, rz=68):                       # detergent box, broad face to the north
             k.cbox("detergent", 0, 0, 0, DET_BOX[1], DET_BOX[0], DET_BOX[2], bevel=0.08)
         with k.at(4.0, 3.2, 0.04):                               # dark blue glass cleaner
             k.lathe("glass_cleaner", [(1.2, 0), (1.35, 0.3), (1.35, 6.0), (1.1, 7.2), (0.5, 7.8)],
@@ -466,17 +529,17 @@ def corner(coll):
     (x0, x1), (y0, y1), (z0, _) = c["x"], c["y"], c["z"]
     zs = c["shelves"][0]
     k = Kit()
-    # on the shelf's back strip (y 273.5-285.5): pressure cooker deeper in the blind corner,
-    # the steel steamer stack west of the door opening, red bits in front of it
+    # on the shelf's north strip (y 273.5-285.5): pressure cooker behind the door opening,
+    # the steel steamer stack west of it, red bits on the west strip (x 0.5-12.5)
     pr, ph = P_COOKER
-    with k.at(25.6, 280.4, zs):
+    with k.at(25.6, 279.6, zs):
         k.lathe("steel", [(pr - 0.4, 0), (pr, 0.4), (pr, ph * 0.62)], seg=14)
         k.lathe("black_plastic", [(pr + 0.25, ph * 0.62), (pr + 0.25, ph * 0.72), (pr * 0.85, ph * 0.9),
                                   (pr * 0.5, ph - 0.4), (0.01, ph - 0.3)], seg=14)
         k.box("black_plastic", -1.2, 1.2, -pr - 0.6, pr + 0.6, ph * 0.62, ph * 0.72)   # side handles
         k.box("black_plastic", -0.5, 0.5, -1.8, 1.8, ph - 0.4, ph + 0.4, bevel=0.2)    # lid knob
         k.box("steel_dark", pr - 0.1, pr + 0.05, -1.6, 1.6, 2.0, 4.5)                  # panel
-    with k.at(16.8, 277.2, zs):
+    with k.at(15.8, 278.6, zs):
         pot(k, "steel", STEAMER_R, 3.4, seg=14)                                         # steamer base
         k.box("black_plastic", -0.4, 0.4, -STEAMER_R - 0.8, -STEAMER_R + 0.2, 2.2, 2.8)
         with k.at(0.3, -0.3, 3.4):
@@ -526,7 +589,7 @@ def corner(coll):
         k.blob("chip_bag", -2.8, 1.5, 5.6, 6.0, 4.0, 3.0, cuts=2, amp=0.25, seed=5, sq=0.3)
     # cereal-type box standing in front of the east leg, facing the door
     cw2, cd2, ch2 = CEREAL
-    with k.at(32.0, 262.6, z0, rz=-25):
+    with k.at(31.6, 263.4, z0, rz=-25):
         k.cbox("cereal", 0, 0, 0, cw2, cd2, ch2, bevel=0.05)
     return k.obj(NAME + "_corner", coll, ((x0 + x1) / 2, (y0 + y1) / 2, z0))
 
@@ -535,12 +598,16 @@ def corner(coll):
 
 def glass_lid(k, rad, handle=True):
     """Glass lid in its local XY plane: domed glass, steel rim, steel loop handle."""
-    k.lathe("glass", [(rad - 0.15, 0.0), (rad * 0.6, 0.45), (0.01, 0.65)], seg=14)
-    k.lathe("steel", [(rad, -0.08), (rad, 0.12), (rad - 0.25, 0.12), (rad - 0.25, -0.08)], seg=14,
-            closed=True)
+    k.lathe("glass", [(rad - 0.12, 0.0), (rad * 0.85, 0.22), (rad * 0.55, 0.48), (0.01, 0.62)], seg=20,
+            capped=False)                     # one surface: a single see-through layer
+    k.lathe("steel", [(rad + 0.05, -0.1), (rad + 0.05, 0.12), (rad - 0.25, 0.12), (rad - 0.25, -0.1)],
+            seg=20, closed=True)
     if handle:
-        k.tube("steel", [(-1.4, 0, 0.6), (-1.1, 0, 1.3), (1.1, 0, 1.3), (1.4, 0, 0.6)], 0.18, sides=4)
-        k.cyl("steel", 0.35, 0.55, 0.2, seg=6)
+        k.lathe("steel", [(0.75, 0.55), (0.7, 0.75), (0.01, 0.8)], seg=8)           # knob base plate
+        k.tube("steel", [(-1.4, 0, 0.7), (-1.1, 0, 1.4), (1.1, 0, 1.4), (1.4, 0, 0.7)], 0.18, sides=4)
+        for x in (-1.4, 1.4):
+            with k.at(x, 0, 0.6):
+                k.cyl("steel", 0.3, 0, 0.2, seg=6)
 
 
 def pan(k, rad, h, handle_l, r="nonstick", grip="rubber_black", bend=20):
@@ -559,7 +626,7 @@ def eb(coll):
     # local frame: u east from x0, v north from the face frame back
     with k.at(x0, y0, z0):
         # floor: black saucepan at the back left, long steel handle out to the front left
-        with k.at(5.8, 16.5, 0.04, rz=-35):
+        with k.at(5.8, 16.5, 0.04, rz=-20):
             pot(k, "pot_black", SAUCEPAN_R, 4.2, seg=12)
             with k.at(0, -SAUCEPAN_R + 0.2, 3.5, rx=-12):
                 k.box("steel", -0.4, 0.4, -7.5, 0, -0.12, 0.12)
@@ -570,7 +637,7 @@ def eb(coll):
         with k.at(6.5, 17.0, 0.0, rz=10):
             pan(k, 5.0, 2.2, 7.0, r="nonstick", bend=-35)
         # right: skillet with its handle to the front, a steel-rimmed dark lid lying on it
-        with k.at(13.0, 13.0, 0.0, rz=-12):
+        with k.at(13.0, 13.7, 0.0, rz=-12):
             pan(k, SKILLET_R, 1.9, 8.5, bend=-8)
             with k.at(-0.4, 0.8, 2.2, rx=8, ry=-6):
                 k.lathe("black_glass", [(SKILLET_R + 0.2, 0.0), (SKILLET_R * 0.6, 0.5), (0.01, 0.7)], seg=14)
@@ -648,6 +715,21 @@ def d1(coll):
                 k.cyl("teal", 0.95, 0, 0.8, seg=10)
         # scissors at the very front, tip to the right
         scissors(k, 1.2, 1.9, W - 0.8, 2.3, 0.0)
+        # small whisk lying over the middle, wires to the back
+        whisk(k, 6.6, 10.8, 3.4, 16.6, 0.9, R=0.65, loops=3)
+        # second peeler: black Y-peeler, blade at the back
+        with k.seg(5.9, 12.0, 6.8, 17.4, 0.75) as L:
+            k.rrect("black_plastic", 1.8, 0, 3.6, 0.8, 0.35, 0, 0.4)
+            for sd in (-1, 1):
+                k.box("black_plastic", 3.5, L - 0.2, sd * 0.9 - 0.15, sd * 0.9 + 0.15, 0.05, 0.3)
+            k.box("steel", L - 0.4, L, -1.0, 1.0, 0.1, 0.2)
+        # steel bottle opener (flat, with a hole) by the shears
+        with k.seg(W - 3.0, 13.6, W - 2.7, 17.2, 0.55) as L:
+            k.box("steel", 0, L - 1.2, -0.3, 0.3, 0, 0.08)
+            k.loop("steel", L - 0.7, 0, 0.55, 0.5, 0.22, 0.08, z=0.04, n=10)
+        # red-handled garlic press under the grater handle
+        utensil(k, 8.2, 2.6, 5.8, 8.4, 0.05, "red_plastic", "steel", "turner", 1.6, 1.3,
+                handle_w=0.7, handle_t=0.4)
     ob = k.obj("kitchen_cabinets_drawer_d1_contents", coll, ((x0 + x1) / 2, (y0 + y1) / 2, z0))
     return ob
 
@@ -688,28 +770,45 @@ def d2(coll):
             pot(k, "grey_plastic", 2.3, 2.2, seg=12)
             with k.at(0, -2.2, 1.6):
                 k.rrect("grey_plastic", 0, -2.5, 0.85, 5.2, 0.4, -0.15, 0.2)
+        # more black utensils behind the pan: slotted spoon, pasta server, whisk, potato masher
+        utensil(k, 1.4, 3.0, 2.8, 19.6, 2.7, "black_plastic", "slotted", "spoon", 3.4, 2.4,
+                handle_w=0.75, handle_t=0.3)
+        utensil(k, 9.0, 3.5, 7.8, 19.4, 0.8, "black_plastic", "black_plastic", "server", 3.2, 2.4,
+                handle_w=0.75, handle_t=0.3)
+        whisk(k, 8.2, 6.5, 4.6, 19.6, 2.2, R=1.05, loops=4)
+        masher(k, 0.9, 6.0, 2.9, 17.6, 1.0)
         # wooden rod down the right side
         with k.seg(W - 0.6, 4.0, W - 0.6, 14.5, 0.3) as L:
             k.box("wood", 0, L, -0.3, 0.3, -0.3, 0.3)
     return k.obj("kitchen_cabinets_drawer_d2_contents", coll, ((x0 + x1) / 2, (y0 + y1) / 2, z0))
 
 
-def glove(k, seed, fingers=True, thumb_side=1):
-    """Flat oven glove in local XY: cuff at -y, fingers toward +y."""
+def glove(k, region, seed, fingers=True, thumb_side=1):
+    """Flat quilted oven glove in local XY, cuff at -y, fingers toward +y: a cuff tube with
+    an inner opening, a puffy palm, four splayed fingers and a thumb, all soft ellipsoids
+    (UVs are a top-down projection over the whole glove, so the stripe print runs across it)."""
     gw, gl, gt = GLOVE
-    k.blob("glove", 0, -gl * 0.3, gt / 2, gw, gl * 0.45, gt, cuts=2, amp=0.1, seed=seed, sq=0.15)    # cuff
-    k.blob("glove", 0, gl * 0.12, gt / 2, gw * 0.95, gl * 0.4, gt * 0.95, cuts=2, amp=0.1, seed=seed + 1, sq=0.15)
+    # cuff: flattened tube along y, slightly flared, the dark opening at the front
+    with k.at(0, -gl / 2, gt / 2, rx=-90):
+        rr = 1.0
+        k.lathe(region, [(rr * 1.06, 0.0), (rr * 1.08, 0.3), (rr * 1.0, 1.4), (rr * 0.97, 3.6)], seg=12,
+                oval=(gw / 2 * 1.04, gt / 2))
+        k.lathe("glove_in", [(rr * 0.85, -0.04), (rr * 0.85, -0.015)], seg=12, oval=(gw / 2 * 1.04, gt / 2))
+    # palm / back of the hand
+    k.blob(region, 0, gl * 0.05, gt / 2, gw, gl * 0.48, gt, cuts=3, amp=0.06, seed=seed, sq=0.0)
     if fingers:
-        fw = gw / 4.3
+        fw = gw / 4.2
         for i in range(4):
-            fx = -gw / 2 + fw * (i + 0.6)
-            fl = (2.8, 3.3, 3.1, 2.6)[i]
-            k.blob("glove", fx, gl * 0.3 + fl / 2, gt * 0.4, fw * 0.95, fl, gt * 0.7, cuts=1, amp=0.08, sq=0.1,
-                   seed=seed + 2 + i)
-        with k.at(thumb_side * gw * 0.5, gl * 0.05, 0, rz=-thumb_side * 40):
-            k.blob("glove", 0, 1.2, gt * 0.4, fw * 1.1, 3.0, gt * 0.7, cuts=1, amp=0.08, seed=seed + 7, sq=0.1)
-    else:
-        k.blob("glove", 0, gl * 0.38, gt * 0.45, gw * 0.85, 2.8, gt * 0.85, cuts=2, amp=0.1, seed=seed + 2, sq=0.15)
+            fx = -gw / 2 + fw * (i + 0.55)
+            fl = (2.6, 3.2, 3.0, 2.4)[i]
+            with k.at(fx, gl * 0.2, gt * 0.45, rz=(1.5 - i) * 5):
+                k.blob(region, 0, fl / 2, 0, fw * 0.92, fl + 0.6, gt * 0.72, cuts=2, amp=0.05, sq=0.0,
+                       seed=seed + 2 + i)
+    else:                                   # folded over: the fingers tucked under as a roll
+        k.blob(region, 0, gl * 0.27, gt * 0.5, gw * 0.95, 2.2, gt * 1.05, cuts=2, amp=0.06, sq=0.0,
+               seed=seed + 2)
+    with k.at(thumb_side * gw * 0.42, -gl * 0.06, gt * 0.45, rz=-thumb_side * 38):
+        k.blob(region, 0, 1.3, 0, 1.25, 3.2, gt * 0.75, cuts=2, amp=0.05, seed=seed + 7, sq=0.0)
 
 
 def d3(coll):
@@ -730,16 +829,16 @@ def d3(coll):
             k.rrect("potholder", 0, 0, 4.2, 6.0, 0.5, 0, 0.3)
             k.rrect("trim_red", 0, -2.9, 4.2, 0.5, 0.2, -0.05, 0.35)
         # round black pot holder with red trim, tilted on the towel
-        with k.at(4.7, 11.2, 2.3, rx=-16, ry=4):
+        with k.at(4.8, 10.2, 2.7, rx=-16, ry=4):
             k.cyl("potholder", POTHOLDER_R - 0.2, 0, 0.3, seg=16)
             k.lathe("trim_red", [(POTHOLDER_R - 0.25, -0.05), (POTHOLDER_R, 0.05),
                                  (POTHOLDER_R, 0.3), (POTHOLDER_R - 0.25, 0.4)], seg=16, closed=True)
             k.blob("trim_red", 0, -POTHOLDER_R - 0.3, 0.15, 0.9, 0.8, 0.3, cuts=1, amp=0.05)
         # two cream oven gloves with the blue stripe print at the front
         with k.at(2.6, 5.8, 1.0, rz=4):
-            glove(k, 21, fingers=True, thumb_side=1)
+            glove(k, "glove", 21, fingers=True, thumb_side=1)
         with k.at(7.0, 5.6, 1.4, rz=-4, ry=6):
-            glove(k, 31, fingers=False)
+            glove(k, "glove_b", 31, fingers=False, thumb_side=-1)
     return k.obj("kitchen_cabinets_drawer_d3_contents", coll, ((x0 + x1) / 2, (y0 + y1) / 2, z0))
 
 
@@ -919,6 +1018,30 @@ def _island_uvs(ob, regions):
                     uvl.data[li].uv = (u0 + fu * (u1 - u0), v0 + fv * (v1 - v0))
 
 
+def _topdown_uvs(ob, regions):
+    """Project each region's faces straight down onto its whole rect, over that region's
+    XY bounds in the object (image up = +y, the glove's finger end)."""
+    me = ob.data
+    names = [mm.name.split(".")[0] for mm in me.materials]
+    uvl = me.uv_layers["UVMap"]
+    for region in regions:
+        if region not in names:
+            continue
+        ri = names.index(region)
+        polys = [p for p in me.polygons if p.material_index == ri]
+        if not polys:
+            continue
+        vs = [me.vertices[v].co for p in polys for v in p.vertices]
+        x0, x1 = min(v.x for v in vs), max(v.x for v in vs)
+        y0, y1 = min(v.y for v in vs), max(v.y for v in vs)
+        u0, v0, u1, v1 = common.uv_rect(ATLAS, region)
+        for p in polys:
+            for li in p.loop_indices:
+                co = me.vertices[me.loops[li].vertex_index].co
+                fu, fv = (co.x - x0) / (x1 - x0), (co.y - y0) / (y1 - y0)
+                uvl.data[li].uv = (u0 + fu * (u1 - u0), v0 + fv * (v1 - v0))
+
+
 def texture(objs):
     mat = common.atlas_material(NAME, ATLAS)
     clear = common.atlas_material(NAME + "_clear", ATLAS)
@@ -932,6 +1055,7 @@ def texture(objs):
     for ob in objs:
         common.atlas_uvs(ob, ATLAS)
         _island_uvs(ob, PAINTED)
+        _topdown_uvs(ob, TOPDOWN)
         common.collapse_materials(ob, {r: (clear if r in CLEAR_REGIONS else mat) for r in REGIONS})
         me = ob.data
         used = {p.material_index for p in me.polygons}

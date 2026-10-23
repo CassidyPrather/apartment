@@ -2,6 +2,8 @@
 // - Cabinet doors: every <pkg>_door_<id> with a <pkg>_door_<id>_out marker in front of it
 //   (origin on the hinge pin) gets a synced DoorSwing that turns it ~100 degrees toward the
 //   marker; silent, with a trigger collider to click.
+// - Folding corner doors: <pkg>_fold_<id>_outer (hinged on its origin) and _inner (origin on
+//   the fold) get a BifoldDoor that folds the pair flat and swings it toward the _out marker.
 // - Drawers: every <pkg>_drawer_<id> with a <pkg>_drawer_<id>_grab marker at its pull gets a
 //   SlidingDrawer grab handle on the marker (VRC Pickup, kinematic Rigidbody), sliding out
 //   along the horizontal axis from the drawer's centre toward the pull.
@@ -22,6 +24,8 @@ public static class CabinetSetup
 {
     const float SwingDegrees = 100f;
     const float TravelFraction = 0.75f;          // of the drawer's depth
+    const float FoldSwing = 105f;                // folding corner door: the pair's swing
+    const float FoldTurn = 85f;                  // and the fold (short of 90 so the panels don't touch)
 
     [MenuItem("Apartment/Setup Cabinets")]
     public static void Setup()
@@ -98,6 +102,42 @@ public static class CabinetSetup
             doors++;
         }
 
+        // Folding corner doors: <pkg>_fold_<id>_outer swings on its hinge (origin) toward the
+        // <pkg>_fold_<id>_out marker while _inner (origin on the fold) folds flat against it.
+        int folds = 0;
+        foreach (var outer in all.Where(t => t.name.Contains("_fold_") && t.name.EndsWith("_outer")).ToArray())
+        {
+            var stem = outer.name.Substring(0, outer.name.Length - "_outer".Length);
+            var inner = outer.parent != null ? outer.parent.Find(stem + "_inner") : null;
+            var outMark = outer.parent != null ? outer.parent.Find(stem + "_out") : null;
+            var r = outer.GetComponent<Renderer>();
+            if (inner == null || outMark == null || r == null) continue;
+            var c0 = r.bounds.center;
+            var start = outer.localRotation;
+            outer.localRotation = Quaternion.AngleAxis(FoldSwing, Vector3.up) * start;
+            float sign = Vector3.Dot(r.bounds.center - c0, outMark.position - c0) > 0f ? 1f : -1f;
+            outer.localRotation = start;
+            MakeMoving(outer);
+            MakeMoving(inner);
+            var box = inner.gameObject.AddComponent<BoxCollider>();
+            box.isTrigger = true;
+            var mf = inner.GetComponent<MeshFilter>();
+            if (mf != null && mf.sharedMesh != null) { box.center = mf.sharedMesh.bounds.center; box.size = mf.sharedMesh.bounds.size; }
+            var s = UdonSharpUndo.AddComponent<BifoldDoor>(inner.gameObject);
+            s.outer = outer;
+            s.inner = inner;
+            s.outerPin = outer.localPosition;
+            s.innerPin = inner.localPosition;
+            s.outerClosed = outer.localRotation;
+            s.innerClosed = inner.localRotation;
+            s.openDegrees = FoldSwing * sign;
+            s.foldDegrees = FoldTurn * sign;     // folds the same way the pair swings
+            s.seconds = 0.8f;
+            s.InteractionText = "Open";
+            UdonSharpEditorUtility.CopyProxyToUdon(s);
+            folds++;
+        }
+
         int drawers = 0;
         foreach (var drawer in all.Where(t => t.name.Contains("_drawer_") && !t.name.EndsWith("_grab") && !t.name.EndsWith("_contents")).ToArray())
         {
@@ -140,7 +180,7 @@ public static class CabinetSetup
             drawers++;
         }
         EditorSceneManager.MarkSceneDirty(UnityEngine.SceneManagement.SceneManager.GetActiveScene());
-        Debug.Log($"[CabinetSetup] {doors} cabinet doors, {drawers} drawers, {contents} drawer contents set up");
+        Debug.Log($"[CabinetSetup] {doors} cabinet doors, {folds} folding doors, {drawers} drawers, {contents} drawer contents set up");
     }
 
     // Moving: out of the bake and static batching, lit by Light Volumes/probes, no solid colliders.

@@ -9,6 +9,7 @@
 
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UdonSharp;
 using UdonSharpEditor;
 using UnityEditor;
@@ -62,6 +63,7 @@ public static class FilingCabinetSetup
 
     internal static void ConfigureTextures()
     {
+        var tiled = ObjectImporter.TiledAtlases();
         foreach (var guid in AssetDatabase.FindAssets("t:Texture2D", new[] { Textures }))
         {
             var path = AssetDatabase.GUIDToAssetPath(guid);
@@ -78,7 +80,8 @@ public static class FilingCabinetSetup
             imp.alphaSource = TextureImporterAlphaSource.FromInput;
             imp.alphaIsTransparency = false;
             imp.mipmapEnabled = true;
-            imp.wrapMode = name.StartsWith("cabinet_paint") || name.StartsWith("shell_") ? TextureWrapMode.Repeat : TextureWrapMode.Clamp;
+            bool repeat = name.StartsWith("cabinet_paint") || name.StartsWith("shell_") || tiled.Any(a => name.StartsWith(a + "_"));
+            imp.wrapMode = repeat ? TextureWrapMode.Repeat : TextureWrapMode.Clamp;
             imp.anisoLevel = 2;
             imp.maxTextureSize = size;
             imp.textureCompression = TextureImporterCompression.Compressed;

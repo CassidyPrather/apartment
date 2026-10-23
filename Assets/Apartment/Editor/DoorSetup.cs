@@ -135,6 +135,7 @@ public static class DoorSetup
             s.outerClosed = outer.localRotation;
             s.innerClosed = inner.localRotation;
             s.openDegrees = 80f * sign;
+            s.foldDegrees = -160f * sign;
             s.sound = a;
             s.openClips = opens;
             s.closeClips = closes;
@@ -158,7 +159,9 @@ public static class DoorSetup
         // along it, staying on its own track (depth kept)
         var axis = (leaves[1].localPosition - leaves[0].localPosition);
         axis.y = 0f;
-        var along = axis.normalized;
+        // the straight line along the opening only: the centres also differ by the 1.6 in
+        // between the tracks, which would put each opened leaf on the other's track
+        var along = Mathf.Abs(axis.x) > Mathf.Abs(axis.z) ? new Vector3(Mathf.Sign(axis.x), 0f, 0f) : new Vector3(0f, 0f, Mathf.Sign(axis.z));
         float span = Vector3.Dot(axis, along);
         int n = 0;
         foreach (var (leaf, dir) in new[] { (leaves[0], 1f), (leaves[1], -1f) })

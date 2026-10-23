@@ -19,7 +19,7 @@ CABINETS[id] (static cabinet interiors, the empty space inside the carcass):
     "partitions": (optional) [(a0, a1)] vertical panels across the full depth splitting
                the interior (along x for "N" runs)
     "front":   the plane of the face frame's back (y for "N", x for "W"): stuff must stay
-               behind it so the doors close
+               behind it so the doors close ("corner" also has "front_w" for its west leg)
 DRAWERS[id]: the INSIDE of each drawer box when CLOSED (x, y extents; z = (inside bottom top
     surface, top edge of the sides)). Contents go in a separate `<drawer object>_contents`
     object placed for the closed position.
@@ -27,7 +27,8 @@ SINK_OBSTACLES: boxes (name, (x0,x1), (y0,y1), (z0,z1)) under the sink to keep c
     (sink bowls, disposal, drain/P-trap).
 
 Photos: Reference/cupboards_drawers/PXL_20261023_*.jpg, sorted index: 0 wu1, 1 wu2, 2 wu3,
-3 cu, 4 nu1 (east bay), 5 nu2, 6 nu3, 7 sink, 8 corner, 9-12 d1-d4, 13 ed, 14 eb.
+3 cu, 4 nu1 (east bay), 5 nu2, 6 nu3, 7 sink, 8 corner (bifold door, L cabinet), 9-12 d1-d4,
+13 ed, 14 eb.
 Shelf heights are PHOTO (proportioned on the back wall, perspective-corrected by eye);
 carcass panel sizes are EST (standard 1/2 in sides/back, 3/4 in floor, 3/4 in face frame).
 """
@@ -79,23 +80,25 @@ CABINETS = {
             "shelves": [], "shelf_depth": None, "front": N_UP_FRONT},                  # photo 5
     "nu3": {"run": "N", "x": (80.0, 97.5), "y": (N_UP_FRONT, WALL_N - PANEL), "z": _up(53.0),
             "shelves": [64.0, 73.5, 88.5], "shelf_depth": None, "front": N_UP_FRONT},  # photo 6
-    "fu": {"run": "N", "x": (99.5, 133.5), "y": (268.0 + DOOR_T + FRAME_T, WALL_N - PANEL),
-           "z": (84.0 + FLOOR_T, UP_Z1 - PANEL),
-           "shelves": [], "shelf_depth": None, "front": 268.0 + DOOR_T + FRAME_T},     # no photo (12 in tall: no shelf)
+    # (no "fu": the box over the fridge is only a facade)
     # base, west run (fronts +x)
     "sink": {"run": "W", "x": (WALL_W + PANEL, W_BASE_FRONT), "y": (213.0, 248.0),
              "z": (BASE_FLOOR, COUNTER_UNDER),   # bowls hang to z 27.5: see SINK_OBSTACLES
              "shelves": [], "shelf_depth": None, "front": W_BASE_FRONT},               # photo 7
-    "wb": {"run": "W", "x": (WALL_W + PANEL, W_BASE_FRONT), "y": (249.0, 259.0),
-           "z": (BASE_FLOOR, COUNTER_UNDER),
-           "shelves": [17.5], "shelf_depth": None, "front": W_BASE_FRONT},             # no photo
-    # north blind-corner cabinet behind the corner door (x 25.5-36.5): L-shaped shelf
-    "corner": {"run": "N", "x": (0.5, 35.75), "y": (N_BASE_FRONT, WALL_N - PANEL),
+    # L-shaped blind-corner cabinet behind the single bifold corner door (photo 8): the west
+    # leg (y 249-260.25 behind the door's outer panel, the old "wb") plus the north part. "x"/"y"
+    # are its bounding box; "poly" is the exact L; "front" (north opening, y) and "front_w"
+    # (west opening, x) are the face-frame backs.
+    "corner": {"run": "N", "x": (0.5, 35.75), "y": (249.0, WALL_N - PANEL),
                "z": (BASE_FLOOR, COUNTER_UNDER),
-               "shelves": [17.5], "shelf_depth": None, "front": N_BASE_FRONT,
-               # photo 8: back strip ~12 in deep along the north wall into the blind corner,
-               # plus a full-depth leg along the east side (by the drawers), rounded inside corner
-               "shelf_poly": [(0.5, 285.5), (0.5, 273.5), (24.0, 273.5), (26.0, 273.2),
+               "poly": [(0.5, 249.0), (W_BASE_FRONT, 249.0), (W_BASE_FRONT, N_BASE_FRONT),
+                        (35.75, N_BASE_FRONT), (35.75, WALL_N - PANEL), (0.5, WALL_N - PANEL)],
+               "shelves": [17.5], "shelf_depth": None, "front": N_BASE_FRONT, "front_w": W_BASE_FRONT,
+               # photo 8: one L shelf: a ~12 in strip along the west wall (behind the outer panel),
+               # a ~12 in strip along the north wall, a full-depth leg by the drawers, rounded
+               # inside corners (the front-left cut-out leaves the corner floor free)
+               "shelf_poly": [(0.5, 285.5), (0.5, 249.5), (12.5, 249.5), (12.5, 270.0), (12.9, 271.8),
+                              (14.0, 273.0), (16.0, 273.5), (24.0, 273.5), (26.0, 273.2),
                               (27.6, 272.3), (28.5, 271.0), (28.8, 269.5),
                               (28.8, N_BASE_FRONT + FRONT_SETBACK),
                               (35.75, N_BASE_FRONT + FRONT_SETBACK), (35.75, 285.5)]},

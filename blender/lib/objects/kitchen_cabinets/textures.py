@@ -13,6 +13,10 @@ small pale nicks, and grime along the bottom edge; "oak_edge" (the stile each ba
 pull is mounted on) is the oak tile with a paler worn patch where hands grab below the
 pull, pale scratches and grime at the foot. The uppers stay clean and glossy, as seen.
 
+Countertop: its own tiled texture kitchen_cabinets_counter (512 px = 18 in, world-scale UVs):
+a light grey-white speckled granite-look laminate as on photo 8's top edge: soft mottling,
+fine grey and black specks and a few larger dark flecks, drawn wrapped so it tiles seamlessly.
+
 Interiors (inside photos Reference/cupboards_drawers 0-14): "melamine" warm white carcass
 and shelves, "drawer" the slightly creamier drawer boxes (photos 9-13), "floor_stain" (each
 base floor gets the whole image) white melamine with brown drip rings, grime speckles and
@@ -84,6 +88,7 @@ def build():
     worn(a, tile)
     stains(a)
     a.save()
+    counter_tile()
 
 
 def _blot(img, lay, cx, cy, rx, ry, rgb, alpha, feather=0.0):
@@ -200,3 +205,35 @@ def stains(a):
                  (x + w - 10, y - 6, 16, h + 12)):
         _soft_rect(a, edge, r, (104, 84, 58), 0.3, 8)
     a.material("floor_water", 0.0, 0.2)
+
+
+def counter_tile():
+    n = 512
+    rs = random.Random(11)
+    img, lay = new_image(n, n, "kitchen_cabinets_counter")
+    fill_rect(img, lay, (0, 0, n, n), (222, 223, 220))
+    grain(img, lay, (0, 0, n, n), 0.05, 6.0)               # soft mottling
+    grain(img, lay, (0, 0, n, n), 0.03, 0.8)
+
+    def speck(cx, cy, r, rgb, alpha):
+        for ox in (-n, 0, n):
+            for oy in (-n, 0, n):
+                x, y = cx + ox, cy + oy
+                if -r <= x <= n + r and -r <= y <= n + r:
+                    img.select_ellipse(Gimp.ChannelOps.REPLACE, x - r, y - r, 2 * r, 2 * r)
+                    if not Gimp.Selection.is_empty(img):
+                        _fill(lay, tuple(rgb) + (alpha,))
+        Gimp.Selection.none(img)
+
+    for _ in range(260):                                    # pale grey clouds
+        speck(rs.uniform(0, n), rs.uniform(0, n), rs.uniform(2.0, 5.0), (196, 196, 192), 0.25)
+    for _ in range(1700):                                   # fine grey specks
+        g = rs.randint(110, 170)
+        speck(rs.uniform(0, n), rs.uniform(0, n), rs.uniform(0.6, 1.2), (g, g, g - 4), rs.uniform(0.5, 0.9))
+    for _ in range(420):                                    # fine black specks
+        g = rs.randint(25, 60)
+        speck(rs.uniform(0, n), rs.uniform(0, n), rs.uniform(0.6, 1.1), (g, g, g), rs.uniform(0.6, 1.0))
+    for _ in range(28):                                     # a few larger dark flecks
+        g = rs.randint(30, 70)
+        speck(rs.uniform(0, n), rs.uniform(0, n), rs.uniform(1.6, 2.6), (g, g - 2, g - 4), 0.85)
+    _tile_save(img, "kitchen_cabinets_counter", 0.5)

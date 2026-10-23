@@ -16,7 +16,9 @@ Reference/cupboards_drawers/, sorted index: PXL_20261023_032025775 / _032032811)
       bandage box on its side, pink razor, teal and pink small boxes, teal blister cards,
       a rose-gold compact, white papers, a navy jar (medicine) with a black lid, and
       floss packs standing at the back.
-  The bottom drawer has no photo and stays empty.
+  vanity_drawer_bottom_contents      the BOTTOM drawer (no photo; per Cassidy): three
+      flat tissue boxes (navy, light blue, white with a lavender band), a teal cube box and
+      a lavender plastic-wrapped hygiene pack. Reparented under vanity_drawer_bottom.
 
 No brands: every package is a flat colour block in its real colour scheme (no text,
 logos or barcodes), so no parody names are used.
@@ -327,6 +329,33 @@ def drawer_items(b, x0, x1, y0, y1, zf):
     box(b, "floss_grey", (14.0, 4.4, z), (2.4, 3.0, 0.3), heading=35, tilt=(0, -6))
 
 
+def tissue_box(b, c, size, body, top, heading=0.0, band=None):
+    """Plain tissue box lying flat: body colour, a top panel with the dispenser slot as a
+    darker/white oval-ish inset, an optional colour band round the middle."""
+    sx, sy, sz = size
+    box(b, body, c, size, heading=heading, bevel=0.08, seg=1)
+    box(b, top, (c[0], c[1], c[2] + sz), (sx * 0.45, sy * 0.6 if sy > sx else sy * 0.45, 0.03),
+        heading=heading)
+    if band:
+        box(b, band, (c[0], c[1], c[2] + sz * 0.3), (sx + 0.04, sy + 0.04, sz * 0.35), heading=heading)
+
+
+def bottom_drawer_items(b, x0, x1, y0, y1, zf):
+    """Bottom drawer (no photo; Cassidy: spare tissue boxes and a hygiene pack). Inside
+    x0..x1, y0..y1, bottom zf; the box's top edge is 6.75 in above zf."""
+    z = zf
+    # Three flat boxes side by side, long axis front to back (8.6 x 4.6 x 3.6 SPEC-ish).
+    tissue_box(b, (x0 + 2.6, y0 + 5.0, z), (4.6, 8.6, 3.6), "tissue_navy", "tissue_blue", heading=2)
+    tissue_box(b, (x0 + 7.6, y0 + 5.2, z), (4.6, 8.6, 3.6), "pale_blue", "white", heading=-3)
+    tissue_box(b, (x0 + 12.6, y0 + 5.0, z), (4.6, 8.6, 3.6), "white", "lavender", heading=1,
+               band="lavender")
+    # A cube box standing at the back (4.6 cube), teal with a white top.
+    tissue_box(b, (x1 - 3.0, y1 - 3.2, z), (4.6, 4.6, 4.6), "bc_teal", "white", heading=6)
+    # Hygiene pack: soft plastic-wrapped lavender pack lying at the back.
+    box(b, "lavender", (x0 + 6.5, y1 - 2.6, z), (6.0, 4.2, 2.8), heading=-4, bevel=0.6)
+    box(b, "white", (x0 + 6.5, y1 - 2.6, z + 2.8), (3.0, 2.0, 0.03), heading=-4)
+
+
 def _move_last(b, n, mat):
     """Transform the last n vertices created (the loft just made) by mat."""
     b.bm.verts.ensure_lookup_table()
@@ -348,17 +377,20 @@ def build(coll):
     under_sink(b)
     bmesh.ops.transform(b.bm, matrix=P, verts=list(b.bm.verts))
     root = b.to_object(NAME, coll)
-    # Drawer contents: origin at the drawer's own origin (closed), in plan.
-    x0, x1, y0, y1, zf = (v / IN for v in vz.drawer_interior("top"))
-    d = common.Builder(REGIONS)
-    drawer_items(d, x0, x1, y0, y1, zf)
-    bmesh.ops.transform(d.bm, matrix=P, verts=list(d.bm.verts))
+    # Drawer contents: origin at each drawer's own origin (closed), in plan.
     L = vz.layout()
     s_ = m(vz.DRAWER_CLR)
-    org_local = Vector(((L["ox2"] + s_ + L["ox3"] - s_) / 2, L["yf"] + m(vz.DRAWER_D) / 2,
-                        L["dzm"] + m(vz.MID_RAIL / 2) + m(0.4)))
-    drawer = d.to_object(DRAWER + "_contents", coll, origin=P @ org_local)
-    return [root, drawer]
+    out = [root]
+    for which, fill, oz0 in (("top", drawer_items, L["dzm"] + m(vz.MID_RAIL / 2)),
+                             ("bottom", bottom_drawer_items, L["oz0"])):
+        x0, x1, y0, y1, zf = (v / IN for v in vz.drawer_interior(which))
+        d = common.Builder(REGIONS)
+        fill(d, x0, x1, y0, y1, zf)
+        bmesh.ops.transform(d.bm, matrix=P, verts=list(d.bm.verts))
+        org_local = Vector(((L["ox2"] + s_ + L["ox3"] - s_) / 2, L["yf"] + m(vz.DRAWER_D) / 2,
+                            oz0 + m(0.4)))
+        out.append(d.to_object(f"vanity_drawer_{which}_contents", coll, origin=P @ org_local))
+    return out
 
 
 def texture(objs):

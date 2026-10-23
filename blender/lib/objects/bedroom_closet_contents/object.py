@@ -4,7 +4,9 @@
             light pine hanging rod under it, socketed in the end cleats
   garments  a full rod: white plastic hangers (silver wire hooks on the north run, all-
             plastic further south, about one in four teal), clip hangers for the skirts and
-            trousers at the north end, and the clothes as cheap lumpy hanging panels:
+            trousers at the north end, and the clothes as low-poly lofted cloth (shoulders
+            sloping off the hanger arms, hanging sleeve tubes on the tops and jackets,
+            vertical drape folds, softly flared wavy hems, a small lean each):
             dark coats, a white dress with black leaf sprays, a long crimson dress with
             gold glitter swirls, a crimson top, a pink shirt, a blue gingham shirt, a
             floral shirt, a breton stripe, a red plaid flannel, a tan blazer (black
@@ -141,16 +143,24 @@ class B(common.Builder):
         self.boxmap(f, region, along)
         return f
 
-    def lump(self, region, c, size, seed, rough=0.05, yaw=0.0, base=None, segs=(11, 6)):
+    def lump(self, region, c, size, seed, rough=0.05, yaw=0.0, base=None, segs=(11, 6), crumple=0.0):
         """A squashed, noisy sphere: fabric piles, bags, hat crowns. base = z below which
-        the verts flatten onto the resting surface."""
+        the verts flatten onto the resting surface. crumple > 0 adds creased fabric: a few
+        sharp ridges (|sin| bands in random directions) and a slumped, flatter top."""
         rng = random.Random(seed)
         r = bmesh.ops.create_uvsphere(self.bm, u_segments=segs[0], v_segments=segs[1], radius=1.0)
         verts = r["verts"]
         cy, sy = math.cos(yaw), math.sin(yaw)
+        bands = [(Vector((rng.uniform(-1, 1), rng.uniform(-1, 1), rng.uniform(-0.6, 0.6))).normalized(),
+                  rng.uniform(2.2, 3.6), rng.uniform(0, 6.3)) for _ in range(3)]
         for v in verts:
             x, y, z = v.co
             k = 1.0 + rng.uniform(-rough, rough)
+            if crumple:
+                ridge = sum(abs(math.sin(f * d.dot(v.co) + ph)) - 0.64 for d, f, ph in bands)
+                k += crumple * ridge
+                if z > 0.3:                     # cloth slumps: the top flattens out
+                    z = 0.3 + (z - 0.3) * 0.6
             x, y, z = x * size[0] / 2 * k, y * size[1] / 2 * k, z * size[2] / 2 * k
             x, y = x * cy - y * sy, x * sy + y * cy
             z = z + size[2] / 2
@@ -239,7 +249,7 @@ GARMENTS = [
     ("black", 166.6, "top", 18.5, 2.4, 19, -6, "t"),
     ("cream_jacket", 165.3, "top", 27.0, 1.6, 18, 14, "t"),
     ("crimson", 164.2, "top", 42.5, 0.8, 16, -8, "t"),
-    ("puffer", 161.6, "puffer", 28.0, 9.0, 22, 22, "w"),
+    ("puffer", 161.6, "puffer", 28.0, 8.5, 20, 12, "w"),
     ("magenta", 159.7, "top", 19.0, 0.9, 16, -6, "t"),
     ("dark_grey", 158.7, "top", 20.5, 1.8, 18, 6, "w"),
     ("white_shirt", 157.7, "top", 41.5, 0.6, 16, -10, "w"),
@@ -273,97 +283,164 @@ def _xf(y, turn):
     return f
 
 
-SECTION = [(1.0, -0.8), (0.45, -0.55), (-0.45, -0.55), (-1.0, -0.8), (-1.0, 0.8), (-0.45, 0.55),
-           (0.45, 0.55), (1.0, 0.8)]
+SEG = 14          # body section points (7 a face: room for two or three folds)
+SLEEVE_SEG = 6
+
+
+def _section(seg):
+    """Lens-shaped body section (unit half-width/half-thickness), counter-clockwise."""
+    out = []
+    for k in range(seg):
+        a = 2 * math.pi * (k + 0.5) / seg
+        ca, sa = math.cos(a), math.sin(a)
+        out.append((math.copysign(abs(ca) ** 0.85, ca), sa))
+    return out
+
+
+SECTION = _section(SEG)
+
+
+def _mirror_u(pts):
+    """u round a closed section: 0 at the middle of one face, 1 at the other, and back, so
+    a print keeps its scale all the way round with no seam."""
+    n = len(pts)
+    d = [0.0]
+    for k in range(n):
+        d.append(d[-1] + (pts[(k + 1) % n] - pts[k]).length)
+    P = d[-1]
+    d0 = d[n // 4]                      # about the middle of the -y face
+    return [1 - abs(2 * (((d[k] - d0) / P) % 1.0) - 1) for k in range(n)]
+
+
+def _loft(b, rings, uvs, region):
+    """Quads between consecutive rings of equal size, both ends capped."""
+    n = len(rings[0])
+    for i in range(len(rings) - 1):
+        for k in range(n):
+            k1 = (k + 1) % n
+            f = b.bm.faces.new((rings[i][k], rings[i][k1], rings[i + 1][k1], rings[i + 1][k]))
+            b.setuv(f, (uvs[i][k], uvs[i][k1], uvs[i + 1][k1], uvs[i + 1][k]), region)
+    for i, rev in ((0, True), (len(rings) - 1, False)):
+        idx = list(range(n))[::-1] if rev else list(range(n))
+        f = b.bm.faces.new([rings[i][k] for k in idx])
+        b.setuv(f, [uvs[i][k] for k in idx], region)
+
+
+def _shoulder_drop(x):
+    """How far below the neck the cloth sits at |x| across: it follows the hanger arm out to
+    its tip, then rolls off over the end."""
+    r = abs(x) / HANGER_HALF
+    return HANGER_DROP * min(r, 1.0) + 2.2 * max(0.0, r - 1.0) ** 1.3
 
 
 def garment(b, spec, seed):
+    """One garment on its hanger, scripted: a lofted body (sloped shoulders on the hanger
+    arms, gentle vertical folds that deepen toward a softly flared, wavy hem), hanging
+    sleeve tubes at the sides for tops/jackets/coats, and a small lean so neighbours
+    overlap."""
     region, y, kind, hem, T, W, turn, _ = spec
     rng = random.Random(seed)
-    # hanging bulk: sleeves at the sides and the fabric's drape make a garment fuller and
-    # wider than its flat body; a little extra random turn breaks the rows up
-    if kind == "top":
-        T, W = T * 1.6 + 1.0, W + 1.5
-    elif kind == "dress":
-        T = T * 1.3 + 0.9
     turn += rng.uniform(-3, 3) if abs(turn) > 30 else rng.uniform(-8, 8)
-    xf = _xf(y, turn)
-    rings = []                                  # (z, half width, half thickness, shoulder drop)
+    xf0 = _xf(y, turn)
+    lean_x, lean_y = rng.uniform(-0.025, 0.025), rng.uniform(-0.07, 0.07)
+
+    def P(x, yy, z):
+        d = max(0.0, NECK_Z - z)
+        return xf0(x + lean_x * d, yy + lean_y * d, z)
+
+    sleeves = kind in ("top", "puffer")
+    Tb = {"top": T * 1.1 + 0.4, "dress": T * 1.2 + 0.7}.get(kind, T)
+    flare = {"dress": 1.35, "clip": 1.18 if W > 14 else 1.04, "top": 1.05, "puffer": 1.02}[kind]
+    rings = []                                  # (z, half width, half thickness, follows shoulder)
     if kind == "clip":
-        top = NECK_Z - 2.0 if spec is not DENIM else 53.0
-        rings.append((top, W * 0.47, T * 0.25, 0.0))
-        rings.append((top - 1.5, W * 0.5, T * 0.45, 0.0))
-        body_top = top - 1.5
+        top = 53.0 if spec is DENIM else NECK_Z - 2.0
+        rings.append((top, W * 0.48, Tb * 0.22, False))
+        body_top = top - 1.2
+        rings.append((body_top, W * 0.5, Tb * 0.4, False))
     else:
-        top = NECK_Z + 0.2
-        rings.append((top, W * 0.11, T * 0.3, 0.0))
-        rings.append((NECK_Z - 1.2, W * 0.5, T * 0.42, HANGER_DROP + 0.3))
-        body_top = NECK_Z - 5.0
-        rings.append((body_top, W * 0.5, T * 0.5, 0.0))
-    flare = {"dress": 1.35, "clip": 1.2 if W > 14 else 1.0, "top": 0.97, "puffer": 1.0}[kind]
+        rings.append((NECK_Z + 0.2, W * 0.12, Tb * 0.28, False))
+        rings.append((NECK_Z - 0.8, W * 0.5, Tb * 0.38, True))
+        body_top = NECK_Z - 5.5
+        rings.append((body_top, W * 0.5, Tb * 0.5, True))
     length = body_top - hem
     if kind == "puffer":
         n = max(3, int(length / 4.0))
         for i in range(1, n + 1):
-            t = i / n
-            pinch = 0.7 if i % 2 else 1.0
-            rings.append((body_top - length * t, W * 0.5 * (1.0 - 0.04 * pinch), T * 0.5 * pinch, 0.0))
+            pinch = 0.6 if i % 2 else 1.0              # quilted baffles: stitched lines pinch in
+            hemband = 0.9 if i == n else 1.0           # elastic hem
+            rings.append((body_top - length * i / n, W * 0.5 * (0.95 if i % 2 else 1.0) * hemband,
+                          Tb * 0.5 * pinch * hemband, False))
     else:
-        n = 2 if length < 20 else 3
+        n = max(2, int(length / 9.0))
         for i in range(1, n + 1):
             t = i / n
-            w = W * 0.5 * (1 + (flare - 1) * t ** 1.3) * (0.96 if (kind == "top" and t < 0.7) else 1.0)
-            rings.append((body_top - length * t, w, T * 0.5 * (1.0 + 0.45 * t), 0.0))   # splays at the hem
-    seg = 8
-    verts, uvs = [], []
-    wmax = max(r[1] for r in rings) * 2
+            w = W * 0.5 * (1 + (flare - 1) * t ** 1.6)
+            rings.append((body_top - length * t, w, Tb * 0.5 * (1.0 + 0.4 * t), False))
     zt, zb = rings[0][0], rings[-1][0]
-    phase = rng.uniform(0, 6.3)
-    # u runs round the section from the middle of one face (0) to the middle of the other
-    # (1) and back, so the print keeps its scale on the ends a visitor sees, with no seam
-    pts = [Vector((px * W / 2, py * T / 2, 0)) for px, py in SECTION]
-    d = [0.0]
-    for k in range(seg):
-        d.append(d[-1] + (pts[(k + 1) % seg] - pts[k]).length)
-    P, d0 = d[-1], (d[1] + d[2]) / 2
-    usec = [1 - abs(2 * (((d[k] - d0) / P) % 1.0) - 1) for k in range(seg)]
-    for ri, (z, w, t, drop) in enumerate(rings):
-        ring, ruv = [], []
+    span = max(zt - zb, 1e-3)
+    fq, ph, ph2 = rng.uniform(0.5, 0.8), rng.uniform(0, 6.3), rng.uniform(0, 6.3)
+    usec = _mirror_u([Vector((px * W / 2, py * Tb / 2, 0)) for px, py in SECTION])
+    verts, uvs = [], []
+    for ri, (z, w, t, sh) in enumerate(rings):
+        down = max(0.0, (body_top - z) / max(length, 1e-3))
         last = ri == len(rings) - 1
-        for k in range(seg):
-            # dumbbell section: the sleeves hanging at both ends make the ends (the side a
-            # visitor sees from the doors) fuller than the middle
-            px, py = SECTION[k]
+        ring, ruv = [], []
+        for k, (px, py) in enumerate(SECTION):
             x, yy = w * px, t * py
-            sa = py
-            if ri > 0:
-                x += rng.uniform(-0.35, 0.35)
-                # folds: the faces ripple along the width
-                yy += (0.35 + 0.15 * T) * math.sin(x * 0.45 + phase + ri * 1.7) * (1 if sa > 0 else -1)
-                yy += rng.uniform(-0.12, 0.12) * T
-            zz = z - drop * (abs(x) / max(w, 1e-3)) ** 1.2
+            zz = z
+            if sh:
+                zz -= _shoulder_drop(x) * (1.0 if ri == 1 else 0.55)
+            if ri >= 2:
+                # vertical drape folds: the faces ripple across the width, deeper lower down
+                amp = (0.45 + 0.12 * Tb) * (0.3 + 0.9 * down)
+                yy += amp * math.sin(x * fq + ph) * (1 if py > 0 else -1)
+                yy += 0.25 * amp * math.sin(x * fq * 2.3 + ph2)
+                x += rng.uniform(-0.2, 0.2)
             if last:
-                zz += rng.uniform(-0.6, 0.6)
-            elif ri > 1:
-                zz += rng.uniform(-0.25, 0.25)
-            ring.append(b.bm.verts.new(xf(x, yy, zz)))
-            ruv.append((usec[k], (zz - zb) / max(zt - zb, 1e-3)))
+                zz += 0.7 * math.sin(x * 0.7 + ph2) + rng.uniform(-0.3, 0.3)
+            ring.append(b.bm.verts.new(P(x, yy, zz)))
+            ruv.append((usec[k], (zz - zb) / span))
         verts.append(ring)
         uvs.append(ruv)
-    for i in range(len(verts) - 1):
-        for k in range(seg):
-            k1 = (k + 1) % seg
-            f = b.bm.faces.new((verts[i][k], verts[i][k1], verts[i + 1][k1], verts[i + 1][k]))
-            b.setuv(f, (uvs[i][k], uvs[i][k1], uvs[i + 1][k1], uvs[i + 1][k]), region)
-    for i, rev in ((0, True), (len(verts) - 1, False)):
-        idx = list(range(seg))[::-1] if rev else list(range(seg))
-        f = b.bm.faces.new([verts[i][k] for k in idx])
-        b.setuv(f, [uvs[i][k] for k in idx], region)
-    if region == "tan_blazer":              # four black sleeve buttons (photo 19), on the face
-        for j in range(4):
-            p = xf(-W * 0.5 + 2.2, T * 0.5 + 0.1, hem + 2.5 + j * 0.9)
-            f = b.cylinder("button_black", p, 0.35, 0.2, axis="Y", segments=6)
-            b.boxmap(f, "button_black")
+    _loft(b, verts, uvs, region)
+    if not sleeves:
+        return
+    # sleeves: tubes hanging from the shoulder points, a little forward of the side seams
+    long_ = hem < 36.0
+    sr = 0.9 + 0.22 * T
+    # print scale on the sleeves matches the body's (u spans half the body's girth)
+    us = min(1.0, math.pi * sr / (W + Tb))
+    sv = [us * (1 - abs(2 * k / SLEEVE_SEG - 1)) for k in range(SLEEVE_SEG)]
+    for side in (-1, 1):
+        sx = side * (W * 0.5 - 0.4)
+        zs = NECK_Z - 0.8 - _shoulder_drop(sx) - 0.8
+        L = min(23.0, zs - hem - 1.5) if long_ else 7.0
+        L = max(L, 5.0)
+        fwd = -(0.22 * Tb + 0.25)
+        # the armhole starts inside the body, up under the shoulder, so no cap shows
+        path = [(sx - side * 2.2, fwd * 0.2, zs + 1.6, sr * 0.5, sr * 0.6),
+                (sx + side * 0.25, fwd * 0.8, zs - 1.5, sr * 0.85, sr * 1.05),
+                (sx + side * 0.15, fwd * 1.15, zs - L * 0.6, sr * 0.8, sr * 0.92),
+                (sx - side * 0.35, fwd * 1.25, zs - L, sr * (0.75 if long_ else 0.95), sr * (0.82 if long_ else 1.05))]
+        rings, ruvs = [], []
+        for cx, cy, cz, rx, ry in path:
+            ring, ruv = [], []
+            for k in range(SLEEVE_SEG):
+                a = 2 * math.pi * (k + 0.5) / SLEEVE_SEG
+                x = cx + rx * math.cos(a) + rng.uniform(-0.08, 0.08)
+                yy = cy + ry * math.sin(a)
+                zz = cz + (rng.uniform(-0.25, 0.25) if cz < zs else 0.0)
+                ring.append(b.bm.verts.new(P(x, yy, zz)))
+                ruv.append((sv[k], (zz - zb) / span))
+            rings.append(ring)
+            ruvs.append(ruv)
+        _loft(b, rings, ruvs, region)
+        if region == "tan_blazer" and side == -1:      # four black buttons above the cuff
+            cx, cy, cz, rx, ry = path[-1]
+            for j in range(4):
+                p = P(cx - rx * 0.95, cy - ry * 0.3, cz + 1.4 + j * 0.85)
+                b.lump("button_black", (p.x, p.y, p.z - 0.3), (0.6, 0.6, 0.6), 500 + j, rough=0.0,
+                       segs=(6, 4))
 
 
 def hanger(b, y, turn, kind):
@@ -373,9 +450,9 @@ def hanger(b, y, turn, kind):
     metal = kind in ("wm", "c")
     body = {"t": "hanger_teal"}.get(kind, "hanger_white")
     hook_r = 0.08 if metal else 0.12
-    hook = [(0.0, NECK_Z - 0.2), (-0.92, 62.9), (-0.72, 64.55), (0.3, 64.85), (0.98, 64.0)]
+    hook = [(0.0, NECK_Z - 0.2), (-0.95, 63.2), (-0.35, 64.75), (0.85, 64.3)]
     b.sw("chrome" if metal else body, [xf(x, 0, z) for x, z in hook],
-         common.circle_profile(hook_r, 6 if metal else 5), up=up)
+         common.circle_profile(hook_r, 4), up=up)
     if kind == "c":                             # clip bar, post and two clips
         bar_z = NECK_Z - 1.6
         b.sw("hanger_white", [xf(-7.2, 0, bar_z), xf(7.2, 0, bar_z)], common.rect_profile(0.45, 0.3), up=up)
@@ -432,19 +509,27 @@ def cap(b, region, c, yaw, seed, tilt=0.0, brim_region=None):
 
 
 def strip(b, region, pts, width, thick):
-    """A hanging fabric strip (scarf, towel end, strap) swept along pts in an x-z plane."""
-    b.sw(region, [Vector(p) for p in pts], common.rect_profile(thick, width), up=(0, 1, 0))
+    """A hanging fabric strip (scarf, towel end, strap) swept along pts in an x-z plane:
+    a soft lens section on a smoothed path that bends over the shelf edge, with a slight
+    sway in y so it doesn't read as a board."""
+    path = common.smooth_path(pts, samples=2 if width > 1.5 else 1)
+    path = [p + Vector((0, 0.25 * width * math.sin(i * 1.3) / max(len(path), 1) * 2, 0))
+            for i, p in enumerate(path)]
+    n = 8 if width > 1.5 else 4
+    prof = [(thick / 2 * math.cos(2 * math.pi * k / n) * (1.0 if k % 2 else 0.8),
+             width / 2 * math.sin(2 * math.pi * k / n)) for k in range(n)]
+    b.sw(region, path, prof, up=(0, 1, 0))
 
 
 def shelf_items(coll):
     b = B()
     # photo 19, north half, north -> south
-    b.lump("black_warm", (268.0, 193.6, S), (11.5, 8.5, 10.0), 1, base=S)
-    b.lump("black", (264.0, 190.4, S), (7.5, 5.5, 5.5), 2, base=S)
-    b.lump("red_fabric", (262.6, 196.0, S), (4.0, 3.2, 2.4), 3, base=S)
+    b.lump("black_warm", (268.0, 193.6, S), (11.5, 8.5, 10.0), 1, base=S, crumple=0.2, segs=(12, 7))
+    b.lump("black", (264.0, 190.4, S), (7.5, 5.5, 5.5), 2, base=S, crumple=0.2, segs=(12, 7))
+    b.lump("red_fabric", (262.6, 196.0, S), (4.0, 3.2, 2.4), 3, base=S, crumple=0.2, segs=(12, 7))
     strip(b, "orange", [(265.5, 193.5, S + 0.4), (261.0, 193.5, S + 0.5), (260.2, 193.4, 64.5),
                         (260.0, 193.2, 60.0)], 4.5, 0.9)
-    b.lump("towel_beige", (264.6, 188.2, S), (8.5, 7.0, 4.0), 4, base=S, rough=0.09)
+    b.lump("towel_beige", (264.6, 188.2, S), (8.5, 7.0, 4.0), 4, base=S, rough=0.09, crumple=0.2, segs=(12, 7))
     strip(b, "towel_beige", [(264.5, 185.2, S + 2.0), (260.9, 185.2, S + 0.6), (260.3, 185.0, 64.8),
                              (260.5, 184.7, 62.5)], 3.5, 0.8)
     b.lump("black", (268.6, 183.4, S), (9.0, 8.0, 7.5), 5, base=S)       # black bag
@@ -453,24 +538,24 @@ def shelf_items(coll):
     b.sw("leather_brown", [Vector(p) for p in arc], common.circle_profile(0.4, 6))   # its handle
     cap(b, "cap_black", (269.5, 183.0, S + 7.0), math.radians(200), 6, brim_region="black")
     cap(b, "cap_black", (268.0, 179.8, S + 5.0), math.radians(160), 7, brim_region="black")
-    b.lump("stripe", (271.0, 178.4, S), (7.0, 5.5, 8.0), 8, base=S)
+    b.lump("stripe", (271.0, 178.4, S), (7.0, 5.5, 8.0), 8, base=S, crumple=0.2, segs=(12, 7))
     cap(b, "denim_light", (265.4, 179.4, S + 0.6), math.radians(120), 9, tilt=1.2)
-    b.lump("grey_fabric", (262.8, 176.6, S), (5.0, 5.0, 2.2), 10, base=S)
-    b.lump("fleece_blue", (264.0, 175.4, S), (6.0, 5.0, 4.0), 11, base=S, rough=0.09)
+    b.lump("grey_fabric", (262.8, 176.6, S), (5.0, 5.0, 2.2), 10, base=S, crumple=0.2, segs=(12, 7))
+    b.lump("fleece_blue", (264.0, 175.4, S), (6.0, 5.0, 4.0), 11, base=S, rough=0.09, crumple=0.2, segs=(12, 7))
     strip(b, "fleece_blue", [(264.5, 174.6, S + 3.0), (260.9, 174.3, S + 1.0), (259.9, 173.8, 64.0),
                              (259.4, 173.0, 58.0), (259.7, 172.0, 54.5)], 4.2, 1.4)
-    b.lump("knit_multi", (266.6, 171.6, S), (7.5, 6.0, 5.0), 12, base=S, rough=0.09)
-    b.lump("black", (268.5, 168.6, S), (7.5, 6.0, 5.0), 13, base=S)
+    b.lump("knit_multi", (266.6, 171.6, S), (7.5, 6.0, 5.0), 12, base=S, rough=0.09, crumple=0.2, segs=(12, 7))
+    b.lump("black", (268.5, 168.6, S), (7.5, 6.0, 5.0), 13, base=S, crumple=0.2, segs=(12, 7))
     # photo 20, south half
-    b.lump("knit_multi", (267.4, 165.0, S), (8.5, 5.0, 6.0), 14, base=S, rough=0.09)
-    b.lump("black", (268.2, 160.2, S), (12.0, 9.0, 5.5), 15, base=S)
-    b.lump("black_warm", (266.6, 154.2, S), (12.0, 8.0, 4.5), 16, base=S)
+    b.lump("knit_multi", (267.4, 165.0, S), (8.5, 5.0, 6.0), 14, base=S, rough=0.09, crumple=0.2, segs=(12, 7))
+    b.lump("black", (268.2, 160.2, S), (12.0, 9.0, 5.5), 15, base=S, crumple=0.2, segs=(12, 7))
+    b.lump("black_warm", (266.6, 154.2, S), (12.0, 8.0, 4.5), 16, base=S, crumple=0.2, segs=(12, 7))
     for dy in (0.0, 0.9):
         strip(b, "black", [(264.0, 159.6 + dy, S + 1.5), (260.8, 159.6 + dy, S + 0.4),
                            (260.2, 159.5 + dy, 64.0), (260.5, 159.4 + dy, 61.5)], 0.9, 0.3)
-    b.lump("white_fabric", (264.2, 151.0, S), (9.0, 7.0, 3.0), 17, base=S, rough=0.09)
-    b.lump("black", (268.4, 145.6, S), (8.0, 7.0, 8.0), 18, base=S)
-    b.lump("brown_print", (268.0, 145.2, S + 6.5), (6.5, 5.0, 3.0), 19, base=S + 6.5)
+    b.lump("white_fabric", (264.2, 151.0, S), (9.0, 7.0, 3.0), 17, base=S, rough=0.09, crumple=0.2, segs=(12, 7))
+    b.lump("black", (268.4, 145.6, S), (8.0, 7.0, 8.0), 18, base=S, crumple=0.2, segs=(12, 7))
+    b.lump("brown_print", (268.0, 145.2, S + 6.5), (6.5, 5.0, 3.0), 19, base=S + 6.5, crumple=0.2, segs=(12, 7))
     strip(b, "black", [(264.5, 141.6, S + 0.5), (261.0, 141.4, S + 0.5), (260.3, 141.0, 63.5)], 3.0, 0.5)
     # closed paper parasol standing in the south-east corner, leaning on the walls
     tilt = Matrix.Rotation(math.radians(4), 3, "X") @ Matrix.Rotation(math.radians(-3), 3, "Y")
@@ -545,7 +630,7 @@ def hamper(b):
                                     ((1.5, 4.0, 14.0), (8.5, 7.5, 6.0), "jeans_dark", 42),
                                     ((0.5, -5.5, 13.0), (8.0, 5.0, 4.0), "grey_tee", 43)):
         p = M @ Vector((x, y, 0))
-        b.lump(reg, (p.x, p.y, z), size, s, rough=0.09, yaw=yaw)
+        b.lump(reg, (p.x, p.y, z), size, s, rough=0.09, yaw=yaw, crumple=0.2, segs=(12, 7))
 
 
 def floor_items(coll):

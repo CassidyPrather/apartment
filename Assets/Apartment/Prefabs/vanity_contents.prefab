@@ -68,6 +68,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: vanity_contents
       objectReference: {fileID: 0}
+    - target: {fileID: 1358129134293881249, guid: ff098d28f1a9e424aa25556567ae0684,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 87
+      objectReference: {fileID: 0}
     - target: {fileID: 8099905667002907944, guid: ff098d28f1a9e424aa25556567ae0684,
         type: 3}
       propertyPath: m_StaticEditorFlags

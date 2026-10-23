@@ -17,6 +17,8 @@ public class BifoldDoor : UdonSharpBehaviour
     public Quaternion outerClosed;
     public Quaternion innerClosed;
     public float openDegrees = 80f;         // signed: the side the fold swings out to
+    public float foldDegrees = -160f;       // the lead leaf's turn relative to the outer one when open
+                                            // (-2 x openDegrees for a flat bifold; less for a corner one)
     public AudioSource sound;
     public AudioClip[] openClips;
     public AudioClip[] closeClips;
@@ -102,7 +104,7 @@ public class BifoldDoor : UdonSharpBehaviour
         outer.localRotation = turn * outerClosed;
         outer.localPosition = outerPin;
         inner.localPosition = outerPin + turn * (innerPin - outerPin);
-        inner.localRotation = Quaternion.AngleAxis(-a, Vector3.up) * innerClosed;
+        inner.localRotation = Quaternion.AngleAxis(a + foldDegrees * k, Vector3.up) * innerClosed;
     }
 
     void Play(AudioClip[] clips)

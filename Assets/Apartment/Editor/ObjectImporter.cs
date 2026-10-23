@@ -131,6 +131,23 @@ public static class ObjectImporter
         return mat;
     }
 
+    // Atlases some package's manifest marks "tiled": their textures repeat (and stay out of AtlasSetup).
+    internal static HashSet<string> TiledAtlases()
+    {
+        var result = new HashSet<string>();
+        if (!Directory.Exists(ObjectsDir))
+            return result;
+        foreach (var dir in Directory.GetDirectories(ObjectsDir))
+        {
+            var path = Path.Combine(dir, "manifest.json");
+            if (File.Exists(path))
+                foreach (var spec in ParseMaterials(File.ReadAllText(path)).Values)
+                    if (spec.tiled)
+                        result.Add(spec.atlas);
+        }
+        return result;
+    }
+
     static void SetRepeat(string atlas)
     {
         foreach (var suffix in new[] { "_albedo", "_mask", "_emission" })
