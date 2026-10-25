@@ -42,16 +42,18 @@ if [ -n "$missing" ]; then
     status=1
 fi
 
-# Any meta whose subject is gone?
-while IFS= read -r meta; do
-    [ -z "$meta" ] && continue
-    target=${meta%.meta}
-    if ! printf '%s\n' "$files" | grep -qxF "$target" \
-        && ! printf '%s\n' "$files" | grep -q "^$(printf '%s' "$target" | sed 's/[].[^$*\\]/\\&/g')/"; then
-        echo "check-meta: stale meta (its subject is no longer tracked): $meta"
-        status=1
-    fi
-done <<< "$metas"
+# Any meta whose subject is gone? A subject is a tracked file or a directory
+# that still holds one. Compared with comm rather than per-meta
+# `printf | grep -q`: under pipefail, grep -q exiting at its first match
+# SIGPIPEs printf once the list outgrows the pipe buffer, which turned live
+# metas into random "stale" reports.
+subjects=$(printf '%s\n%s\n' "$files" "$dirs" | sed '/^$/d' | sort -u)
+stale=$(comm -23 <(printf '%s\n' "$metas" | sed '/^$/d' | sed 's/\.meta$//' | sort -u) \
+    <(printf '%s\n' "$subjects"))
+if [ -n "$stale" ]; then
+    printf '%s\n' "$stale" | sed 's/^\(.*\)$/check-meta: stale meta (its subject is no longer tracked): \1.meta/'
+    status=1
+fi
 
 [ "$status" -eq 0 ] && echo "check-meta: ok"
 exit "$status"
